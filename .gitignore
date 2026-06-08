@@ -13,3 +13,4 @@ moc_*
 *.o.d
 MovieTracker
 .DS_Store
+.vscode

@@ -1,2 +1,3 @@
 - command Q quit
 - command w quit
+- redo item if image cant be found

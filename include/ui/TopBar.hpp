@@ -5,11 +5,9 @@
 
 #include <QWidget>
 
-class QLineEdit;
-class QPushButton;
-
 class TopBar : public QWidget
 {
+    Q_OBJECT
 public:
     explicit TopBar(QWidget *parent = nullptr);
 
@@ -19,4 +17,9 @@ private:
     IconButton *addButton;
     TextButton *MoviesButton;
     TextButton *TvShowsButton;
+
+    void connectButtons();
+
+signals:
+    void requestAddMode();
 };

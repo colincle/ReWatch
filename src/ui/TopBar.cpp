@@ -15,41 +15,56 @@ TopBar::TopBar(QWidget *parent)
         "background-color: " COLOR_BG_SECONDARY ";"
         "border-bottom: 1px solid " COLOR_BORDER ";"
     );
+    setAttribute(Qt::WA_StyledBackground, true);
 
     auto *layout = new QHBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setContentsMargins(20, 0, 20, 0);
+    layout->setSpacing(10);
 
-    // LEFT (text buttons)
-    QWidget *left = new QWidget(this);
-    auto *leftLayout = new QHBoxLayout(left);
-    leftLayout->setContentsMargins(20, 0, 0, 0);
-    leftLayout->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    leftLayout->setSpacing(25);
-
+    // LEFT GROUP (direct, no QWidget wrapper)
     MoviesButton = new TextButton("Movies", buttonsHeight, this);
     TvShowsButton = new TextButton("TV shows", buttonsHeight, this);
+    MoviesButton->toggleActive();
 
-    leftLayout->addWidget(MoviesButton);
-    leftLayout->addWidget(TvShowsButton);
+    layout->addWidget(MoviesButton);
+    layout->addWidget(TvShowsButton);
 
-    layout->addWidget(left, 1);
+    // FLEX SPACE
+    layout->addStretch();
 
-    // MIDDLE (spacer)
-    QWidget *middle = new QWidget(this);
-    layout->addWidget(middle, 1);
-
-    // RIGHT (add button)
-    QWidget *right = new QWidget(this);
-    auto *rightLayout = new QHBoxLayout(right);
-    rightLayout->setContentsMargins(0, 0, 20, 0);
-    rightLayout->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-
+    // RIGHT GROUP (direct, no QWidget wrapper)
     sortButton = new IconButton(SORT_ICON, buttonsHeight, this);
     rankButton = new IconButton(RANK_ICON, buttonsHeight, this);
-    addButton = new IconButton(ADD_ICON, buttonsHeight, this);
-    rightLayout->addWidget(sortButton);
-    rightLayout->addWidget(rankButton);
-    rightLayout->addWidget(addButton);
+    addButton  = new IconButton(ADD_ICON, buttonsHeight, this);
 
-    layout->addWidget(right, 1);
+    layout->addWidget(sortButton);
+    layout->addWidget(rankButton);
+    layout->addWidget(addButton);
+
+    connectButtons();
+}
+
+void TopBar::connectButtons()
+{
+    connect(MoviesButton, &QPushButton::clicked, this, [this]() {
+        MoviesButton->toggleActive();
+        TvShowsButton->toggleActive();
+    });
+
+    connect(TvShowsButton, &QPushButton::clicked, this, [this]() {
+        MoviesButton->toggleActive();
+        TvShowsButton->toggleActive();
+    });
+    
+    connect(sortButton, &QPushButton::clicked, this, [this]() {
+        //behavior here
+    });
+
+    connect(rankButton, &QPushButton::clicked, this, [this]() {
+        //behavior here
+    });
+
+    connect(addButton, &QPushButton::clicked, this, [this]() {
+        emit requestAddMode();
+    });
 }

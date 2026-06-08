@@ -12,7 +12,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network Concurrent Svg)
 
 include_directories(
 	include
-	include/app
+	include/core
 	include/ui
 	external/json
 	external/tinyfiledialogs
@@ -28,7 +28,7 @@ add_executable(MovieTracker ${SOURCES})
 
 target_include_directories(MovieTracker PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/include
-	${CMAKE_CURRENT_SOURCE_DIR}/include/app
+	${CMAKE_CURRENT_SOURCE_DIR}/include/core
 	${CMAKE_CURRENT_SOURCE_DIR}/include/ui
 )
 
