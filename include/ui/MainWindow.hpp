@@ -20,4 +20,7 @@ private:
 
     void setupMenuBar();
     void connectMainWindow();
+
+private slots:
+    void onSetApiKeyTriggered();
 };

@@ -31,8 +31,6 @@ Spinner::Spinner(
 
     startNextMove();
 
-    // 1 -> 0.005
-    // 10 -> 0.05
     double progressPerFrame = speed * 0.005;
 
     connect(&timer, &QTimer::timeout, this,

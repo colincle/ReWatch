@@ -10,33 +10,33 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network Concurrent Svg)
 
-include_directories(
-	include
-	include/core
-	include/ui
-	external/json
-	external/tinyfiledialogs
+file(GLOB_RECURSE SOURCES
+    src/*.cpp
+    include/**/*.hpp
+    external/tinyfiledialogs/*.cpp
 )
 
-file(GLOB_RECURSE SOURCES
-	src/*.cpp
-	include/**/*.hpp
-	external/tinyfiledialogs/*.cpp
-)
+file(GLOB_RECURSE INCLUDE_DIRS LIST_DIRECTORIES true include/*)
+list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+foreach(DIR ${INCLUDE_DIRS})
+    if(IS_DIRECTORY ${DIR})
+        include_directories(${DIR})
+    endif()
+endforeach()
 
 add_executable(MovieTracker ${SOURCES})
 
 target_include_directories(MovieTracker PRIVATE
-	${CMAKE_CURRENT_SOURCE_DIR}/include
-	${CMAKE_CURRENT_SOURCE_DIR}/include/core
-	${CMAKE_CURRENT_SOURCE_DIR}/include/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${INCLUDE_DIRS}
 )
 
 target_link_libraries(MovieTracker
-	Qt6::Core
-	Qt6::Gui
-	Qt6::Widgets
-	Qt6::Network
-	Qt6::Concurrent
-	Qt6::Svg
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::Network
+    Qt6::Concurrent
+    Qt6::Svg
 )

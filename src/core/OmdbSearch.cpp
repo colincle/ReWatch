@@ -10,10 +10,11 @@
 #include <QUrl>
 #include <QPixmap>
 
-OmdbSearch::OmdbSearch(QString query,
-                       QString key,
-                       QObject *parent)
-    : apiKey(key), QObject(parent)
+OmdbSearch::OmdbSearch(AppStorage &appStorage,
+                        QString query,
+                        QString key,
+                        QObject *parent)
+    : appStorage(appStorage), apiKey(key), QObject(parent)
 {
     query.replace(' ', '+');
     requestUrl = baseUrl + apiKey + titleSearch + query;
@@ -35,6 +36,92 @@ void OmdbSearch::search()
             &OmdbSearch::onReplyFinished);
 }
 
+void OmdbSearch::fetchById(const QString &imdbId, const QPixmap &posterImage)
+{
+    QString url = baseUrl + apiKey + idSearch + imdbId;
+
+    QNetworkReply *reply =
+        networkManager.get(QNetworkRequest(QUrl(url)));
+
+    connect(reply, &QNetworkReply::finished, this,
+        [this, reply, posterImage]()
+        {
+            if (reply->error() != QNetworkReply::NoError)
+            {
+                reply->deleteLater();
+                return;
+            }
+
+            QJsonObject root =
+                QJsonDocument::fromJson(reply->readAll()).object();
+
+            reply->deleteLater();
+
+            if (root["Response"].toString() == "False")
+                return;
+
+            appStorage.addTitle(titleFromJson(root, posterImage), posterImage);
+            emit titleFetched();
+        }
+    );
+}
+
+
+Title OmdbSearch::titleFromJson(const QJsonObject &root, const QPixmap &posterImage)
+{
+    Title t;
+
+    t.title        = root["Title"].toString();
+    t.year         = root["Year"].toString();
+    t.imdbId       = root["imdbID"].toString();
+    t.type         = root["Type"].toString();
+    t.released     = root["Released"].toString();
+    t.plot         = root["Plot"].toString();
+    t.director     = root["Director"].toString();
+    t.actors       = root["Actors"].toString();
+    t.totalSeasons = root["totalSeasons"].toString();
+    t.posterImage  = posterImage;
+    t.isMovie      = t.type == "movie";
+    t.isSeries     = t.type == "series";
+
+    return t;
+}
+
+void OmdbSearch::loadPosterForTitle(int i, const QString &posterUrl)
+{
+    if (posterUrl == "N/A")
+    {
+        searchResults.titles[i].posterImage.load(POSTER_PLACEHOLDER);
+
+        if (--pendingPosters == 0)
+            emit searchFinished();
+
+        return;
+    }
+
+    QNetworkReply *posterReply =
+        networkManager.get(
+            QNetworkRequest(QUrl(posterUrl)));
+
+    connect(posterReply, &QNetworkReply::finished, this,
+        [this, i, posterReply]()
+        {
+            QPixmap &image = searchResults.titles[i].posterImage;
+
+            if (posterReply->error() != QNetworkReply::NoError ||
+                !image.loadFromData(posterReply->readAll()))
+            {
+                image.load(POSTER_PLACEHOLDER);
+            }
+
+            posterReply->deleteLater();
+
+            if (--pendingPosters == 0)
+                emit searchFinished();
+        }
+    );
+}
+
 void OmdbSearch::onReplyFinished()
 {
     QNetworkReply *reply =
@@ -53,34 +140,28 @@ void OmdbSearch::onReplyFinished()
     if (reply->error() != QNetworkReply::NoError)
     {
         searchResults.error = reply->errorString();
-
         reply->deleteLater();
         emit searchFinished();
         return;
     }
 
-    QJsonDocument doc =
-        QJsonDocument::fromJson(reply->readAll());
+    QJsonObject root =
+        QJsonDocument::fromJson(reply->readAll()).object();
 
-    QJsonObject root = doc.object();
+    reply->deleteLater();
 
     if (root["Response"].toString() == "False")
     {
         searchResults.error = root["Error"].toString();
-
-        reply->deleteLater();
         emit searchFinished();
         return;
     }
 
-    QJsonArray titles = root["Search"].toArray();
-
-    for (const QJsonValue &value : titles)
+    for (const QJsonValue &value : root["Search"].toArray())
     {
         QJsonObject obj = value.toObject();
 
         resultTitle title;
-
         title.title  = obj["Title"].toString();
         title.year   = obj["Year"].toString();
         title.imdbId = obj["imdbID"].toString();
@@ -89,8 +170,6 @@ void OmdbSearch::onReplyFinished()
 
         searchResults.titles.push_back(title);
     }
-
-    reply->deleteLater();
 
     pendingPosters = static_cast<int>(searchResults.titles.size());
 
@@ -101,97 +180,5 @@ void OmdbSearch::onReplyFinished()
     }
 
     for (int i = 0; i < static_cast<int>(searchResults.titles.size()); ++i)
-    {
-        if (searchResults.titles[i].poster == "N/A")
-        {
-            searchResults.titles[i]
-                .posterImage
-                .load(POSTER_PLACEHOLDER);
-
-            if (--pendingPosters == 0)
-                emit searchFinished();
-
-            continue;
-        }
-
-        QNetworkReply *posterReply =
-            networkManager.get(
-                QNetworkRequest(
-                    QUrl(searchResults.titles[i].poster)));
-
-        connect(
-            posterReply,
-            &QNetworkReply::finished,
-            this,
-            [this, i, posterReply]()
-            {
-                if (posterReply->error() == QNetworkReply::NoError)
-                {
-                    if (!searchResults.titles[i]
-                            .posterImage
-                            .loadFromData(
-                                posterReply->readAll()))
-                    {
-                        searchResults.titles[i]
-                            .posterImage
-                            .load(POSTER_PLACEHOLDER);
-                    }
-                }
-                else
-                {
-                    searchResults.titles[i]
-                        .posterImage
-                        .load(POSTER_PLACEHOLDER);
-                }
-
-                posterReply->deleteLater();
-
-                if (--pendingPosters == 0)
-                    emit searchFinished();
-            }
-        );
-    }
-}
-
-void OmdbSearch::fetchById(const QString &imdbId)
-{
-    QString url = baseUrl + apiKey + idSearch + imdbId;
-
-    QNetworkReply *reply =
-        networkManager.get(QNetworkRequest(QUrl(url)));
-
-    connect(reply, &QNetworkReply::finished, this,
-        [this, reply]()
-        {
-            if (reply->error() != QNetworkReply::NoError)
-            {
-                reply->deleteLater();
-                return;
-            }
-
-            QJsonObject root =
-                QJsonDocument::fromJson(reply->readAll()).object();
-
-            reply->deleteLater();
-
-            if (root["Response"].toString() == "False")
-                return;
-
-            Title t;
-            t.title        = root["Title"].toString();
-            t.year         = root["Year"].toString();
-            t.imdbId       = root["imdbID"].toString();
-            t.type         = root["Type"].toString();
-            t.released     = root["Released"].toString();
-            t.plot         = root["Plot"].toString();
-            t.director     = root["Director"].toString();
-            t.actors       = root["Actors"].toString();
-            t.posterUrl    = root["Poster"].toString();
-            t.totalSeasons = root["totalSeasons"].toString();
-            t.isMovie      = t.type == "movie";
-            t.isSeries     = t.type == "series";
-
-            emit titleFetched(t);
-        }
-    );
+        loadPosterForTitle(i, searchResults.titles[i].poster);
 }

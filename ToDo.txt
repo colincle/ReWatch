@@ -1,6 +1,1 @@
-- command Q quit
-- command w quit
-- redo item if image cant be found
-- connect title fetched to a new system to add titles
-- make adding a title update the main view
-- connect done button to remove item from library
+- Create main library view and connect it to the titles updated signal

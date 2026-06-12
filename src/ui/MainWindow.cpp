@@ -4,65 +4,70 @@
 #include <QVBoxLayout>
 #include <QMenuBar>
 #include <QInputDialog>
+#include <QShortcut>
+#include <QApplication>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    setupMenuBar();
-
     setMinimumSize(800, 600);
     resize(1200, 800);
+
     auto *central = new QWidget(this);
     setCentralWidget(central);
 
     auto *layout = new QVBoxLayout(central);
-
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    topBar = new TopBar;
-    addBar = new AddBar;
+    topBar       = new TopBar;
+    addBar       = new AddBar;
     searchResults = new SearchResults(appStorage);
-    addBar->hide();
-    searchResults->hide();
-    searchResults->hide();
-
-    connectMainWindow();
 
     topBar->setFixedHeight(70);
     addBar->setFixedHeight(70);
 
+    addBar->hide();
+    searchResults->hide();
+
     layout->addWidget(topBar);
     layout->addWidget(addBar);
     layout->addWidget(searchResults);
+
+    auto *quitShortcut = new QShortcut(QKeySequence::Close, this);
+    connect(quitShortcut, &QShortcut::activated, qApp, &QApplication::quit);
+
+    setupMenuBar();
+    connectMainWindow();
 }
 
 void MainWindow::setupMenuBar()
 {
-    QMenuBar *menuBar = new QMenuBar(this);
-    setMenuBar(menuBar);
-    QMenu *fileMenu = menuBar->addMenu("Omdb API key");
-    QAction *setKey = new QAction("Set API Key", this);
+    auto *menuBar = new QMenuBar(this);
+    auto *fileMenu = menuBar->addMenu("Omdb API key");
+    auto *setKey = new QAction("Set API Key", this);
+
     fileMenu->addAction(setKey);
+    setMenuBar(menuBar);
 
-    connect(setKey, &QAction::triggered, this, [this]() {
+    connect(setKey, &QAction::triggered, this, &MainWindow::onSetApiKeyTriggered);
+}
 
-        bool ok = false;
+void MainWindow::onSetApiKeyTriggered()
+{
+    bool ok = false;
 
-        QString key = QInputDialog::getText(
-            this,
-            "OMDb API Key",
-            "Enter your API key:",
-            QLineEdit::Normal,
-            "",
-            &ok
-        );
+    QString key = QInputDialog::getText(
+        this,
+        "OMDb API Key",
+        "Enter your API key:",
+        QLineEdit::Normal,
+        "",
+        &ok
+    );
 
-        if (ok && !key.isEmpty())
-        {
-            appStorage.setOmdbApiKey(key);
-        }
-    });
+    if (ok && !key.isEmpty())
+        appStorage.setOmdbApiKey(key);
 }
 
 void MainWindow::connectMainWindow()
@@ -71,14 +76,13 @@ void MainWindow::connectMainWindow()
         topBar->hide();
         addBar->show();
         searchResults->show();
-
     });
+
     connect(addBar, &AddBar::requestNormalMode, this, [this]() {
         topBar->show();
         addBar->hide();
         searchResults->hide();
     });
-    connect(addBar, &AddBar::searchRequested, this, [this](const QString &query) {
-        searchResults->search(query);
-    });
+
+    connect(addBar, &AddBar::searchRequested, searchResults, &SearchResults::search);
 }

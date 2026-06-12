@@ -2,6 +2,8 @@
 
 #include "AppStorage.hpp"
 #include "Spinner.hpp"
+#include "OmdbSearch.hpp"
+#include "IconButton.hpp"
 
 #include <QWidget>
 #include <QVBoxLayout>
@@ -16,13 +18,18 @@ public:
     void search(QString query);
 
 private:
+    void        onSearchFinished(OmdbSearch *omdbSearch);
+    QWidget*    makeResultRow(const resultTitle &title);
+    IconButton* makeDoneButton(const resultTitle &title, QWidget *row);
+    IconButton* makeAddButton(const resultTitle &title, QWidget *row);
+    void        setFullPageState(const QString &imagePath);
+    void        clearResultsLayout();
+    void        clearExtraLayoutWidgets();
 
-    void setFullPageState(const QString &imagePath);
-
-    AppStorage &appStorage;
+    AppStorage  &appStorage;
     QVBoxLayout *layout;
-    Spinner *spinner;
-    QWidget *resultsContainer;
+    Spinner     *spinner;
+    QWidget     *resultsContainer;
     QVBoxLayout *resultsLayout;
     QScrollArea *scrollArea;
 };

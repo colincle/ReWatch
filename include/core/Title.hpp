@@ -2,6 +2,7 @@
 
 #include <QString>
 #include <QList>
+#include <QPixmap>
 
 struct Title
 {
@@ -20,7 +21,7 @@ struct Title
     QString actors;
 
     // Media
-    QString posterUrl;
+    QPixmap posterImage;
 
     // Series-specific (empty for movies)
     QString totalSeasons;
