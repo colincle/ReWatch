@@ -1,76 +1,60 @@
 #include "TextButton.hpp"
 #include "ColorPalette.hpp"
+
 #include <QFont>
 
-TextButton::TextButton(const QString &text,
-                       int size,
-                       QWidget *parent)
+static QString makeStyle(const QString &bg, const QString &fg)
+{
+    return
+        "QPushButton {"
+        "   background-color: " + bg + ";"
+        "   border: none;"
+        "   border-radius: 6px;"
+        "   padding: 0px 14px;"
+        "   color: " + fg + ";"
+        "}";
+}
+
+TextButton::TextButton(const QString &text, int size, QWidget *parent)
     : QPushButton(text, parent)
 {
     setCursor(Qt::PointingHandCursor);
-
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     setFixedHeight(size);
-
     setContentsMargins(0, 0, 0, 0);
 
     QFont f = font();
     f.setPixelSize(static_cast<int>(size * 0.4));
     setFont(f);
 
-    normalStyle =
-        "QPushButton {"
-        "   background-color: " COLOR_SURFACE ";"
-        "   border: none;"
-        "   border-radius: 6px;"
-        "   padding: 0px 14px;"
-        "   color: " COLOR_ACCENT ";"
-        "}";
+    setStyleSheet(normalStyle());
+}
 
-    hoverStyle =
-        "QPushButton {"
-        "   background-color: " COLOR_ACCENT ";"
-        "   border: none;"
-        "   border-radius: 6px;"
-        "   padding: 0px 14px;"
-        "   color: " COLOR_SURFACE ";"
-        "}";
+QString TextButton::normalStyle() const
+{
+    return makeStyle(COLOR_SURFACE, COLOR_ACCENT);
+}
 
-    activeStyle =
-        "QPushButton {"
-        "   background-color: " COLOR_ACCENT ";"
-        "   border: none;"
-        "   border-radius: 6px;"
-        "   padding: 0px 14px;"
-        "   color: " COLOR_SURFACE ";"
-        "}";
-
-    setStyleSheet(normalStyle);
+QString TextButton::activeStyle() const
+{
+    return makeStyle(COLOR_ACCENT, COLOR_SURFACE);
 }
 
 void TextButton::toggleActive()
 {
     active = !active;
-    applyStyle();
+    setStyleSheet(active ? activeStyle() : normalStyle());
 }
 
-bool TextButton::isActive()
+bool TextButton::isActive() const
 {
-    return (active);
-}
-
-void TextButton::applyStyle()
-{
-    if (active)
-        setStyleSheet(activeStyle);
-    else
-        setStyleSheet(normalStyle);
+    return active;
 }
 
 void TextButton::enterEvent(QEnterEvent *event)
 {
     if (!active)
-        setStyleSheet(hoverStyle);
+        setStyleSheet(activeStyle());
 
     QPushButton::enterEvent(event);
 }
@@ -78,7 +62,7 @@ void TextButton::enterEvent(QEnterEvent *event)
 void TextButton::leaveEvent(QEvent *event)
 {
     if (!active)
-        setStyleSheet(normalStyle);
+        setStyleSheet(normalStyle());
 
     QPushButton::leaveEvent(event);
 }

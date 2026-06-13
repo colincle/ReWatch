@@ -1,11 +1,11 @@
 #include "MainWindow.hpp"
 #include "TopBar.hpp"
 
-#include <QVBoxLayout>
-#include <QMenuBar>
-#include <QInputDialog>
-#include <QShortcut>
 #include <QApplication>
+#include <QInputDialog>
+#include <QMenuBar>
+#include <QShortcut>
+#include <QVBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -13,6 +13,14 @@ MainWindow::MainWindow(QWidget *parent)
     setMinimumSize(800, 600);
     resize(1200, 800);
 
+    setupLayout();
+    setupMenuBar();
+    setupShortcuts();
+    connectSignals();
+}
+
+void MainWindow::setupLayout()
+{
     auto *central = new QWidget(this);
     setCentralWidget(central);
 
@@ -20,9 +28,10 @@ MainWindow::MainWindow(QWidget *parent)
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    topBar       = new TopBar;
-    addBar       = new AddBar;
+    topBar        = new TopBar;
+    addBar        = new AddBar;
     searchResults = new SearchResults(appStorage);
+    libraryView   = new LibraryView(appStorage);
 
     topBar->setFixedHeight(70);
     addBar->setFixedHeight(70);
@@ -33,19 +42,20 @@ MainWindow::MainWindow(QWidget *parent)
     layout->addWidget(topBar);
     layout->addWidget(addBar);
     layout->addWidget(searchResults);
+    layout->addWidget(libraryView);
+}
 
+void MainWindow::setupShortcuts()
+{
     auto *quitShortcut = new QShortcut(QKeySequence::Close, this);
     connect(quitShortcut, &QShortcut::activated, qApp, &QApplication::quit);
-
-    setupMenuBar();
-    connectMainWindow();
 }
 
 void MainWindow::setupMenuBar()
 {
-    auto *menuBar = new QMenuBar(this);
+    auto *menuBar  = new QMenuBar(this);
     auto *fileMenu = menuBar->addMenu("Omdb API key");
-    auto *setKey = new QAction("Set API Key", this);
+    auto *setKey   = new QAction("Set API Key", this);
 
     fileMenu->addAction(setKey);
     setMenuBar(menuBar);
@@ -55,8 +65,7 @@ void MainWindow::setupMenuBar()
 
 void MainWindow::onSetApiKeyTriggered()
 {
-    bool ok = false;
-
+    bool ok  = false;
     QString key = QInputDialog::getText(
         this,
         "OMDb API Key",
@@ -70,19 +79,27 @@ void MainWindow::onSetApiKeyTriggered()
         appStorage.setOmdbApiKey(key);
 }
 
-void MainWindow::connectMainWindow()
+void MainWindow::enterAddMode()
 {
-    connect(topBar, &TopBar::requestAddMode, this, [this]() {
-        topBar->hide();
-        addBar->show();
-        searchResults->show();
-    });
+    topBar->hide();
+    addBar->show();
+    searchResults->show();
+    libraryView->hide();
+}
 
-    connect(addBar, &AddBar::requestNormalMode, this, [this]() {
-        topBar->show();
-        addBar->hide();
-        searchResults->hide();
-    });
+void MainWindow::enterNormalMode()
+{
+    topBar->show();
+    addBar->hide();
+    searchResults->hide();
+    libraryView->show();
+}
 
-    connect(addBar, &AddBar::searchRequested, searchResults, &SearchResults::search);
+void MainWindow::connectSignals()
+{
+    connect(topBar, &TopBar::requestAddMode,    this,        &MainWindow::enterAddMode);
+    connect(addBar, &AddBar::requestNormalMode, this,        &MainWindow::enterNormalMode);
+    connect(topBar, &TopBar::requestSort,       libraryView, &LibraryView::setSort);
+    connect(topBar, &TopBar::requestTab,        libraryView, &LibraryView::setTab);
+    connect(addBar, &AddBar::searchRequested,   searchResults, &SearchResults::search);
 }

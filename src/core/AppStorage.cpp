@@ -1,97 +1,163 @@
 #include "AppStorage.hpp"
+#include "AssetsPaths.hpp"
 
 #include <QDir>
 #include <QFile>
-#include <QFileInfo>
+#include <QDate>
 #include <QIODevice>
-#include <QString>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 
+static QString appDirPath()
+{
+    return QDir::homePath() + "/.local/share/movieTracker";
+}
+
+static void ensureDirectoryExists(const QString &path)
+{
+    QDir dir(path);
+    if (!dir.exists())
+        dir.mkpath(path);
+}
+
+static void ensureStorageFileExists(const QString &filePath)
+{
+    QFile file(filePath);
+    if (file.exists())
+        return;
+
+    if (file.open(QIODevice::WriteOnly))
+    {
+        file.write("{\n\t\"omdbApiKey\": \"\",\n\t\"titles\": []\n}\n");
+        file.close();
+    }
+}
+
+static QJsonObject readJsonFile(const QString &filePath)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        qWarning() << "Failed to open file for reading:" << filePath;
+        return {};
+    }
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    return QJsonDocument::fromJson(data).object();
+}
+
+static bool writeJsonFile(const QString &filePath, const QJsonObject &root)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    {
+        qWarning() << "Failed to open file for writing:" << filePath;
+        return false;
+    }
+
+    file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+    file.close();
+    return true;
+}
+
+static Title titleFromJson(const QJsonObject &obj)
+{
+    Title t;
+
+    t.title        = obj["title"].toString();
+    t.year         = obj["year"].toString();
+    t.imdbId       = obj["imdbId"].toString();
+    t.type         = obj["type"].toString();
+
+    t.released     = obj["released"].toString();
+    t.plot         = obj["plot"].toString();
+
+    t.director     = obj["director"].toString();
+    t.actors       = obj["actors"].toString();
+
+    t.totalSeasons = obj["totalSeasons"].toString();
+
+    t.isMovie      = t.type == "movie";
+    t.isSeries     = t.type == "series";
+
+    t.rank         = obj["rank"].toInt(0);
+    t.viewed       = obj["viewed"].toBool(false);
+
+    t.lastViewed   = QDate::fromString(obj["lastViewed"].toString(), Qt::ISODate);
+    if (!t.lastViewed.isValid())
+        t.lastViewed = QDate::currentDate();
+
+    return t;
+}
+
+static QJsonObject titleToJson(const Title &t)
+{
+    QJsonObject obj;
+
+    obj["title"]        = t.title;
+    obj["year"]         = t.year;
+    obj["imdbId"]       = t.imdbId;
+    obj["type"]         = t.type;
+
+    obj["released"]     = t.released;
+    obj["plot"]         = t.plot;
+
+    obj["director"]     = t.director;
+    obj["actors"]       = t.actors;
+
+    obj["totalSeasons"] = t.totalSeasons;
+
+    obj["rank"]         = t.rank;
+    obj["viewed"]       = t.viewed;
+    obj["lastViewed"]   = t.lastViewed.toString(Qt::ISODate);
+
+    return obj;
+}
+
+static QString posterPath(const QString &postersPath, const QString &imdbId)
+{
+    return postersPath + "/" + imdbId + ".png";
+}
+
+static auto findByImdbId(std::vector<Title> &titles, const QString &imdbId)
+{
+    return std::find_if(
+        titles.begin(),
+        titles.end(),
+        [&](const Title &t) { return t.imdbId == imdbId; });
+}
+
 AppStorage::AppStorage()
 {
-    QString dirPath = QDir::homePath() + "/.local/share/movieTracker";
-    QString filePath = dirPath + "/movieTracker.json";
-    postersPath = dirPath + "/Posters";
+    const QString dirPath = appDirPath();
+    postersPath           = dirPath + "/Posters";
+    appFilePath           = dirPath + "/movieTracker.json";
 
-    appFilePath = filePath;
-
-    QDir dir(dirPath);
-
-    if (!dir.exists())
-        dir.mkpath(dirPath);
-
-    QDir postersDir(postersPath);
-
-    if (!postersDir.exists())
-        postersDir.mkpath(postersPath);
-
-    QFile file(filePath);
-
-    if (!file.exists())
-    {
-        if (file.open(QIODevice::WriteOnly))
-        {
-            file.write("{\n\t\"omdbApiKey\": \"\",\n\t\"titles\": []\n}\n");
-            file.close();
-        }
-    }
+    ensureDirectoryExists(dirPath);
+    ensureDirectoryExists(postersPath);
+    ensureStorageFileExists(appFilePath);
 
     load();
 }
 
 void AppStorage::load()
 {
-    QFile file(appFilePath);
-
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        qWarning() << "Failed to open file for reading:" << appFilePath;
+    QJsonObject root = readJsonFile(appFilePath);
+    if (root.isEmpty())
         return;
-    }
-
-    QByteArray data = file.readAll();
-    file.close();
-
-    QJsonDocument doc = QJsonDocument::fromJson(data);
-    QJsonObject root = doc.object();
 
     omdbApiKey = root["omdbApiKey"].toString();
-
     titles.clear();
 
-    QJsonArray arr = root["titles"].toArray();
-
-    for (const QJsonValue &val : arr)
+    for (const QJsonValue &val : root["titles"].toArray())
     {
-        QJsonObject obj = val.toObject();
+        Title t = titleFromJson(val.toObject());
 
-        Title t;
-
-        t.title        = obj["title"].toString();
-        t.year         = obj["year"].toString();
-        t.imdbId       = obj["imdbId"].toString();
-        t.type         = obj["type"].toString();
-
-        t.released     = obj["released"].toString();
-        t.plot         = obj["plot"].toString();
-
-        t.director     = obj["director"].toString();
-        t.actors       = obj["actors"].toString();
-
-        t.totalSeasons = obj["totalSeasons"].toString();
-
-        t.isMovie      = t.type == "movie";
-        t.isSeries     = t.type == "series";
-
-        QString posterFile =
-            postersPath + "/" + t.imdbId + ".png";
-
-        if (!t.posterImage.load(posterFile))
-        {
-            qWarning() << "Failed to load poster:" << posterFile;
-        }
+        if (!t.posterImage.load(posterPath(postersPath, t.imdbId)))
+            t.posterImage.load(POSTER_PLACEHOLDER);
 
         titles.push_back(std::move(t));
     }
@@ -99,97 +165,33 @@ void AppStorage::load()
 
 void AppStorage::save()
 {
-    QJsonObject root;
-
-    root["omdbApiKey"] = omdbApiKey;
-
     QJsonArray arr;
-
     for (const Title &t : titles)
-    {
-        QJsonObject obj;
+        arr.append(titleToJson(t));
 
-        obj["title"]        = t.title;
-        obj["year"]         = t.year;
-        obj["imdbId"]       = t.imdbId;
-        obj["type"]         = t.type;
+    QJsonObject root;
+    root["omdbApiKey"] = omdbApiKey;
+    root["titles"]     = arr;
 
-        obj["released"]     = t.released;
-        obj["plot"]         = t.plot;
-
-        obj["director"]     = t.director;
-        obj["actors"]       = t.actors;
-
-        obj["totalSeasons"] = t.totalSeasons;
-
-        arr.append(obj);
-    }
-
-    root["titles"] = arr;
-
-    QFile file(appFilePath);
-
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-    {
-        qWarning() << "Failed to open file for writing:" << appFilePath;
-        return;
-    }
-
-    QJsonDocument doc(root);
-
-    file.write(doc.toJson(QJsonDocument::Indented));
-    file.close();
+    writeJsonFile(appFilePath, root);
 }
 
 void AppStorage::setOmdbApiKey(QString key)
 {
     omdbApiKey = key;
-
-    QFile file(appFilePath);
-
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        qWarning() << "Failed to open file for updating API key:" << appFilePath;
-        return;
-    }
-
-    QByteArray data = file.readAll();
-    file.close();
-
-    QJsonDocument doc = QJsonDocument::fromJson(data);
-    QJsonObject root = doc.object();
-
-    root["omdbApiKey"] = key;
-
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-    {
-        qWarning() << "Failed to write file:" << appFilePath;
-        return;
-    }
-
-    file.write(QJsonDocument(root).toJson());
-    file.close();
+    save();
 }
 
 void AppStorage::addTitle(const Title &title, const QPixmap &posterImage)
 {
-    auto it = std::find_if(
-        titles.begin(),
-        titles.end(),
-        [&](const Title &t)
-        {
-            return t.imdbId == title.imdbId;
-        });
-
-    if (it != titles.end())
+    if (contains(title.imdbId))
         return;
 
-    QString posterFile =
-        postersPath + "/" + title.imdbId + ".png";
+    posterImage.save(posterPath(postersPath, title.imdbId), "PNG");
 
-    posterImage.save(posterFile, "PNG");
-
-    titles.push_back(title);
+    Title t  = title;
+    t.viewed = false;
+    titles.push_back(std::move(t));
 
     save();
     emit titlesUpdated();
@@ -197,23 +199,29 @@ void AppStorage::addTitle(const Title &title, const QPixmap &posterImage)
 
 void AppStorage::deleteTitle(const QString &imdbId)
 {
-    auto it = std::find_if(
-        titles.begin(),
-        titles.end(),
-        [&](const Title &t)
-        {
-            return t.imdbId == imdbId;
-        });
+    auto it = findByImdbId(titles, imdbId);
+    if (it == titles.end())
+        return;
 
-    if (it != titles.end())
-    {
-        QFile::remove(postersPath + "/" + imdbId + ".png");
+    QFile::remove(posterPath(postersPath, imdbId));
+    titles.erase(it);
 
-        titles.erase(it);
+    save();
+    emit titlesUpdated();
+}
 
-        save();
-        emit titlesUpdated();
-    }
+void AppStorage::toggleViewed(const QString &imdbId)
+{
+    auto it = findByImdbId(titles, imdbId);
+    if (it == titles.end())
+        return;
+
+    it->viewed = !it->viewed;
+    if (it->viewed)
+        it->lastViewed = QDate::currentDate();
+
+    save();
+    emit titlesUpdated();
 }
 
 bool AppStorage::contains(const QString &imdbId) const
@@ -221,8 +229,5 @@ bool AppStorage::contains(const QString &imdbId) const
     return std::any_of(
         titles.begin(),
         titles.end(),
-        [&](const Title &t)
-        {
-            return t.imdbId == imdbId;
-        });
+        [&](const Title &t) { return t.imdbId == imdbId; });
 }

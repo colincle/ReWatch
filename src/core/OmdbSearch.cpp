@@ -5,67 +5,58 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QUrl>
+#include <QNetworkRequest>
 #include <QPixmap>
+#include <QUrl>
 
-OmdbSearch::OmdbSearch(AppStorage &appStorage,
-                        QString query,
-                        QString key,
-                        QObject *parent)
-    : appStorage(appStorage), apiKey(key), QObject(parent)
+OmdbSearch::OmdbSearch(AppStorage &appStorage, QString query, QString key, QObject *parent)
+    : QObject(parent)
+    , appStorage(appStorage)
+    , apiKey(key)
 {
     query.replace(' ', '+');
     requestUrl = baseUrl + apiKey + titleSearch + query;
 }
 
-const results& OmdbSearch::getResults() const
+const results &OmdbSearch::getResults() const
 {
     return searchResults;
 }
 
 void OmdbSearch::search()
 {
-    QNetworkReply *reply =
-        networkManager.get(QNetworkRequest(QUrl(requestUrl)));
-
-    connect(reply,
-            &QNetworkReply::finished,
-            this,
-            &OmdbSearch::onReplyFinished);
+    QNetworkReply *reply = networkManager.get(QNetworkRequest(QUrl(requestUrl)));
+    connect(reply, &QNetworkReply::finished, this, &OmdbSearch::onReplyFinished);
 }
 
 void OmdbSearch::fetchById(const QString &imdbId, const QPixmap &posterImage)
 {
-    QString url = baseUrl + apiKey + idSearch + imdbId;
+    QString url       = baseUrl + apiKey + idSearch + imdbId;
+    QNetworkReply *reply = networkManager.get(QNetworkRequest(QUrl(url)));
 
-    QNetworkReply *reply =
-        networkManager.get(QNetworkRequest(QUrl(url)));
-
-    connect(reply, &QNetworkReply::finished, this,
-        [this, reply, posterImage]()
-        {
-            if (reply->error() != QNetworkReply::NoError)
-            {
-                reply->deleteLater();
-                return;
-            }
-
-            QJsonObject root =
-                QJsonDocument::fromJson(reply->readAll()).object();
-
-            reply->deleteLater();
-
-            if (root["Response"].toString() == "False")
-                return;
-
-            appStorage.addTitle(titleFromJson(root, posterImage), posterImage);
-            emit titleFetched();
-        }
-    );
+    connect(reply, &QNetworkReply::finished, this, [this, reply, posterImage]() {
+        onFetchByIdFinished(reply, posterImage);
+    });
 }
 
+void OmdbSearch::onFetchByIdFinished(QNetworkReply *reply, const QPixmap &posterImage)
+{
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        reply->deleteLater();
+        return;
+    }
+
+    QJsonObject root = QJsonDocument::fromJson(reply->readAll()).object();
+    reply->deleteLater();
+
+    if (root["Response"].toString() == "False")
+        return;
+
+    appStorage.addTitle(titleFromJson(root, posterImage), posterImage);
+    emit titleFetched();
+}
 
 Title OmdbSearch::titleFromJson(const QJsonObject &root, const QPixmap &posterImage)
 {
@@ -92,40 +83,48 @@ void OmdbSearch::loadPosterForTitle(int i, const QString &posterUrl)
     if (posterUrl == "N/A")
     {
         searchResults.titles[i].posterImage.load(POSTER_PLACEHOLDER);
-
-        if (--pendingPosters == 0)
-            emit searchFinished();
-
+        checkSearchComplete();
         return;
     }
 
-    QNetworkReply *posterReply =
-        networkManager.get(
-            QNetworkRequest(QUrl(posterUrl)));
+    QNetworkReply *reply = networkManager.get(QNetworkRequest(QUrl(posterUrl)));
 
-    connect(posterReply, &QNetworkReply::finished, this,
-        [this, i, posterReply]()
-        {
-            QPixmap &image = searchResults.titles[i].posterImage;
+    connect(reply, &QNetworkReply::finished, this, [this, i, reply]() {
+        onPosterFinished(reply, i);
+    });
+}
 
-            if (posterReply->error() != QNetworkReply::NoError ||
-                !image.loadFromData(posterReply->readAll()))
-            {
-                image.load(POSTER_PLACEHOLDER);
-            }
+void OmdbSearch::onPosterFinished(QNetworkReply *reply, int i)
+{
+    QPixmap &image = searchResults.titles[i].posterImage;
 
-            posterReply->deleteLater();
+    if (reply->error() != QNetworkReply::NoError || !image.loadFromData(reply->readAll()))
+        image.load(POSTER_PLACEHOLDER);
 
-            if (--pendingPosters == 0)
-                emit searchFinished();
-        }
-    );
+    reply->deleteLater();
+    checkSearchComplete();
+}
+
+void OmdbSearch::checkSearchComplete()
+{
+    if (--pendingPosters == 0)
+        emit searchFinished();
+}
+
+static resultTitle resultTitleFromJson(const QJsonObject &obj)
+{
+    resultTitle t;
+    t.title  = obj["Title"].toString();
+    t.year   = obj["Year"].toString();
+    t.imdbId = obj["imdbID"].toString();
+    t.type   = obj["Type"].toString();
+    t.poster = obj["Poster"].toString();
+    return t;
 }
 
 void OmdbSearch::onReplyFinished()
 {
-    QNetworkReply *reply =
-        qobject_cast<QNetworkReply*>(sender());
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
 
     searchResults.error.clear();
     searchResults.titles.clear();
@@ -145,9 +144,7 @@ void OmdbSearch::onReplyFinished()
         return;
     }
 
-    QJsonObject root =
-        QJsonDocument::fromJson(reply->readAll()).object();
-
+    QJsonObject root = QJsonDocument::fromJson(reply->readAll()).object();
     reply->deleteLater();
 
     if (root["Response"].toString() == "False")
@@ -158,18 +155,7 @@ void OmdbSearch::onReplyFinished()
     }
 
     for (const QJsonValue &value : root["Search"].toArray())
-    {
-        QJsonObject obj = value.toObject();
-
-        resultTitle title;
-        title.title  = obj["Title"].toString();
-        title.year   = obj["Year"].toString();
-        title.imdbId = obj["imdbID"].toString();
-        title.type   = obj["Type"].toString();
-        title.poster = obj["Poster"].toString();
-
-        searchResults.titles.push_back(title);
-    }
+        searchResults.titles.push_back(resultTitleFromJson(value.toObject()));
 
     pendingPosters = static_cast<int>(searchResults.titles.size());
 

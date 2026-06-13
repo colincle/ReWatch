@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Title.hpp"
 #include "AppStorage.hpp"
+#include "Title.hpp"
 
 #include <vector>
-#include <QObject>
-#include <QString>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QObject>
 #include <QPixmap>
+#include <QString>
 
 struct resultTitle
 {
@@ -17,7 +17,6 @@ struct resultTitle
     QString imdbId;
     QString type;
     QString poster;
-
     QPixmap posterImage;
 };
 
@@ -36,23 +35,20 @@ public:
 
     void search();
     void fetchById(const QString &imdbId, const QPixmap &posterImage);
-    const results& getResults() const;
+    const results &getResults() const;
 
 signals:
     void searchFinished();
     void titleFetched();
-
-private slots:
-    void onReplyFinished();
 
 private:
     AppStorage &appStorage;
 
     results searchResults;
 
-    QString baseUrl = "https://omdbapi.com/?apikey=";
+    QString baseUrl     = "https://omdbapi.com/?apikey=";
     QString titleSearch = "&s=";
-    QString idSearch = "&i=";
+    QString idSearch    = "&i=";
     QString requestUrl;
     QString apiKey;
 
@@ -60,6 +56,12 @@ private:
 
     int pendingPosters = 0;
 
-    Title     titleFromJson(const QJsonObject &root, const QPixmap &posterImage);
-    void      loadPosterForTitle(int i, const QString &posterUrl);
+    Title titleFromJson(const QJsonObject &root, const QPixmap &posterImage);
+    void  loadPosterForTitle(int i, const QString &posterUrl);
+    void  onFetchByIdFinished(QNetworkReply *reply, const QPixmap &posterImage);
+    void  onPosterFinished(QNetworkReply *reply, int i);
+    void  checkSearchComplete();
+
+private slots:
+    void onReplyFinished();
 };

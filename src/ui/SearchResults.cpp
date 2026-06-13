@@ -1,26 +1,30 @@
 #include "SearchResults.hpp"
-#include "OmdbSearch.hpp"
-#include "AppStorage.hpp"
-#include "ColorPalette.hpp"
-#include "Spinner.hpp"
-#include "IconButton.hpp"
 #include "AssetsPaths.hpp"
+#include "ColorPalette.hpp"
+#include "IconButton.hpp"
+#include "OmdbSearch.hpp"
+#include "Spinner.hpp"
 
-#include <QVBoxLayout>
+#include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPixmap>
 #include <QScrollArea>
-#include <QFrame>
 #include <QScrollBar>
+#include <QVBoxLayout>
 
 SearchResults::SearchResults(AppStorage &storage, QWidget *parent)
-    : appStorage(storage)
-    , QWidget(parent)
+    : QWidget(parent)
+    , appStorage(storage)
 {
     setStyleSheet("background-color: " COLOR_BG_PRIMARY ";");
     setAttribute(Qt::WA_StyledBackground, true);
 
+    setupLayout();
+}
+
+void SearchResults::setupLayout()
+{
     layout = new QVBoxLayout(this);
     layout->setContentsMargins(20, 20, 20, 20);
 
@@ -46,31 +50,23 @@ SearchResults::SearchResults(AppStorage &storage, QWidget *parent)
     layout->addWidget(scrollArea);
 }
 
-// --- public ---
-
 void SearchResults::search(QString query)
 {
     spinner->show();
     scrollArea->hide();
-
     clearExtraLayoutWidgets();
     scrollArea->verticalScrollBar()->setValue(0);
     clearResultsLayout();
 
-    auto *omdbSearch =
-        new OmdbSearch(appStorage, query, appStorage.getKey(), this);
+    auto *omdbSearch = new OmdbSearch(appStorage, query, appStorage.getKey(), this);
 
-    connect(omdbSearch, &OmdbSearch::searchFinished, this,
-        [this, omdbSearch]()
-        {
-            spinner->hide();
-            onSearchFinished(omdbSearch);
-        });
+    connect(omdbSearch, &OmdbSearch::searchFinished, this, [this, omdbSearch]() {
+        spinner->hide();
+        onSearchFinished(omdbSearch);
+    });
 
     omdbSearch->search();
 }
-
-// --- private ---
 
 void SearchResults::onSearchFinished(OmdbSearch *omdbSearch)
 {
@@ -78,10 +74,9 @@ void SearchResults::onSearchFinished(OmdbSearch *omdbSearch)
 
     if (!r.error.isEmpty())
     {
-        if (r.error == "Host requires authentication")
-            setFullPageState(API_KEY_ERROR);
-        else
-            setFullPageState(NO_MOVIES_FOUND);
+        setFullPageState(r.error == "Host requires authentication"
+            ? API_KEY_ERROR
+            : NO_MOVIES_FOUND);
 
         omdbSearch->deleteLater();
         return;
@@ -95,7 +90,7 @@ void SearchResults::onSearchFinished(OmdbSearch *omdbSearch)
     omdbSearch->deleteLater();
 }
 
-QWidget* SearchResults::makeResultRow(const resultTitle &title)
+QWidget *SearchResults::makeResultRow(const resultTitle &title)
 {
     auto *row = new QWidget;
     row->setStyleSheet(
@@ -108,93 +103,88 @@ QWidget* SearchResults::makeResultRow(const resultTitle &title)
     rowLayout->setContentsMargins(12, 12, 12, 12);
     rowLayout->setSpacing(20);
 
+    rowLayout->addWidget(makePosterLabel(title));
+    rowLayout->addWidget(makeTitleLabel(title));
+    rowLayout->addStretch();
+    rowLayout->addWidget(appStorage.contains(title.imdbId)
+        ? makeDoneButton(title, row)
+        : makeAddButton(title, row));
+
+    return row;
+}
+
+QLabel *SearchResults::makePosterLabel(const resultTitle &title)
+{
     auto *poster = new QLabel;
     poster->setFixedSize(100, 150);
     poster->setStyleSheet("border: none; background: transparent;");
-    poster->setPixmap(
-        title.posterImage.scaled(
-            poster->size(),
-            Qt::KeepAspectRatio,
-            Qt::SmoothTransformation));
+    poster->setPixmap(title.posterImage.scaled(
+        poster->size(),
+        Qt::KeepAspectRatio,
+        Qt::SmoothTransformation));
+    return poster;
+}
 
-    auto *name = new QLabel(title.title);
-    name->setStyleSheet(
+QLabel *SearchResults::makeTitleLabel(const resultTitle &title)
+{
+    auto *label = new QLabel(title.title);
+    label->setStyleSheet(
         "color: " COLOR_TEXT_PRIMARY ";"
         "font-size: 24px;"
         "font-weight: bold;"
         "border: none;"
         "background: transparent;"
     );
-    name->setWordWrap(true);
-
-    rowLayout->addWidget(poster);
-    rowLayout->addWidget(name);
-    rowLayout->addStretch();
-
-    if (appStorage.contains(title.imdbId))
-        rowLayout->addWidget(makeDoneButton(title, row));
-    else
-        rowLayout->addWidget(makeAddButton(title, row));
-
-    return row;
+    label->setWordWrap(true);
+    return label;
 }
 
-IconButton* SearchResults::makeDoneButton(const resultTitle &title, QWidget *row)
+IconButton *SearchResults::makeDoneButton(const resultTitle &title, QWidget *row)
 {
-    auto *doneButton =
-        new IconButton(ADDED_ICON, 40, COLOR_SUCCESS, COLOR_SURFACE, row);
+    auto *doneButton = new IconButton(ADDED_ICON, 40, COLOR_SUCCESS, COLOR_SURFACE, row);
 
-    connect(doneButton, &QPushButton::clicked, this,
-        [this, title, doneButton, row]()
-        {
-            appStorage.deleteTitle(title.imdbId);
-
-            auto *addButton = makeAddButton(title, row);
-
-            qobject_cast<QHBoxLayout*>(row->layout())
-                ->replaceWidget(doneButton, addButton);
-
-            doneButton->deleteLater();
-        });
+    connect(doneButton, &QPushButton::clicked, this, [this, title, doneButton, row]() {
+        appStorage.deleteTitle(title.imdbId);
+        auto *addButton = makeAddButton(title, row);
+        qobject_cast<QHBoxLayout *>(row->layout())->replaceWidget(doneButton, addButton);
+        doneButton->deleteLater();
+    });
 
     return doneButton;
 }
 
-IconButton* SearchResults::makeAddButton(const resultTitle &title, QWidget *row)
+IconButton *SearchResults::makeAddButton(const resultTitle &title, QWidget *row)
 {
-    auto *addButton =
-        new IconButton(ADD_ICON, 40, COLOR_ACCENT, COLOR_SURFACE, row);
+    auto *addButton = new IconButton(ADD_ICON, 40, COLOR_ACCENT, COLOR_SURFACE, row);
 
-    connect(addButton, &QPushButton::clicked, this,
-        [this, title, addButton, row]()
-        {
-            auto *rowSpinner = new Spinner(COLOR_ACCENT, 6, row);
-            rowSpinner->setFixedSize(40, 40);
-
-            auto *rowLayout = qobject_cast<QHBoxLayout*>(row->layout());
-            rowLayout->replaceWidget(addButton, rowSpinner);
-            addButton->hide();
-
-            auto *fetch =
-                new OmdbSearch(appStorage, "", appStorage.getKey(), this);
-
-            connect(fetch, &OmdbSearch::titleFetched, this,
-                [this, title, rowSpinner, addButton, row, fetch]()
-                {
-                    auto *doneButton = makeDoneButton(title, row);
-
-                    qobject_cast<QHBoxLayout*>(row->layout())
-                        ->replaceWidget(rowSpinner, doneButton);
-
-                    rowSpinner->deleteLater();
-                    addButton->deleteLater();
-                    fetch->deleteLater();
-                });
-
-            fetch->fetchById(title.imdbId, title.posterImage);
-        });
+    connect(addButton, &QPushButton::clicked, this, [this, title, addButton, row]() {
+        onAddClicked(title, addButton, row);
+    });
 
     return addButton;
+}
+
+void SearchResults::onAddClicked(const resultTitle &title, IconButton *addButton, QWidget *row)
+{
+    auto *rowSpinner = new Spinner(COLOR_ACCENT, 6, row);
+    rowSpinner->setFixedSize(40, 40);
+
+    auto *rowLayout = qobject_cast<QHBoxLayout *>(row->layout());
+    rowLayout->replaceWidget(addButton, rowSpinner);
+    addButton->hide();
+
+    auto *fetch = new OmdbSearch(appStorage, "", appStorage.getKey(), this);
+
+    connect(fetch, &OmdbSearch::titleFetched, this,
+        [this, title, rowSpinner, addButton, row, fetch]() {
+            auto *doneButton = makeDoneButton(title, row);
+            qobject_cast<QHBoxLayout *>(row->layout())->replaceWidget(rowSpinner, doneButton);
+            rowSpinner->deleteLater();
+            addButton->deleteLater();
+            fetch->deleteLater();
+        });
+
+    fetch->fetchById(title.imdbId, title.posterImage);
 }
 
 void SearchResults::setFullPageState(const QString &imagePath)

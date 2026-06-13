@@ -5,9 +5,7 @@
 #include <QPixmap>
 #include <QSvgRenderer>
 
-QIcon loadColoredSvg(const QString& path,
-                     const QString& color,
-                     int size)
+QIcon loadColoredSvg(const QString& path, const QString& color, int size)
 {
     QFile file(path);
 

@@ -1,31 +1,30 @@
 #pragma once
 
-#include <QString>
-#include <QList>
+#include <QDate>
 #include <QPixmap>
+#include <QString>
 
 struct Title
 {
-    // Core identifiers
     QString title;
     QString year;
     QString imdbId;
-    QString type; // "movie", "series", "episode"
+    QString type;
 
-    // Basic metadata
     QString released;
     QString plot;
 
-    // People
     QString director;
     QString actors;
 
-    // Media
-    QPixmap posterImage;
-
-    // Series-specific (empty for movies)
     QString totalSeasons;
 
-    bool isMovie;
-    bool isSeries;
+    QPixmap posterImage;
+
+    bool isMovie  = false;
+    bool isSeries = false;
+
+    int   rank       = 0;
+    bool  viewed     = false;
+    QDate lastViewed = QDate::currentDate();
 };

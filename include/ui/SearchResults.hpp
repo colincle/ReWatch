@@ -9,6 +9,7 @@
 #include <QVBoxLayout>
 #include <QString>
 #include <QScrollArea>
+#include <QLabel>
 
 class SearchResults : public QWidget
 {
@@ -18,8 +19,12 @@ public:
     void search(QString query);
 
 private:
+    void        setupLayout();
     void        onSearchFinished(OmdbSearch *omdbSearch);
+    void        onAddClicked(const resultTitle &title, IconButton *addButton, QWidget *row);
     QWidget*    makeResultRow(const resultTitle &title);
+    QLabel*     makePosterLabel(const resultTitle &title);
+    QLabel*     makeTitleLabel(const resultTitle &title);
     IconButton* makeDoneButton(const resultTitle &title, QWidget *row);
     IconButton* makeAddButton(const resultTitle &title, QWidget *row);
     void        setFullPageState(const QString &imagePath);
