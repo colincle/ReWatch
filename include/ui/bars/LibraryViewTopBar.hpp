@@ -9,33 +9,33 @@
 
 class LibraryViewTopBar : public QWidget
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    explicit LibraryViewTopBar(QWidget *parent = nullptr);
+	explicit LibraryViewTopBar(QWidget *parent = nullptr);
 
 signals:
-    void searchRequested(const QString &query);
-    void filterChanged(ViewFilter filter);
+	void searchRequested(const QString &query);
+	void filterChanged(ViewFilter filter);
 
 private:
-    TextButton *showAllButton;
-    TextButton *showToWatchButton;
+	TextButton *showAllButton;
+	TextButton *showToWatchButton;
 
-    IconButton *searchButton;
-    IconButton *closeButton;
-    QLineEdit  *searchInput;
+	IconButton *searchButton;
+	IconButton *closeButton;
+	QLineEdit *searchInput;
 
-    void setupLayout();
-    void connectSignals();
+	void setupLayout();
+	void connectSignals();
 
-    void onShowAllClicked();
-    void onShowToWatchClicked();
-    void onSearchCommitted();
-    void onSearchTextChanged(const QString &text);
+	void onShowAllClicked();
+	void onShowToWatchClicked();
+	void onSearchCommitted();
+	void onSearchTextChanged(const QString &text);
 
-    void openSearch();
-    void closeSearch();
+	void openSearch();
+	void closeSearch();
 
-    bool eventFilter(QObject *obj, QEvent *event) override;
+	bool eventFilter(QObject *obj, QEvent *event) override;
 };

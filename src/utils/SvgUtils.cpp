@@ -5,28 +5,28 @@
 #include <QPixmap>
 #include <QSvgRenderer>
 
-QIcon loadColoredSvg(const QString& path, const QString& color, int size)
+QIcon loadColoredSvg(const QString &path, const QString &color, int size)
 {
-    QFile file(path);
+	QFile file(path);
 
-    if (!file.open(QIODevice::ReadOnly))
-        return {};
+	if(!file.open(QIODevice::ReadOnly))
+		return {};
 
-    QByteArray data = file.readAll();
+	QSvgRenderer renderer(file.readAll());
 
-    QSvgRenderer renderer(data);
+	QPixmap pixmap(size, size);
 
-    QPixmap pixmap(size, size);
-    pixmap.fill(Qt::transparent);
+	pixmap.fill(Qt::transparent);
 
-    QPainter painter(&pixmap);
+	QPainter painter(&pixmap);
 
-    renderer.render(&painter);
+	renderer.render(&painter);
 
-    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    painter.fillRect(pixmap.rect(), QColor(color));
+	painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
 
-    painter.end();
+	painter.fillRect(pixmap.rect(), QColor(color));
 
-    return QIcon(pixmap);
+	painter.end();
+
+	return QIcon(pixmap);
 }

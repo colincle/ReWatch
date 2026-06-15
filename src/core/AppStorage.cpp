@@ -11,223 +11,261 @@
 
 static QString appDirPath()
 {
-    return QDir::homePath() + "/.local/share/movieTracker";
+	return QDir::homePath() + "/.local/share/movieTracker";
 }
 
 static void ensureDirectoryExists(const QString &path)
 {
-    QDir dir(path);
-    if (!dir.exists())
-        dir.mkpath(path);
+	QDir dir(path);
+
+	if(!dir.exists())
+	{
+		dir.mkpath(path);
+	}
 }
 
 static void ensureStorageFileExists(const QString &filePath)
 {
-    QFile file(filePath);
-    if (file.exists())
-        return;
+	QFile file(filePath);
 
-    if (file.open(QIODevice::WriteOnly))
-    {
-        file.write("{\n\t\"omdbApiKey\": \"\",\n\t\"titles\": []\n}\n");
-        file.close();
-    }
+	if(file.exists())
+	{
+		return;
+	}
+
+	if(file.open(QIODevice::WriteOnly))
+	{
+		file.write("{\n\t\"omdbApiKey\": \"\",\n\t\"titles\": []\n}\n");
+		file.close();
+	}
 }
 
 static QJsonObject readJsonFile(const QString &filePath)
 {
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        qWarning() << "Failed to open file for reading:" << filePath;
-        return {};
-    }
+	QFile file(filePath);
 
-    QByteArray data = file.readAll();
-    file.close();
+	if(!file.open(QIODevice::ReadOnly))
+	{
+		qWarning() << "Failed to open file for reading:" << filePath;
+		return {};
+	}
 
-    return QJsonDocument::fromJson(data).object();
+	QByteArray data = file.readAll();
+	file.close();
+
+	return QJsonDocument::fromJson(data).object();
 }
 
 static bool writeJsonFile(const QString &filePath, const QJsonObject &root)
 {
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-    {
-        qWarning() << "Failed to open file for writing:" << filePath;
-        return false;
-    }
+	QFile file(filePath);
 
-    file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
-    file.close();
-    return true;
+	if(!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+	{
+		qWarning() << "Failed to open file for writing:" << filePath;
+		return false;
+	}
+
+	file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+	file.close();
+	return true;
 }
 
 static Title titleFromJson(const QJsonObject &obj)
 {
-    Title t;
+	Title t;
 
-    t.title        = obj["title"].toString();
-    t.year         = obj["year"].toString();
-    t.imdbId       = obj["imdbId"].toString();
-    t.type         = obj["type"].toString();
+	t.title = obj["title"].toString();
+	t.year = obj["year"].toString();
+	t.imdbId = obj["imdbId"].toString();
+	t.type = obj["type"].toString();
 
-    t.released     = obj["released"].toString();
-    t.plot         = obj["plot"].toString();
+	t.released = obj["released"].toString();
+	t.plot = obj["plot"].toString();
 
-    t.director     = obj["director"].toString();
-    t.actors       = obj["actors"].toString();
+	t.director = obj["director"].toString();
+	t.actors = obj["actors"].toString();
 
-    t.totalSeasons = obj["totalSeasons"].toString();
+	t.totalSeasons = obj["totalSeasons"].toString();
 
-    t.isMovie      = t.type == "movie";
-    t.isSeries     = t.type == "series";
+	t.isMovie = t.type == "movie";
+	t.isSeries = t.type == "series";
 
-    t.rank         = obj["rank"].toInt(0);
-    t.viewed       = obj["viewed"].toBool(false);
+	t.rank = obj["rank"].toInt(0);
+	t.viewed = obj["viewed"].toBool(false);
 
-    t.lastViewed   = QDate::fromString(obj["lastViewed"].toString(), Qt::ISODate);
-    if (!t.lastViewed.isValid())
-        t.lastViewed = QDate::currentDate();
+	t.lastViewed = QDate::fromString(obj["lastViewed"].toString(), Qt::ISODate);
 
-    return t;
+	if(!t.lastViewed.isValid())
+	{
+		t.lastViewed = QDate::currentDate();
+	}
+
+	t.lastChecked = QDate::fromString(obj["lastChecked"].toString(), Qt::ISODate);
+
+	if(!t.lastChecked.isValid())
+	{
+		t.lastChecked = QDate::currentDate();
+	}
+
+	return t;
 }
 
 static QJsonObject titleToJson(const Title &t)
 {
-    QJsonObject obj;
+	QJsonObject obj;
 
-    obj["title"]        = t.title;
-    obj["year"]         = t.year;
-    obj["imdbId"]       = t.imdbId;
-    obj["type"]         = t.type;
+	obj["title"] = t.title;
+	obj["year"] = t.year;
+	obj["imdbId"] = t.imdbId;
+	obj["type"] = t.type;
 
-    obj["released"]     = t.released;
-    obj["plot"]         = t.plot;
+	obj["released"] = t.released;
+	obj["plot"] = t.plot;
 
-    obj["director"]     = t.director;
-    obj["actors"]       = t.actors;
+	obj["director"] = t.director;
+	obj["actors"] = t.actors;
 
-    obj["totalSeasons"] = t.totalSeasons;
+	obj["totalSeasons"] = t.totalSeasons;
 
-    obj["rank"]         = t.rank;
-    obj["viewed"]       = t.viewed;
-    obj["lastViewed"]   = t.lastViewed.toString(Qt::ISODate);
+	obj["rank"] = t.rank;
+	obj["viewed"] = t.viewed;
+	obj["lastViewed"] = t.lastViewed.toString(Qt::ISODate);
+	obj["lastChecked"] = t.lastChecked.toString(Qt::ISODate);
 
-    return obj;
+	return obj;
 }
 
 static QString posterPath(const QString &postersPath, const QString &imdbId)
 {
-    return postersPath + "/" + imdbId + ".png";
+	return postersPath + "/" + imdbId + ".png";
 }
 
 static auto findByImdbId(std::vector<Title> &titles, const QString &imdbId)
 {
-    return std::find_if(
-        titles.begin(),
-        titles.end(),
-        [&](const Title &t) { return t.imdbId == imdbId; });
+	return std::find_if(
+	           titles.begin(),
+	           titles.end(),
+	[&](const Title & t) { return t.imdbId == imdbId; });
 }
 
 AppStorage::AppStorage()
 {
-    const QString dirPath = appDirPath();
-    postersPath           = dirPath + "/Posters";
-    appFilePath           = dirPath + "/movieTracker.json";
+	const QString dirPath = appDirPath();
+	postersPath = dirPath + "/Posters";
+	appFilePath = dirPath + "/movieTracker.json";
 
-    ensureDirectoryExists(dirPath);
-    ensureDirectoryExists(postersPath);
-    ensureStorageFileExists(appFilePath);
+	ensureDirectoryExists(dirPath);
+	ensureDirectoryExists(postersPath);
+	ensureStorageFileExists(appFilePath);
 
-    load();
+	load();
 }
 
 void AppStorage::load()
 {
-    QJsonObject root = readJsonFile(appFilePath);
-    if (root.isEmpty())
-        return;
+	QJsonObject root = readJsonFile(appFilePath);
 
-    omdbApiKey = root["omdbApiKey"].toString();
-    titles.clear();
+	if(root.isEmpty())
+	{
+		return;
+	}
 
-    for (const QJsonValue &val : root["titles"].toArray())
-    {
-        Title t = titleFromJson(val.toObject());
+	omdbApiKey = root["omdbApiKey"].toString();
+	titles.clear();
 
-        if (!t.posterImage.load(posterPath(postersPath, t.imdbId)))
-            t.posterImage.load(POSTER_PLACEHOLDER);
+	for(const QJsonValue &val : root["titles"].toArray())
+	{
+		Title t = titleFromJson(val.toObject());
 
-        titles.push_back(std::move(t));
-    }
+		if(!t.posterImage.load(posterPath(postersPath, t.imdbId)))
+		{
+			t.posterImage.load(POSTER_PLACEHOLDER);
+		}
+
+		titles.push_back(std::move(t));
+	}
 }
 
 void AppStorage::save()
 {
-    QJsonArray arr;
-    for (const Title &t : titles)
-        arr.append(titleToJson(t));
+	QJsonArray arr;
 
-    QJsonObject root;
-    root["omdbApiKey"] = omdbApiKey;
-    root["titles"]     = arr;
+	for(const Title &t : titles)
+	{
+		arr.append(titleToJson(t));
+	}
 
-    writeJsonFile(appFilePath, root);
+	QJsonObject root;
+	root["omdbApiKey"] = omdbApiKey;
+	root["titles"] = arr;
+
+	writeJsonFile(appFilePath, root);
 }
 
 void AppStorage::setOmdbApiKey(QString key)
 {
-    omdbApiKey = key;
-    save();
+	omdbApiKey = key;
+	save();
 }
 
 void AppStorage::addTitle(const Title &title, const QPixmap &posterImage)
 {
-    if (contains(title.imdbId))
-        return;
+	if(contains(title.imdbId))
+	{
+		return;
+	}
 
-    posterImage.save(posterPath(postersPath, title.imdbId), "PNG");
+	posterImage.save(posterPath(postersPath, title.imdbId), "PNG");
 
-    Title t  = title;
-    t.viewed = false;
-    titles.push_back(std::move(t));
+	Title t = title;
+	t.viewed = false;
+	titles.push_back(std::move(t));
 
-    save();
-    emit titlesUpdated();
+	save();
+	emit titlesUpdated();
 }
 
 void AppStorage::deleteTitle(const QString &imdbId)
 {
-    auto it = findByImdbId(titles, imdbId);
-    if (it == titles.end())
-        return;
+	auto it = findByImdbId(titles, imdbId);
 
-    QFile::remove(posterPath(postersPath, imdbId));
-    titles.erase(it);
+	if(it == titles.end())
+	{
+		return;
+	}
 
-    save();
-    emit titlesUpdated();
+	QFile::remove(posterPath(postersPath, imdbId));
+	titles.erase(it);
+
+	save();
+	emit titlesUpdated();
 }
 
 void AppStorage::toggleViewed(const QString &imdbId)
 {
-    auto it = findByImdbId(titles, imdbId);
-    if (it == titles.end())
-        return;
+	auto it = findByImdbId(titles, imdbId);
 
-    it->viewed = !it->viewed;
-    if (it->viewed)
-        it->lastViewed = QDate::currentDate();
+	if(it == titles.end())
+	{
+		return;
+	}
 
-    save();
-    emit titlesUpdated();
+	it->viewed = !it->viewed;
+
+	if(it->viewed)
+	{
+		it->lastViewed = QDate::currentDate();
+	}
+
+	save();
+	emit titlesUpdated();
 }
 
 bool AppStorage::contains(const QString &imdbId) const
 {
-    return std::any_of(
-        titles.begin(),
-        titles.end(),
-        [&](const Title &t) { return t.imdbId == imdbId; });
+	return std::any_of(
+	       titles.begin(),
+	titles.end(),
+	[&](const Title & t) { return t.imdbId == imdbId; });
 }

@@ -9,30 +9,32 @@
 
 class AppStorage : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    AppStorage();
+	AppStorage();
 
-    void setOmdbApiKey(QString key);
-    void addTitle(const Title &title, const QPixmap &posterImage);
-    void deleteTitle(const QString &imdbId);
-    void toggleViewed(const QString &imdbId);
+	void setOmdbApiKey(QString key);
+	void addTitle(const Title &title, const QPixmap &posterImage);
+	void deleteTitle(const QString &imdbId);
+	void toggleViewed(const QString &imdbId);
 
-    bool contains(const QString &imdbId) const;
+	bool contains(const QString &imdbId) const;
 
-    const std::vector<Title> &getTitles() const { return titles; }
-    QString getKey() const { return omdbApiKey; }
+	void save();
+
+	const std::vector<Title> &getTitles() const { return titles; }
+	std::vector<Title> &getTitlesMutable() { return titles; }
+	QString getKey() const { return omdbApiKey; }
 
 private:
-    QString appFilePath;
-    QString omdbApiKey;
-    QString postersPath;
-    std::vector<Title> titles;
+	QString appFilePath;
+	QString omdbApiKey;
+	QString postersPath;
+	std::vector<Title> titles;
 
-    void load();
-    void save();
+	void load();
 
 signals:
-    void titlesUpdated();
+	void titlesUpdated();
 };

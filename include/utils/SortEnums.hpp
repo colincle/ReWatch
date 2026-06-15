@@ -2,20 +2,20 @@
 
 enum class SortMode
 {
-    AlphaAZ,
-    Rank,
-    LastViewed,
-    Release
+	AlphaAZ,
+	Rank,
+	LastViewed,
+	Release
 };
 
 enum class LibraryTab
 {
-    Movies,
-    TvShows
+	Movies,
+	TvShows
 };
 
 enum class ViewFilter
 {
-    All,
-    ToWatch
+	All,
+	ToWatch
 };

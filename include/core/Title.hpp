@@ -6,25 +6,26 @@
 
 struct Title
 {
-    QString title;
-    QString year;
-    QString imdbId;
-    QString type;
+	QString title;
+	QString year;
+	QString imdbId;
+	QString type;
 
-    QString released;
-    QString plot;
+	QString released;
+	QString plot;
 
-    QString director;
-    QString actors;
+	QString director;
+	QString actors;
 
-    QString totalSeasons;
+	QString totalSeasons;
 
-    QPixmap posterImage;
+	QPixmap posterImage;
 
-    bool isMovie  = false;
-    bool isSeries = false;
+	bool isMovie = false;
+	bool isSeries = false;
 
-    int   rank       = 0;
-    bool  viewed     = false;
-    QDate lastViewed = QDate::currentDate();
+	int rank = 0;
+	bool viewed = false;
+	QDate lastViewed = QDate::currentDate();
+	QDate lastChecked = QDate::currentDate();
 };
