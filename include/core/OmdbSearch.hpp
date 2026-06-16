@@ -15,6 +15,7 @@ struct resultTitle
 {
 	QString title;
 	QString year;
+	QString plot;
 	QString imdbId;
 	QString type;
 	QString poster;
@@ -73,6 +74,8 @@ private:
 	int pendingPosters = 0;
 
 	Title titleFromOmdbJson(const QJsonObject &root, const QPixmap &posterImage, bool posterNotFound);
+	void loadDetailsForTitle(int i, const QString &imdbId);
+	void onDetailsFinished(QNetworkReply *reply, int i);
 	void loadPosterForTitle(int i, const QString &posterUrl);
 	void onFetchByIdFinished(QNetworkReply *reply, const QPixmap &posterImage, bool posterNotFound);
 	void onPosterFinished(QNetworkReply *reply, int i);

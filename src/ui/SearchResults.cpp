@@ -1,17 +1,22 @@
 #include "SearchResults.hpp"
 #include "AssetsPaths.hpp"
 #include "ColorPalette.hpp"
+#include "ElidedLabel.hpp"
 #include "ErrorMessages.hpp"
 #include "IconButton.hpp"
 #include "OmdbSearch.hpp"
 #include "Spinner.hpp"
 
+#include <QFont>
+#include <QFontMetrics>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPixmap>
+#include <QResizeEvent>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QTimer>
 #include <QVBoxLayout>
 
 SearchResults::SearchResults(AppStorage &storage, QWidget *parent)
@@ -36,9 +41,12 @@ void SearchResults::setupLayout()
 	layout->addWidget(spinner, 0, Qt::AlignCenter);
 
 	resultsContainer = new QWidget;
-	resultsLayout = new QVBoxLayout(resultsContainer);
+	resultsLayout = new QGridLayout(resultsContainer);
 	resultsLayout->setContentsMargins(0, 0, 0, 0);
 	resultsLayout->setSpacing(12);
+	resultsLayout->setColumnStretch(0, 1);
+	resultsLayout->setColumnStretch(1, 1);
+	resultsLayout->setAlignment(Qt::AlignTop);
 
 	scrollArea = new QScrollArea(this);
 	scrollArea->setWidgetResizable(true);
@@ -49,6 +57,16 @@ void SearchResults::setupLayout()
 	scrollArea->hide();
 
 	layout->addWidget(scrollArea);
+}
+
+void SearchResults::resizeEvent(QResizeEvent *event)
+{
+	QWidget::resizeEvent(event);
+
+	for(ElidedLabel *label : resultsContainer->findChildren<ElidedLabel *>())
+	{
+		label->refreshElision();
+	}
 }
 
 void SearchResults::search(QString query)
@@ -95,14 +113,30 @@ void SearchResults::onSearchFinished(OmdbSearch *omdbSearch)
 		return;
 	}
 
+	int row = 0;
+	int col = 0;
+
 	for(const resultTitle &title : r.titles)
 	{
-		resultsLayout->addWidget(makeResultRow(title));
+		resultsLayout->addWidget(makeResultRow(title), row, col);
+
+		if(++col >= 2)
+		{
+			col = 0;
+			++row;
+		}
 	}
 
-	resultsLayout->addStretch();
 	scrollArea->show();
 	omdbSearch->deleteLater();
+
+	QTimer::singleShot(0, this, [this]()
+	{
+		for(ElidedLabel *label : resultsContainer->findChildren<ElidedLabel *>())
+		{
+			label->refreshElision();
+		}
+	});
 }
 
 QWidget *SearchResults::makeResultRow(const resultTitle &title)
@@ -119,8 +153,7 @@ QWidget *SearchResults::makeResultRow(const resultTitle &title)
 	rowLayout->setSpacing(20);
 
 	rowLayout->addWidget(makePosterLabel(title));
-	rowLayout->addWidget(makeTitleLabel(title));
-	rowLayout->addStretch();
+	rowLayout->addWidget(makeTitleInfo(title), 1);
 	rowLayout->addWidget(appStorage.contains(title.imdbId)
 	                     ? makeDoneButton(title, row)
 	                     : makeAddButton(title, row));
@@ -140,17 +173,73 @@ QLabel *SearchResults::makePosterLabel(const resultTitle &title)
 	return poster;
 }
 
+QWidget *SearchResults::makeTitleInfo(const resultTitle &title)
+{
+	auto *container = new QWidget;
+	container->setStyleSheet("background: transparent; border: none;");
+	container->setMaximumHeight(150);
+
+	auto *layout = new QVBoxLayout(container);
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->setSpacing(0);
+
+	layout->addWidget(makeTitleLabel(title));
+	layout->addSpacing(4);
+	layout->addWidget(makeYearLabel(title));
+	layout->addSpacing(10);
+	layout->addWidget(makePlotLabel(title), 1);
+
+	return container;
+}
+
 QLabel *SearchResults::makeTitleLabel(const resultTitle &title)
 {
-	auto *label = new QLabel(title.title);
+	QFont font;
+	font.setPixelSize(24);
+	font.setBold(true);
+
+	auto *label = new ElidedLabel(title.title);
+	label->setFont(font);
 	label->setStyleSheet(
 	    "color: " COLOR_TEXT_PRIMARY ";"
-	    "font-size: 24px;"
-	    "font-weight: bold;"
+	    "border: none;"
+	    "background: transparent;"
+	);
+	label->setFixedHeight(QFontMetrics(font).height());
+	return label;
+}
+
+QLabel *SearchResults::makeYearLabel(const resultTitle &title)
+{
+	QFont font;
+	font.setPixelSize(15);
+	font.setBold(true);
+
+	auto *label = new QLabel(title.year);
+	label->setFont(font);
+	label->setStyleSheet(
+	    "color: " COLOR_TEXT_SECONDARY ";"
+	    "border: none;"
+	    "background: transparent;"
+	);
+	label->setFixedHeight(QFontMetrics(font).height());
+	return label;
+}
+
+QLabel *SearchResults::makePlotLabel(const resultTitle &title)
+{
+	const bool hasPlot = !title.plot.isEmpty() && title.plot != "N/A";
+
+	auto *label = new QLabel(hasPlot ? title.plot : QString());
+	label->setStyleSheet(
+	    "color: " COLOR_TEXT_SECONDARY ";"
+	    "font-size: 12px;"
 	    "border: none;"
 	    "background: transparent;"
 	);
 	label->setWordWrap(true);
+	label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+	label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	return label;
 }
 

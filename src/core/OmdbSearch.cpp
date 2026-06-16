@@ -108,6 +108,31 @@ Title OmdbSearch::titleFromOmdbJson(const QJsonObject &root, const QPixmap &post
 	return t;
 }
 
+void OmdbSearch::loadDetailsForTitle(int i, const QString &imdbId)
+{
+	QNetworkReply *reply = networkManager.get(QNetworkRequest(makeUrl(apiKey, "i", imdbId)));
+
+	connect(reply, &QNetworkReply::finished, this, [this, i, reply]()
+	{
+		onDetailsFinished(reply, i);
+	});
+}
+
+void OmdbSearch::onDetailsFinished(QNetworkReply *reply, int i)
+{
+	QString posterUrl = "N/A";
+
+	if(reply->error() == QNetworkReply::NoError)
+	{
+		QJsonObject root = QJsonDocument::fromJson(reply->readAll()).object();
+		searchResults.titles[i].plot = root["Plot"].toString();
+		posterUrl = root["Poster"].toString();
+	}
+
+	reply->deleteLater();
+	loadPosterForTitle(i, posterUrl);
+}
+
 void OmdbSearch::loadPosterForTitle(int i, const QString &posterUrl)
 {
 	if(posterUrl == "N/A")
@@ -228,6 +253,6 @@ void OmdbSearch::onReplyFinished()
 
 	for(int i = 0; i < static_cast<int>(searchResults.titles.size()); ++i)
 	{
-		loadPosterForTitle(i, searchResults.titles[i].poster);
+		loadDetailsForTitle(i, searchResults.titles[i].imdbId);
 	}
 }
