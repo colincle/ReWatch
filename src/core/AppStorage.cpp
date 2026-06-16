@@ -217,8 +217,37 @@ bool AppStorage::exportTo(const QString &zipPath)
 	return process.waitForFinished(10000) && process.exitCode() == 0;
 }
 
+static bool zipEntriesAreSafe(const QString &zipPath)
+{
+	QProcess listProcess;
+	listProcess.start("unzip", { "-Z1", zipPath });
+
+	if(!listProcess.waitForFinished(10000) || listProcess.exitCode() != 0)
+	{
+		return false;
+	}
+
+	const QStringList entries = QString::fromUtf8(listProcess.readAllStandardOutput())
+	                             .split('\n', Qt::SkipEmptyParts);
+
+	for(const QString &entry : entries)
+	{
+		if(entry.startsWith('/') || entry.split('/', Qt::SkipEmptyParts).contains(".."))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool AppStorage::importFrom(const QString &zipPath)
 {
+	if(!zipEntriesAreSafe(zipPath))
+	{
+		return false;
+	}
+
 	QDir appDir(appDirPath());
 	QProcess process;
 	process.setWorkingDirectory(appDir.absolutePath() + "/..");
