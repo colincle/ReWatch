@@ -41,6 +41,7 @@ public:
 signals:
 	void searchFinished();
 	void titleFetched();
+	void titleFetchFailed();
 
 private slots:
 	void onReplyFinished();

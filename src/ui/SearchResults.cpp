@@ -190,6 +190,16 @@ void SearchResults::onAddClicked(const resultTitle &title, IconButton *addButton
 		fetch->deleteLater();
 	});
 
+	connect(fetch, &OmdbSearch::titleFetchFailed, this,
+	        [this, title, rowSpinner, addButton, row, fetch]()
+	{
+		auto *newAddButton = makeAddButton(title, row);
+		qobject_cast<QHBoxLayout *>(row->layout())->replaceWidget(rowSpinner, newAddButton);
+		rowSpinner->deleteLater();
+		addButton->deleteLater();
+		fetch->deleteLater();
+	});
+
 	fetch->fetchById(title.imdbId, title.posterImage);
 }
 

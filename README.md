@@ -70,3 +70,13 @@ Poster images are saved alongside it in:
 ~/.local/share/movieTracker/Posters/
 ```
 
+---
+
+## On AI usage
+
+This project is hand-designed: the architecture, the Qt widget structure, and the feature decisions come from the developer, not a model. AI is used as a tool throughout development, mainly for:
+
+- **Code review** — catching bugs, leaks, and edge cases that were missed.
+- **Implementing changes that have already been scoped** — once a change is decided and understood, AI may write the diff, which then gets reviewed and adjusted rather than typed by hand.
+- **Sounding board** — discussing tradeoffs before deciding what to build.
+

@@ -58,6 +58,7 @@ void OmdbSearch::onFetchByIdFinished(QNetworkReply *reply, const QPixmap &poster
 	if(reply->error() != QNetworkReply::NoError)
 	{
 		reply->deleteLater();
+		emit titleFetchFailed();
 		return;
 	}
 
@@ -66,6 +67,7 @@ void OmdbSearch::onFetchByIdFinished(QNetworkReply *reply, const QPixmap &poster
 
 	if(root["Response"].toString() == "False")
 	{
+		emit titleFetchFailed();
 		return;
 	}
 
