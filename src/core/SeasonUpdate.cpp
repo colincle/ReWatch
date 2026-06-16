@@ -139,4 +139,5 @@ void SeasonUpdate::updateSeries()
 	}
 
 	appStorage.save();
+	emit seriesUpdated();
 }

@@ -48,4 +48,5 @@ private:
 signals:
 	void titlesUpdated();
 	void saveFailed();
+	void apiKeyChanged();
 };

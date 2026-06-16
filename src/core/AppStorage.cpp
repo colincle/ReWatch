@@ -196,6 +196,7 @@ void AppStorage::setOmdbApiKey(QString key)
 
 	omdbApiKey = key;
 	save();
+	emit apiKeyChanged();
 }
 
 void AppStorage::addTitle(const Title &title, const QPixmap &posterImage)

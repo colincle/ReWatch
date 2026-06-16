@@ -75,6 +75,8 @@ void SeasonUpdateController::runAttempt(SeasonUpdate *queue)
 		isNetworkError = true;
 	}, Qt::QueuedConnection);
 
+	connect(queue, &SeasonUpdate::seriesUpdated, &appStorage, &AppStorage::titlesUpdated, Qt::QueuedConnection);
+
 	QEventLoop loop;
 	auto future = QtConcurrent::run([queue]() { queue->updateSeries(); });
 

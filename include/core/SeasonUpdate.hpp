@@ -18,6 +18,7 @@ public:
 signals:
 	void apiKeyError();
 	void networkError();
+	void seriesUpdated();
 
 private:
 	AppStorage &appStorage;

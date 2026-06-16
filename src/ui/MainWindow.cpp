@@ -90,6 +90,8 @@ void MainWindow::setupSeasonUpdateController()
 		errorCard->setMessage(message);
 		errorCard->show();
 	});
+
+	connect(&appStorage, &AppStorage::apiKeyChanged, seasonUpdateController, &SeasonUpdateController::start);
 }
 
 QWidget *MainWindow::makeSeasonOverlay()
