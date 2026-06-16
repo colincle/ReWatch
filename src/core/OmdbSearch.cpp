@@ -9,18 +9,26 @@
 #include <QNetworkRequest>
 #include <QPixmap>
 #include <QUrl>
+#include <QUrlQuery>
 
-static const QString BASE_URL = "https://omdbapi.com/?apikey=";
-static const QString TITLE_SEARCH = "&s=";
-static const QString ID_SEARCH = "&i=";
+static const QString BASE_URL = "https://omdbapi.com/";
+
+static QUrl makeUrl(const QString &apiKey, const QString &param, const QString &value)
+{
+	QUrl url(BASE_URL);
+	QUrlQuery urlQuery;
+	urlQuery.addQueryItem("apikey", apiKey);
+	urlQuery.addQueryItem(param, value);
+	url.setQuery(urlQuery);
+	return url;
+}
 
 OmdbSearch::OmdbSearch(AppStorage &appStorage, QString query, QString key, QObject *parent)
 	: QObject(parent)
 	, appStorage(appStorage)
 	, apiKey(key)
 {
-	query.replace(' ', '+');
-	requestUrl = BASE_URL + apiKey + TITLE_SEARCH + query;
+	requestUrl = makeUrl(apiKey, "s", query).toString();
 }
 
 OmdbSearch::OmdbSearch(AppStorage &appStorage, QString key, QObject *parent)
@@ -28,7 +36,7 @@ OmdbSearch::OmdbSearch(AppStorage &appStorage, QString key, QObject *parent)
 	, appStorage(appStorage)
 	, apiKey(key)
 {
-	requestUrl = BASE_URL + apiKey + TITLE_SEARCH;
+	requestUrl = makeUrl(apiKey, "s", QString()).toString();
 }
 
 const results &OmdbSearch::getResults() const
@@ -44,8 +52,7 @@ void OmdbSearch::search()
 
 void OmdbSearch::fetchById(const QString &imdbId, const QPixmap &posterImage)
 {
-	QString url = BASE_URL + apiKey + ID_SEARCH + imdbId;
-	QNetworkReply *reply = networkManager.get(QNetworkRequest(QUrl(url)));
+	QNetworkReply *reply = networkManager.get(QNetworkRequest(makeUrl(apiKey, "i", imdbId)));
 
 	connect(reply, &QNetworkReply::finished, this, [this, reply, posterImage]()
 	{
