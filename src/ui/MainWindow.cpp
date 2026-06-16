@@ -86,6 +86,7 @@ void MainWindow::runSeasonUpdate()
 	QTimer::singleShot(0, this, [this, queue]()
 	{
 		auto *overlay = makeSeasonOverlay();
+		appMenuBar->setEnabled(false);
 
 		QElapsedTimer elapsed;
 		elapsed.start();
@@ -116,6 +117,7 @@ void MainWindow::runSeasonUpdate()
 		watcher.setFuture(future);
 		loop.exec();
 
+		appMenuBar->setEnabled(true);
 		overlay->deleteLater();
 
 		if(hadError)
