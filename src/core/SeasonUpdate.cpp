@@ -159,6 +159,5 @@ void SeasonUpdate::updateSeries()
 	}
 
 	appStorage.addNotifications(notifications);
-	appStorage.save();
 	emit seriesUpdated();
 }

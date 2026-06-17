@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QMenu>
 #include <QScrollArea>
+#include <QSet>
 #include <QSoundEffect>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -29,11 +30,11 @@ class NotificationsCenter : public QObject
 	QVBoxLayout *notificationsLayout;
 	QLabel *noNotificationsLabel;
 	int notificationRowCount = 0;
+	QSet<QString> knownNotificationIds;
 
 	void setupMenu();
 	void onNotificationsAdded();
 
 	void addNotificationRow(const QString &imdbId);
-	bool notificationRowExists(const QString &imdbId) const;
 	const Title *findTitleForNotification(const QString &imdbId) const;
 };

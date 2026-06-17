@@ -137,6 +137,8 @@ void sortTitles(std::vector<Title> &titles, SortMode mode)
 		break;
 
 	case SortMode::Rank:
+		titles.erase(std::remove_if(titles.begin(), titles.end(), [](const Title &t) { return t.rank == 0; }),
+		             titles.end());
 		std::sort(titles.begin(), titles.end(), [](const Title &a, const Title &b) { return a.rank < b.rank; });
 		break;
 	}

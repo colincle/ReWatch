@@ -36,18 +36,22 @@ SettingsWindow::SettingsWindow(AppStorage &appStorage, QWidget *parent) : QDialo
 	setupUi();
 }
 
+QString SettingsWindow::buildStyleSheet() const
+{
+	return QStringLiteral(
+	           "QDialog { background-color: %1; }"
+	           "QLabel { color: %2; background: transparent; }"
+	           "QLineEdit { background-color: %3; color: %2; border: 1px solid %4; border-radius: 6px; padding: 6px "
+	           "10px; }"
+	           "QPushButton { background-color: %5; color: %2; border: none; border-radius: 6px; padding: 6px 18px; }"
+	           "QPushButton:disabled { background-color: %3; color: %6; }")
+	    .arg(Palette::bgPrimary, Palette::textPrimary, Palette::surface, Palette::border, Palette::accent,
+	         Palette::textSecondary);
+}
+
 void SettingsWindow::setupUi()
 {
-	setStyleSheet(
-	    QStringLiteral(
-	        "QDialog { background-color: %1; }"
-	        "QLabel { color: %2; background: transparent; }"
-	        "QLineEdit { background-color: %3; color: %2; border: 1px solid %4; border-radius: 6px; padding: 6px 10px; "
-	        "}"
-	        "QPushButton { background-color: %5; color: %2; border: none; border-radius: 6px; padding: 6px 18px; }"
-	        "QPushButton:disabled { background-color: %3; color: %6; }")
-	        .arg(Palette::bgPrimary, Palette::textPrimary, Palette::surface, Palette::border, Palette::accent,
-	             Palette::textSecondary));
+	setStyleSheet(buildStyleSheet());
 
 	auto *layout = new QVBoxLayout(this);
 	layout->setContentsMargins(24, 24, 24, 24);
@@ -177,16 +181,7 @@ QFrame *SettingsWindow::makeSeparator()
 
 void SettingsWindow::refreshStyle()
 {
-	setStyleSheet(
-	    QStringLiteral(
-	        "QDialog { background-color: %1; }"
-	        "QLabel { color: %2; background: transparent; }"
-	        "QLineEdit { background-color: %3; color: %2; border: 1px solid %4; border-radius: 6px; padding: 6px 10px; "
-	        "}"
-	        "QPushButton { background-color: %5; color: %2; border: none; border-radius: 6px; padding: 6px 18px; }"
-	        "QPushButton:disabled { background-color: %3; color: %6; }")
-	        .arg(Palette::bgPrimary, Palette::textPrimary, Palette::surface, Palette::border, Palette::accent,
-	             Palette::textSecondary));
+	setStyleSheet(buildStyleSheet());
 }
 
 void SettingsWindow::onApplyClicked()

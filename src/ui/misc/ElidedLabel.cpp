@@ -2,6 +2,7 @@
 
 #include <QFontMetrics>
 #include <QResizeEvent>
+#include <QTextLayout>
 
 ElidedLabel::ElidedLabel(const QString &text, int maxLines, QWidget *parent)
     : QLabel(parent), fullText(text), maxLines(maxLines)
@@ -38,36 +39,41 @@ void ElidedLabel::updateElidedText()
 		return;
 	}
 
-	const int w = width();
-	const QStringList words = fullText.split(' ', Qt::SkipEmptyParts);
-	QStringList lines(effectiveLines);
-	int lineIndex = 0;
+	QLabel::setText(buildLines(fm, effectiveLines, width()).join('\n'));
+}
 
-	for(int i = 0; i < words.size(); ++i)
+QStringList ElidedLabel::buildLines(const QFontMetrics &fm, int effectiveLines, int w) const
+{
+	QTextLayout layout(fullText, font());
+	layout.beginLayout();
+
+	struct Span
 	{
-		const QString candidate = lines[lineIndex].isEmpty() ? words[i] : lines[lineIndex] + " " + words[i];
+		int start, length;
+	};
+	QVector<Span> spans;
 
-		if(lines[lineIndex].isEmpty() || fm.horizontalAdvance(candidate) <= w)
-		{
-			lines[lineIndex] = candidate;
-			continue;
-		}
-
-		if(lineIndex == effectiveLines - 1)
-		{
-			const QString remaining = lines[lineIndex] + " " + QStringList(words.mid(i)).join(' ');
-			lines[lineIndex] = fm.elidedText(remaining, Qt::ElideRight, w);
+	for(int i = 0; i < effectiveLines; ++i)
+	{
+		QTextLine line = layout.createLine();
+		if(!line.isValid())
 			break;
-		}
-
-		++lineIndex;
-		lines[lineIndex] = words[i];
+		line.setLineWidth(w);
+		spans.push_back({line.textStart(), line.textLength()});
 	}
+	layout.endLayout();
 
-	while(!lines.isEmpty() && lines.last().isEmpty())
-	{
-		lines.removeLast();
-	}
+	if(spans.isEmpty())
+		return {};
 
-	QLabel::setText(lines.join('\n'));
+	QStringList lines;
+	for(int i = 0; i < spans.size() - 1; ++i)
+		lines << fullText.mid(spans[i].start, spans[i].length).trimmed();
+
+	const Span last = spans.last();
+	const bool truncated = last.start + last.length < fullText.size();
+	lines << (truncated ? fm.elidedText(fullText.mid(last.start), Qt::ElideRight, w)
+	                    : fullText.mid(last.start, last.length).trimmed());
+
+	return lines;
 }

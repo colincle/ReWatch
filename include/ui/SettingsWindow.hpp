@@ -28,6 +28,7 @@ class SettingsWindow : public QDialog
 
 	void onApplyClicked();
 	void refreshStyle();
+	QString buildStyleSheet() const;
 
   signals:
 	void themeChanged(const QString &theme);

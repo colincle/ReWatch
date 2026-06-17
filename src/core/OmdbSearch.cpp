@@ -36,7 +36,6 @@ OmdbSearch::OmdbSearch(AppStorage &appStorage, QString query, QString key, QObje
 OmdbSearch::OmdbSearch(AppStorage &appStorage, QString key, QObject *parent)
     : QObject(parent), appStorage(appStorage), apiKey(key)
 {
-	requestUrl = makeUrl(apiKey, "s", QString()).toString();
 }
 
 const Results &OmdbSearch::getResults() const

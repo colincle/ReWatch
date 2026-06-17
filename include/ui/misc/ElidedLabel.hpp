@@ -21,4 +21,5 @@ class ElidedLabel : public QLabel
 	int maxLines;
 
 	void updateElidedText();
+	QStringList buildLines(const QFontMetrics &fm, int effectiveLines, int w) const;
 };

@@ -40,9 +40,9 @@ class AppStorage : public QObject
 	void addNotifications(const std::vector<QString> &values);
 	void removeNotifications();
 
-	const int getLibraryCardWidth() const { return libraryCardWidth; }
-	const QString getTheme() const { return theme; }
-	const WindowSize getWindowSize() const { return windowSize; }
+	int getLibraryCardWidth() const { return libraryCardWidth; }
+	QString getTheme() const { return theme; }
+	WindowSize getWindowSize() const { return windowSize; }
 	const std::vector<Title> &getTitles() const { return titles; }
 	std::vector<Title> &getTitlesMutable() { return titles; }
 	const std::vector<QString> &getNotifications() const { return notifications; }

@@ -94,27 +94,21 @@ const Title *NotificationsCenter::findTitleForNotification(const QString &imdbId
 	return nullptr;
 }
 
-bool NotificationsCenter::notificationRowExists(const QString &imdbId) const
-{
-	for(QLabel *label : notificationsContainer->findChildren<QLabel *>())
-	{
-		if(label != noNotificationsLabel && label->property("notificationImdbId").toString() == imdbId)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 void NotificationsCenter::addNotificationRow(const QString &imdbId)
 {
+	if(knownNotificationIds.contains(imdbId))
+	{
+		return;
+	}
+
 	const Title *match = findTitleForNotification(imdbId);
 
 	if(!match)
 	{
 		return;
 	}
+
+	knownNotificationIds.insert(imdbId);
 
 	const QString newSeasonString =
 	    QStringLiteral("<span style=\"color: %1;\">New Season</span>").arg(Palette::accentLight);
@@ -134,7 +128,6 @@ void NotificationsCenter::addNotificationRow(const QString &imdbId)
 	    match->posterImage.scaled(poster->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
 
 	auto *label = new QLabel(text, row);
-	label->setProperty("notificationImdbId", imdbId);
 	label->setTextFormat(Qt::RichText);
 	label->setStyleSheet(QStringLiteral("color: %1; font-size: 14px; border: none; background: transparent;")
 	                         .arg(Palette::textSecondary));
@@ -153,10 +146,7 @@ void NotificationsCenter::onNotificationsAdded()
 {
 	for(const QString &imdbId : appStorage.getNotifications())
 	{
-		if(!notificationRowExists(imdbId))
-		{
-			addNotificationRow(imdbId);
-		}
+		addNotificationRow(imdbId);
 	}
 
 	notificationSound.play();
