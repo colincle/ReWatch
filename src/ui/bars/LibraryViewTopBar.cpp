@@ -46,10 +46,21 @@ void LibraryViewTopBar::setupLayout()
 
 	searchButton = new IconButton(SEARCH_ICON, 40, COLOR_ACCENT, COLOR_SURFACE, this);
 	closeButton = new IconButton(CROSS_ICON, 40, COLOR_ACCENT, COLOR_SURFACE, this);
+	zoomInButton = new IconButton(ZOOM_IN_ICON, 40, COLOR_ACCENT, COLOR_SURFACE, this);
+	zoomOutButton = new IconButton(ZOOM_OUT_ICON, 40, COLOR_ACCENT, COLOR_SURFACE, this);
+	zoomInButton->setAutoRepeat(true);
+	zoomInButton->setAutoRepeatDelay(200);
+	zoomInButton->setAutoRepeatInterval(100);
+	zoomOutButton->setAutoRepeat(true);
+	zoomOutButton->setAutoRepeatDelay(200);
+	zoomOutButton->setAutoRepeatInterval(100);
 	closeButton->hide();
 
 	layout->addWidget(showAllButton);
 	layout->addWidget(showToWatchButton);
+	layout->addSpacing(50);
+	layout->addWidget(zoomOutButton);
+	layout->addWidget(zoomInButton);
 	layout->addStretch();
 	layout->addWidget(searchInput);
 	layout->addWidget(searchButton);
@@ -64,6 +75,8 @@ void LibraryViewTopBar::connectSignals()
 	connect(closeButton, &QPushButton::clicked, this, &LibraryViewTopBar::closeSearch);
 	connect(searchInput, &QLineEdit::returnPressed, this, &LibraryViewTopBar::onSearchCommitted);
 	connect(searchInput, &QLineEdit::textChanged, this, &LibraryViewTopBar::onSearchTextChanged);
+	connect(zoomInButton, &QPushButton::clicked, this, [this]() { emit zoomRequested(10); });
+	connect(zoomOutButton, &QPushButton::clicked, this, [this]() { emit zoomRequested(-10); });
 }
 
 void LibraryViewTopBar::onShowAllClicked()

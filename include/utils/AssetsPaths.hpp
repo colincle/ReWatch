@@ -28,7 +28,9 @@
 #define VIEWED_ICON         ASSETS_ROOT "/icons/viewed.svg"
 #define NOT_VIEWED_ICON     ASSETS_ROOT "/icons/notViewed.svg"
 #define IMAGE_UPLOAD_ICON   ASSETS_ROOT "/icons/imageUpload.svg"
-#define NOTIFICATIONS_ICON   ASSETS_ROOT "/icons/notifications.svg"
+#define NOTIFICATIONS_ICON  ASSETS_ROOT "/icons/notifications.svg"
+#define ZOOM_IN_ICON        ASSETS_ROOT "/icons/zoomIn.svg"
+#define ZOOM_OUT_ICON       ASSETS_ROOT "/icons/zoomOut.svg"
 
 // Images
 #define POSTER_PLACEHOLDER  ASSETS_ROOT "/images/placeholderPoster.png"

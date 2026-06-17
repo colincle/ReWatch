@@ -81,7 +81,20 @@ void LibraryView::connectSignals()
 
 	connect(libraryViewTopBar, &LibraryViewTopBar::searchRequested, this, &LibraryView::onSearchRequested);
 	connect(libraryViewTopBar, &LibraryViewTopBar::filterChanged, this, &LibraryView::applyFilter);
+	connect(libraryViewTopBar, &LibraryViewTopBar::zoomRequested, this, &LibraryView::onZoomRequested);
 	connect(resizeTimer, &QTimer::timeout, this, &LibraryView::populate);
+}
+
+void LibraryView::onZoomRequested(int zoomValue)
+{
+	int newCardWidth = cardWidth + zoomValue;
+
+	if (newCardWidth > MAX_CARD_WIDTH || newCardWidth < MIN_CARD_WIDTH)
+		return;
+	
+	cardWidth = newCardWidth;
+	appStorage.setLibraryCardWidth(cardWidth);
+	populate();
 }
 
 void LibraryView::onSearchRequested(const QString &query)
@@ -100,7 +113,7 @@ void LibraryView::resizeEvent(QResizeEvent *event)
 int LibraryView::computeColumns() const
 {
 	int available = scrollArea->viewport()->width();
-	int cols = (available + CARD_SPACING) / (CARD_WIDTH + CARD_SPACING);
+	int cols = (available + CARD_SPACING) / (cardWidth + CARD_SPACING);
 	return qMax(1, cols);
 }
 
@@ -108,13 +121,14 @@ int LibraryView::computeSpacing() const
 {
 	int available = scrollArea->viewport()->width();
 	int cols = computeColumns();
-	return (available - cols * CARD_WIDTH) / (cols + 1);
+	return (available - cols * cardWidth) / (cols + 1);
 }
 
 void LibraryView::populate()
 {
 	clear();
 
+	cardWidth = appStorage.getLibraryCardWidth();
 	std::vector<Title> filtered = filterTitles(titles, currentTab, currentFilter);
 	sortTitles(filtered, currentSort);
 
@@ -130,7 +144,7 @@ void LibraryView::populate()
 
 	for(const Title &t : filtered)
 	{
-		cardsLayout->addWidget(new TitleCard(t, appStorage, cardsContainer), row, col);
+		cardsLayout->addWidget(new TitleCard(t, appStorage, cardWidth, cardsContainer), row, col);
 
 		if(++col >= cols)
 		{

@@ -39,4 +39,6 @@ private:
 
 	void enterAddMode();
 	void enterNormalMode();
+
+	void closeEvent(QCloseEvent *event) override;
 };

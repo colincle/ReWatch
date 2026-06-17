@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QPushButton>
 
 AppMenuBar::AppMenuBar(AppStorage &appStorage, QWidget *parent)
 	: QMenuBar(parent)
@@ -26,19 +27,30 @@ AppMenuBar::AppMenuBar(AppStorage &appStorage, QWidget *parent)
 
 void AppMenuBar::onSetApiKeyTriggered()
 {
-	bool ok = false;
-	QString key = QInputDialog::getText(
-	                  parentWidget(),
-	                  "OMDb API Key",
-	                  "Enter your API key:",
-	                  QLineEdit::Normal,
-	                  "",
-	                  &ok
-	              );
+	QInputDialog dialog(parentWidget());
+	dialog.setWindowTitle("OMDb API Key");
+	dialog.setLabelText("Enter your API key:");
+	dialog.setInputMode(QInputDialog::TextInput);
+	dialog.setTextValue(appStorage.getKey());
 
-	if(ok && !key.isEmpty())
+	dialog.show(); // forces internal widget creation
+
+	auto *buttonBox = dialog.findChild<QDialogButtonBox*>();
+	auto *okBtn = buttonBox ? buttonBox->button(QDialogButtonBox::Ok) : nullptr;
+
+	if(okBtn)
 	{
-		appStorage.setOmdbApiKey(key);
+		auto updateOk = [&]()
+		{
+			okBtn->setEnabled(!dialog.textValue().simplified().isEmpty());
+		};
+		updateOk();
+		connect(&dialog, &QInputDialog::textValueChanged, this, [&](const QString &) { updateOk(); });
+	}
+
+	if(dialog.exec() == QDialog::Accepted)
+	{
+		appStorage.setOmdbApiKey(dialog.textValue().simplified());
 	}
 }
 

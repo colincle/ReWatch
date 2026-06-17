@@ -17,6 +17,7 @@ public:
 signals:
 	void searchRequested(const QString &query);
 	void filterChanged(ViewFilter filter);
+	void zoomRequested(int zoomValue);
 
 private:
 	TextButton *showAllButton;
@@ -24,6 +25,8 @@ private:
 
 	IconButton *searchButton;
 	IconButton *closeButton;
+	IconButton *zoomInButton;
+	IconButton *zoomOutButton;
 	QLineEdit *searchInput;
 
 	void setupLayout();

@@ -26,7 +26,9 @@ protected:
 	void resizeEvent(QResizeEvent *event) override;
 
 private:
-	static constexpr int CARD_WIDTH = 160;
+	int cardWidth;
+	static constexpr int MIN_CARD_WIDTH = 150;
+	static constexpr int MAX_CARD_WIDTH = 300;
 	static constexpr int CARD_SPACING = 16;
 	static constexpr int MARGIN = 20;
 
@@ -54,6 +56,7 @@ private:
 	QWidget *makeScrollArea();
 
 	void onSearchRequested(const QString &query);
+	void onZoomRequested(int zoomValue);
 
 	int computeColumns() const;
 	int computeSpacing() const;

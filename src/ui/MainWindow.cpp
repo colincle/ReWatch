@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 {
 	setMinimumSize(800, 600);
-	resize(1200, 800);
+	resize(appStorage.getWindowSize().width, appStorage.getWindowSize().height);
 
 	setupLayout();
 	setupMenuBar();
@@ -161,4 +161,10 @@ void MainWindow::connectSignals()
 		errorCard->setMessage(message);
 		errorCard->show();
 	});
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    appStorage.setWindowSize(width(), height());
+    QMainWindow::closeEvent(event);
 }

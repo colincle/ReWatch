@@ -117,7 +117,10 @@ void AppStorage::load()
 		return;
 	}
 
+	windowSize.width = root["windowWidth"].toInt(1200);
+	windowSize.height = root["windowHeight"].toInt(800);
 	omdbApiKey = root["omdbApiKey"].toString();
+	libraryCardWidth = root["libraryCardWidth"].toInt(160);
 	titles.clear();
 	notifications.clear();
 
@@ -159,6 +162,9 @@ void AppStorage::save()
 	}
 
 	QJsonObject root;
+	root["windowWidth"] = windowSize.width;
+	root["windowHeight"] = windowSize.height;
+	root["libraryCardWidth"] = libraryCardWidth;
 	root["omdbApiKey"] = omdbApiKey;
 	root["titles"] = arr;
 	root["notifications"] = notificationsArr;
@@ -211,6 +217,21 @@ void AppStorage::setOmdbApiKey(QString key)
 	omdbApiKey = key;
 	save();
 	emit apiKeyChanged();
+}
+
+void AppStorage::setWindowSize(int width, int height)
+{
+	windowSize.width = width;
+	windowSize.height = height;
+	save();
+}
+
+void AppStorage::setLibraryCardWidth(int width)
+{
+	QMutexLocker locker(&mutex);
+
+	libraryCardWidth = width;
+	save();
 }
 
 void AppStorage::addTitle(const Title &title, const QPixmap &posterImage)

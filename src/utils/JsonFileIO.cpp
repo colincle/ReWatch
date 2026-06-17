@@ -1,9 +1,11 @@
 #include "JsonFileIO.hpp"
 
+#include <QApplication>
 #include <QDir>
 #include <QFile>
 #include <QIODevice>
 #include <QJsonDocument>
+#include <QMessageBox>
 
 void ensureDirectoryExists(const QString &path)
 {
@@ -20,14 +22,17 @@ void ensureStorageFileExists(const QString &filePath)
 	QFile file(filePath);
 
 	if(file.exists())
-	{
 		return;
-	}
 
-	if(file.open(QIODevice::WriteOnly))
+	if(!file.open(QIODevice::WriteOnly))
 	{
-		file.write("{\n\t\"omdbApiKey\": \"\",\n\t\"titles\": [],\n\t\"notifications\": []\n}\n");
-		file.close();
+		QMessageBox msgBox;
+		msgBox.setWindowTitle("Storage Error");
+		msgBox.setText("Could not create storage file:\n" + filePath);
+		msgBox.setIcon(QMessageBox::Critical);
+		msgBox.setWindowFlags(msgBox.windowFlags() | Qt::WindowStaysOnTopHint);
+		msgBox.exec();
+		exit(1);
 	}
 }
 

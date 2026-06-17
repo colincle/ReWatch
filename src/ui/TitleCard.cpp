@@ -8,10 +8,6 @@
 #include <QMouseEvent>
 #include <QVBoxLayout>
 
-static constexpr int CARD_WIDTH = 160;
-static constexpr int POSTER_HEIGHT = 240;
-static constexpr int TITLE_LABEL_HEIGHT = 34;
-static constexpr int CARD_HEIGHT = POSTER_HEIGHT + TITLE_LABEL_HEIGHT;
 static constexpr int BTN_SIZE = 36;
 static constexpr int BTN_MARGIN = 8;
 
@@ -47,17 +43,20 @@ static QString elideToTwoLines(const QString &text, const QFontMetrics &fm, int 
 	return lines[1].isEmpty() ? lines[0] : lines[0] + "\n" + lines[1];
 }
 
-TitleCard::TitleCard(const Title &title, AppStorage &appStorage, QWidget *parent)
+TitleCard::TitleCard(const Title &title, AppStorage &appStorage, int cardWidth, QWidget *parent)
 	: QWidget(parent)
 	, title(title)
 	, appStorage(appStorage)
+	, cardWidth(cardWidth)
+	, posterHeight(cardWidth * 3 / 2)
+	, titleLabelHeight(cardWidth / 5)
 {
 	setupUi();
 }
 
 void TitleCard::setupUi()
 {
-	setFixedSize(CARD_WIDTH, CARD_HEIGHT);
+	setFixedSize(cardWidth, posterHeight + titleLabelHeight);
 	setCursor(Qt::PointingHandCursor);
 	setStyleSheet(
 	    "TitleCard {"
@@ -68,35 +67,35 @@ void TitleCard::setupUi()
 	);
 
 	posterLabel = new QLabel(this);
-	posterLabel->setGeometry(0, 0, CARD_WIDTH, POSTER_HEIGHT);
+	posterLabel->setGeometry(0, 0, cardWidth, posterHeight);
 	posterLabel->setStyleSheet("border: none; background: transparent;");
 	posterLabel->setAlignment(Qt::AlignCenter);
 	posterLabel->setPixmap(
 	    title.posterImage.scaled(
-	        QSize(CARD_WIDTH, POSTER_HEIGHT),
+	        QSize(cardWidth, posterHeight),
 	        Qt::KeepAspectRatioByExpanding,
 	        Qt::SmoothTransformation)
 	);
 
 	titleLabel = new QLabel(this);
-	titleLabel->setGeometry(0, POSTER_HEIGHT, CARD_WIDTH, TITLE_LABEL_HEIGHT);
+	titleLabel->setGeometry(0, posterHeight, cardWidth, titleLabelHeight);
 	titleLabel->setStyleSheet(
 	    "border: none; background: transparent;"
 	    "color: " COLOR_TEXT_PRIMARY "; font-size: 12px;"
 	);
 	titleLabel->setAlignment(Qt::AlignCenter);
 	titleLabel->setWordWrap(true);
-	titleLabel->setText(elideToTwoLines(title.title, titleLabel->fontMetrics(), CARD_WIDTH - 8));
+	titleLabel->setText(elideToTwoLines(title.title, titleLabel->fontMetrics(), cardWidth - 8));
 
 	viewedButton = new IconButton(VIEWED_ICON, BTN_SIZE, COLOR_SUCCESS, COLOR_SURFACE, this);
 	notViewedButton = new IconButton(NOT_VIEWED_ICON, BTN_SIZE, COLOR_ERROR, COLOR_SURFACE, this);
 	deleteButton = new IconButton(DELETE_ICON, BTN_SIZE, COLOR_ERROR, COLOR_SURFACE, this);
 	uploadPosterButton = new IconButton(IMAGE_UPLOAD_ICON, BTN_SIZE, COLOR_ACCENT, COLOR_SURFACE, this);
 
-	viewedButton->move(BTN_MARGIN, POSTER_HEIGHT - BTN_SIZE - BTN_MARGIN);
-	notViewedButton->move(BTN_MARGIN, POSTER_HEIGHT - BTN_SIZE - BTN_MARGIN);
-	deleteButton->move(CARD_WIDTH - BTN_SIZE - BTN_MARGIN, POSTER_HEIGHT - BTN_SIZE - BTN_MARGIN);
-	uploadPosterButton->move(CARD_WIDTH - BTN_SIZE - BTN_MARGIN, BTN_MARGIN);
+	viewedButton->move(BTN_MARGIN, posterHeight - BTN_SIZE - BTN_MARGIN);
+	notViewedButton->move(BTN_MARGIN, posterHeight - BTN_SIZE - BTN_MARGIN);
+	deleteButton->move(cardWidth - BTN_SIZE - BTN_MARGIN, posterHeight - BTN_SIZE - BTN_MARGIN);
+	uploadPosterButton->move(cardWidth - BTN_SIZE - BTN_MARGIN, BTN_MARGIN);
 
 	uploadPosterButton->setVisible(title.posterNotFound);
 
@@ -163,7 +162,7 @@ void TitleCard::onUploadPosterClicked()
 
 	posterLabel->setPixmap(
 	    image.scaled(
-	        QSize(CARD_WIDTH, POSTER_HEIGHT),
+	        QSize(cardWidth, posterHeight),
 	        Qt::KeepAspectRatioByExpanding,
 	        Qt::SmoothTransformation)
 	);

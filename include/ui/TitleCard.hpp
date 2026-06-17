@@ -12,7 +12,7 @@ class TitleCard : public QWidget
 	Q_OBJECT
 
 public:
-	explicit TitleCard(const Title &title, AppStorage &appStorage, QWidget *parent = nullptr);
+	explicit TitleCard(const Title &title, AppStorage &appStorage, int cardWidth, QWidget *parent = nullptr);
 
 protected:
 	void enterEvent(QEnterEvent *event) override;
@@ -25,6 +25,9 @@ signals:
 private:
 	Title title;
 	AppStorage &appStorage;
+	int cardWidth;
+	int posterHeight;
+	int titleLabelHeight;
 
 	QLabel *posterLabel;
 	QLabel *titleLabel;
