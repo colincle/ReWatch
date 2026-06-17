@@ -1,10 +1,10 @@
 #pragma once
 
 #include "AppStorage.hpp"
+#include "ElidedLabel.hpp"
 #include "IconButton.hpp"
 #include "Title.hpp"
 
-#include <QLabel>
 #include <QWidget>
 
 class TitleCard : public QWidget
@@ -30,13 +30,16 @@ private:
 	int titleLabelHeight;
 
 	QLabel *posterLabel;
-	QLabel *titleLabel;
+	ElidedLabel *titleLabel;
 	IconButton *notViewedButton;
 	IconButton *viewedButton;
 	IconButton *deleteButton;
 	IconButton *uploadPosterButton;
 
 	void setupUi();
+	void setupPosterLabel();
+	void setupTitleLabel();
+	void setupButtons();
 	void connectButtons();
 	void showButtons();
 	void hideButtons();

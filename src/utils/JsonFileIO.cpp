@@ -22,7 +22,9 @@ void ensureStorageFileExists(const QString &filePath)
 	QFile file(filePath);
 
 	if(file.exists())
+	{
 		return;
+	}
 
 	if(!file.open(QIODevice::WriteOnly))
 	{

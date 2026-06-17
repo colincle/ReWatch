@@ -11,8 +11,8 @@
 
 struct WindowSize
 {
-    int width;
-    int height;
+	int width;
+	int height;
 };
 
 class AppStorage : public QObject

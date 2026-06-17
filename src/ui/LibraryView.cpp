@@ -89,9 +89,11 @@ void LibraryView::onZoomRequested(int zoomValue)
 {
 	int newCardWidth = cardWidth + zoomValue;
 
-	if (newCardWidth > MAX_CARD_WIDTH || newCardWidth < MIN_CARD_WIDTH)
+	if(newCardWidth > MAX_CARD_WIDTH || newCardWidth < MIN_CARD_WIDTH)
+	{
 		return;
-	
+	}
+
 	cardWidth = newCardWidth;
 	appStorage.setLibraryCardWidth(cardWidth);
 	populate();

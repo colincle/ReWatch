@@ -165,6 +165,6 @@ void MainWindow::connectSignals()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    appStorage.setWindowSize(width(), height());
-    QMainWindow::closeEvent(event);
+	appStorage.setWindowSize(width(), height());
+	QMainWindow::closeEvent(event);
 }

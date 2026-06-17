@@ -77,10 +77,25 @@ void SearchResults::search(QString query)
 	scrollArea->verticalScrollBar()->setValue(0);
 	clearResultsLayout();
 
+	if(currentSearch)
+	{
+		disconnect(currentSearch, nullptr, this, nullptr);
+		currentSearch->deleteLater();
+		currentSearch = nullptr;
+	}
+
 	auto *omdbSearch = new OmdbSearch(appStorage, query, appStorage.getKey(), this);
+	currentSearch = omdbSearch;
 
 	connect(omdbSearch, &OmdbSearch::searchFinished, this, [this, omdbSearch]()
 	{
+		if(omdbSearch != currentSearch)
+		{
+			omdbSearch->deleteLater();
+			return;
+		}
+
+		currentSearch = nullptr;
 		spinner->hide();
 		onSearchFinished(omdbSearch);
 	});
@@ -148,6 +163,8 @@ QWidget *SearchResults::makeResultRow(const resultTitle &title)
 	    "border-radius: 10px;"
 	);
 
+	row->setFixedHeight(174);
+
 	auto *rowLayout = new QHBoxLayout(row);
 	rowLayout->setContentsMargins(12, 12, 12, 12);
 	rowLayout->setSpacing(20);
@@ -177,7 +194,7 @@ QWidget *SearchResults::makeTitleInfo(const resultTitle &title)
 {
 	auto *container = new QWidget;
 	container->setStyleSheet("background: transparent; border: none;");
-	container->setMaximumHeight(150);
+	container->setFixedHeight(150);
 
 	auto *layout = new QVBoxLayout(container);
 	layout->setContentsMargins(0, 0, 0, 0);
@@ -230,14 +247,13 @@ QLabel *SearchResults::makePlotLabel(const resultTitle &title)
 {
 	const bool hasPlot = !title.plot.isEmpty() && title.plot != "N/A";
 
-	auto *label = new QLabel(hasPlot ? title.plot : QString());
+	auto *label = new ElidedLabel(hasPlot ? title.plot : QString(), 0);
 	label->setStyleSheet(
 	    "color: " COLOR_TEXT_SECONDARY ";"
 	    "font-size: 12px;"
 	    "border: none;"
 	    "background: transparent;"
 	);
-	label->setWordWrap(true);
 	label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	return label;

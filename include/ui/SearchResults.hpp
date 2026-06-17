@@ -49,4 +49,5 @@ private:
 	QWidget *resultsContainer;
 	QGridLayout *resultsLayout;
 	QScrollArea *scrollArea;
+	OmdbSearch *currentSearch = nullptr;
 };

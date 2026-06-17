@@ -1,46 +1,30 @@
 #include "TitleCard.hpp"
 #include "AssetsPaths.hpp"
 #include "ColorPalette.hpp"
+#include "ElidedLabel.hpp"
 
 #include <QDir>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QMouseEvent>
+#include <QPainter>
+#include <QPainterPath>
 #include <QVBoxLayout>
 
 static constexpr int BTN_SIZE = 36;
 static constexpr int BTN_MARGIN = 8;
 
-static QString elideToTwoLines(const QString &text, const QFontMetrics &fm, int width)
+static QPixmap roundedPixmap(const QPixmap &src, int radius)
 {
-	const QStringList words = text.split(' ', Qt::SkipEmptyParts);
-	QString lines[2];
-	int lineIndex = 0;
-
-	for(int i = 0; i < words.size(); ++i)
-	{
-		const QString candidate = lines[lineIndex].isEmpty()
-		                          ? words[i]
-		                          : lines[lineIndex] + " " + words[i];
-
-		if(lines[lineIndex].isEmpty() || fm.horizontalAdvance(candidate) <= width)
-		{
-			lines[lineIndex] = candidate;
-			continue;
-		}
-
-		if(lineIndex == 1)
-		{
-			QString remaining = lines[1] + " " + QStringList(words.mid(i)).join(' ');
-			lines[1] = fm.elidedText(remaining, Qt::ElideRight, width);
-			break;
-		}
-
-		++lineIndex;
-		lines[lineIndex] = words[i];
-	}
-
-	return lines[1].isEmpty() ? lines[0] : lines[0] + "\n" + lines[1];
+	QPixmap result(src.size());
+	result.fill(Qt::transparent);
+	QPainter p(&result);
+	p.setRenderHint(QPainter::Antialiasing);
+	QPainterPath path;
+	path.addRoundedRect(src.rect(), radius, radius);
+	p.setClipPath(path);
+	p.drawPixmap(0, 0, src);
+	return result;
 }
 
 TitleCard::TitleCard(const Title &title, AppStorage &appStorage, int cardWidth, QWidget *parent)
@@ -62,31 +46,44 @@ void TitleCard::setupUi()
 	    "TitleCard {"
 	    "    background-color: " COLOR_BG_SECONDARY ";"
 	    "    border: 1px solid " COLOR_BORDER ";"
-	    "    border-radius: 10px;"
 	    "}"
 	);
 
+	setupPosterLabel();
+	setupTitleLabel();
+	setupButtons();
+	hideButtons();
+	connectButtons();
+}
+
+void TitleCard::setupPosterLabel()
+{
 	posterLabel = new QLabel(this);
 	posterLabel->setGeometry(0, 0, cardWidth, posterHeight);
 	posterLabel->setStyleSheet("border: none; background: transparent;");
 	posterLabel->setAlignment(Qt::AlignCenter);
-	posterLabel->setPixmap(
-	    title.posterImage.scaled(
-	        QSize(cardWidth, posterHeight),
-	        Qt::KeepAspectRatioByExpanding,
-	        Qt::SmoothTransformation)
-	);
+	posterLabel->setPixmap(roundedPixmap(
+	                           title.posterImage.scaled(
+	                               QSize(cardWidth, posterHeight),
+	                               Qt::KeepAspectRatioByExpanding,
+	                               Qt::SmoothTransformation),
+	                           10)
+	                      );
+}
 
-	titleLabel = new QLabel(this);
+void TitleCard::setupTitleLabel()
+{
+	titleLabel = new ElidedLabel(title.title, 2, this);
 	titleLabel->setGeometry(0, posterHeight, cardWidth, titleLabelHeight);
 	titleLabel->setStyleSheet(
 	    "border: none; background: transparent;"
 	    "color: " COLOR_TEXT_PRIMARY "; font-size: 12px;"
 	);
 	titleLabel->setAlignment(Qt::AlignCenter);
-	titleLabel->setWordWrap(true);
-	titleLabel->setText(elideToTwoLines(title.title, titleLabel->fontMetrics(), cardWidth - 8));
+}
 
+void TitleCard::setupButtons()
+{
 	viewedButton = new IconButton(VIEWED_ICON, BTN_SIZE, COLOR_SUCCESS, COLOR_SURFACE, this);
 	notViewedButton = new IconButton(NOT_VIEWED_ICON, BTN_SIZE, COLOR_ERROR, COLOR_SURFACE, this);
 	deleteButton = new IconButton(DELETE_ICON, BTN_SIZE, COLOR_ERROR, COLOR_SURFACE, this);
@@ -98,9 +95,6 @@ void TitleCard::setupUi()
 	uploadPosterButton->move(cardWidth - BTN_SIZE - BTN_MARGIN, BTN_MARGIN);
 
 	uploadPosterButton->setVisible(title.posterNotFound);
-
-	hideButtons();
-	connectButtons();
 }
 
 void TitleCard::connectButtons()
@@ -160,12 +154,13 @@ void TitleCard::onUploadPosterClicked()
 	title.posterImage = image;
 	title.posterNotFound = false;
 
-	posterLabel->setPixmap(
-	    image.scaled(
-	        QSize(cardWidth, posterHeight),
-	        Qt::KeepAspectRatioByExpanding,
-	        Qt::SmoothTransformation)
-	);
+	posterLabel->setPixmap(roundedPixmap(
+	                           image.scaled(
+	                               QSize(cardWidth, posterHeight),
+	                               Qt::KeepAspectRatioByExpanding,
+	                               Qt::SmoothTransformation),
+	                           10)
+	                      );
 
 	uploadPosterButton->hide();
 }
