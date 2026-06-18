@@ -6,6 +6,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QDate>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -95,10 +96,12 @@ AppStorage::AppStorage()
 {
 	const QString dirPath = AppPaths::dataDir();
 	postersPath = dirPath + "/" + AppPaths::postersDir;
+	platformImagesPath = dirPath + "/" + AppPaths::platformImagesDir;
 	appFilePath = dirPath + "/" + AppPaths::dataFile;
 
 	ensureDirectoryExists(dirPath);
 	ensureDirectoryExists(postersPath);
+	ensureDirectoryExists(platformImagesPath);
 	ensureStorageFileExists(appFilePath);
 
 	load();
@@ -122,6 +125,7 @@ void AppStorage::load()
 	libraryCardWidth = root["libraryCardWidth"].toInt(160);
 	titles.clear();
 	notifications.clear();
+	streamingPlatforms.clear();
 
 	for(const QJsonValue &val : root["titles"].toArray())
 	{
@@ -138,6 +142,17 @@ void AppStorage::load()
 	for(const QJsonValue &val : root["notifications"].toArray())
 	{
 		notifications.push_back(val.toString());
+	}
+
+	for(const QJsonValue &val : root["streamingPlatforms"].toArray())
+	{
+		QJsonObject   obj = val.toObject();
+		const QString imageName = obj["image"].toString();
+		streamingPlatforms.push_back(
+		    {obj["url"].toString(),
+		     obj["name"].toString(),
+		     imageName.isEmpty() ? QString{} : platformImagesPath + "/" + imageName}
+		);
 	}
 }
 
@@ -159,6 +174,17 @@ void AppStorage::save()
 		notificationsArr.append(n);
 	}
 
+	QJsonArray platformsArr;
+
+	for(const StreamingPlatform &p : streamingPlatforms)
+	{
+		QJsonObject obj;
+		obj["url"] = p.url;
+		obj["name"] = p.name;
+		obj["image"] = QFileInfo(p.image).fileName();
+		platformsArr.append(obj);
+	}
+
 	QJsonObject root;
 	root["windowWidth"] = windowSize.width;
 	root["windowHeight"] = windowSize.height;
@@ -166,6 +192,7 @@ void AppStorage::save()
 	root["theme"] = theme;
 	root["omdbApiKey"] = omdbApiKey;
 	root["notifications"] = notificationsArr;
+	root["streamingPlatforms"] = platformsArr;
 	root["titles"] = arr;
 
 	if(!writeJsonFile(appFilePath, root))
@@ -178,7 +205,7 @@ bool AppStorage::exportTo(const QString &zipPath)
 {
 	QMutexLocker locker(&mutex);
 
-	QDir appDir(AppPaths::dataDir());
+	QDir     appDir(AppPaths::dataDir());
 	QProcess process;
 	process.setWorkingDirectory(appDir.absolutePath() + "/..");
 	process.start("zip", {"-r", zipPath, appDir.dirName()});
@@ -194,7 +221,7 @@ bool AppStorage::importFrom(const QString &zipPath)
 		return false;
 	}
 
-	QDir appDir(AppPaths::dataDir());
+	QDir     appDir(AppPaths::dataDir());
 	QProcess process;
 	process.setWorkingDirectory(appDir.absolutePath() + "/..");
 	process.start("unzip", {"-o", zipPath, "-d", "."});
@@ -353,6 +380,48 @@ void AppStorage::removeNotifications()
 	notifications.clear();
 	save();
 	emit notificationsChanged();
+}
+
+void AppStorage::addStreamingPlatform(
+    StreamingPlatform platform, const QString &sourceImagePath
+)
+{
+	QMutexLocker locker(&mutex);
+
+	if(!sourceImagePath.isEmpty())
+	{
+		const QString ext = QFileInfo(sourceImagePath).suffix();
+		const QString destName = platform.name + (ext.isEmpty() ? QString{} : "." + ext);
+		const QString destPath = platformImagesPath + "/" + destName;
+		QFile::copy(sourceImagePath, destPath);
+		platform.image = destPath;
+	}
+
+	streamingPlatforms.push_back(std::move(platform));
+	save();
+	emit streamingPlatformsChanged();
+}
+
+void AppStorage::removeStreamingPlatform(const QString &name)
+{
+	QMutexLocker locker(&mutex);
+
+	auto it = std::find_if(
+	    streamingPlatforms.begin(),
+	    streamingPlatforms.end(),
+	    [&](const StreamingPlatform &p) { return p.name == name; }
+	);
+
+	if(it == streamingPlatforms.end())
+	{
+		return;
+	}
+
+	if(!it->image.isEmpty())
+		QFile::remove(it->image);
+	streamingPlatforms.erase(it);
+	save();
+	emit streamingPlatformsChanged();
 }
 
 QString AppStorage::getKey() const

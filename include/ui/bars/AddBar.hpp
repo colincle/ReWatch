@@ -18,7 +18,7 @@ class AddBar : public QWidget
 
   private:
 	IconButton *returnButton;
-	SearchBar *searchBar;
+	SearchBar  *searchBar;
 
 	void setupLayout();
 	void connectSignals();

@@ -63,8 +63,15 @@ void TopBar::setupLayout()
 	layout->setContentsMargins(20, 0, 20, 0);
 	layout->setSpacing(10);
 
-	moviesButton = new TextButton("Movies", BUTTON_HEIGHT, this);
-	tvShowsButton = new TextButton("TV shows", BUTTON_HEIGHT, this);
+	moviesButton =
+	    new TextButton("Movies", BUTTON_HEIGHT, Palette::accent, Palette::surface, this);
+	tvShowsButton = new TextButton(
+	    "TV shows",
+	    BUTTON_HEIGHT,
+	    Palette::accent,
+	    Palette::surface,
+	    this
+	);
 	moviesButton->toggleActive();
 
 	notificationsButton = new IconButton(

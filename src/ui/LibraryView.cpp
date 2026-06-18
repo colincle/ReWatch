@@ -162,11 +162,9 @@ void LibraryView::populate()
 
 	for(const Title &t : filtered)
 	{
-		cardsLayout->addWidget(
-		    new TitleCard(t, appStorage, cardWidth, cardsContainer),
-		    row,
-		    col
-		);
+		auto *card = new TitleCard(t, appStorage, cardWidth, cardsContainer);
+		connect(card, &TitleCard::clicked, this, [this, t]() { emit titleClicked(t); });
+		cardsLayout->addWidget(card, row, col);
 
 		if(++col >= cols)
 		{

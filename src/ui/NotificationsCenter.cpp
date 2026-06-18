@@ -179,7 +179,7 @@ void NotificationsCenter::popup(QWidget *anchor)
 	const int maxHeight = anchor->window()->height() / 2;
 	notificationsScrollArea->setMaximumHeight(maxHeight);
 
-	const int menuWidth = notificationsMenu->sizeHint().width();
+	const int    menuWidth = notificationsMenu->sizeHint().width();
 	const QPoint position(anchor->width() - menuWidth, anchor->height() + POPUP_Y_OFFSET);
 
 	notificationsMenu->popup(anchor->mapToGlobal(position));

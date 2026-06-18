@@ -15,7 +15,7 @@ class Spinner : public QWidget
 	void paintEvent(QPaintEvent *) override;
 
   private:
-	QTimer timer;
+	QTimer  timer;
 	QString color;
 
 	int blockCell[3] = {0, 1, 2};

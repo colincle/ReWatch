@@ -26,7 +26,7 @@ static const QStringList VALID_TYPES = {"movie", "series"};
 static ValidationResult validateJson(const QByteArray &data)
 {
 	QJsonParseError parseError;
-	QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
+	QJsonDocument   doc = QJsonDocument::fromJson(data, &parseError);
 
 	if(doc.isNull())
 		return {false, "Invalid JSON: " + parseError.errorString()};
@@ -81,7 +81,7 @@ static ValidationResult validateJson(const QByteArray &data)
 
 ValidationResult ImportedFileValidator::validate(const QString &zipPath)
 {
-	QString dirName = QDir(AppPaths::dataDir()).dirName();
+	QString  dirName = QDir(AppPaths::dataDir()).dirName();
 	QProcess process;
 	process.start("unzip", {"-p", zipPath, dirName + "/" + AppPaths::dataFile});
 

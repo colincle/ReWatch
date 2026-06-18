@@ -24,17 +24,17 @@ class NotificationsCenter : public QObject
 
 	QSoundEffect notificationSound;
 
-	QMenu *notificationsMenu;
-	QScrollArea *notificationsScrollArea;
-	QWidget *notificationsContainer;
-	QVBoxLayout *notificationsLayout;
-	QLabel *noNotificationsLabel;
-	int notificationRowCount = 0;
+	QMenu        *notificationsMenu;
+	QScrollArea  *notificationsScrollArea;
+	QWidget      *notificationsContainer;
+	QVBoxLayout  *notificationsLayout;
+	QLabel       *noNotificationsLabel;
+	int           notificationRowCount = 0;
 	QSet<QString> knownNotificationIds;
 
 	void setupMenu();
 	void onNotificationsAdded();
 
-	void addNotificationRow(const QString &imdbId);
+	void         addNotificationRow(const QString &imdbId);
 	const Title *findTitleForNotification(const QString &imdbId) const;
 };

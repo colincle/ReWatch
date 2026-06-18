@@ -34,23 +34,23 @@ class SearchResults : public QWidget
 	    QWidget *row, Spinner *rowSpinner, IconButton *oldAddButton,
 	    IconButton *replacement
 	);
-	QWidget *makeResultRow(const ResultTitle &title);
-	QLabel *makePosterLabel(const ResultTitle &title);
-	QWidget *makeTitleInfo(const ResultTitle &title);
-	QLabel *makeTitleLabel(const ResultTitle &title);
-	QLabel *makeYearLabel(const ResultTitle &title);
-	QLabel *makePlotLabel(const ResultTitle &title);
+	QWidget    *makeResultRow(const ResultTitle &title);
+	QLabel     *makePosterLabel(const ResultTitle &title);
+	QWidget    *makeTitleInfo(const ResultTitle &title);
+	QLabel     *makeTitleLabel(const ResultTitle &title);
+	QLabel     *makeYearLabel(const ResultTitle &title);
+	QLabel     *makePlotLabel(const ResultTitle &title);
 	IconButton *makeDoneButton(const ResultTitle &title, QWidget *row);
 	IconButton *makeAddButton(const ResultTitle &title, QWidget *row);
-	void setFullPageState(const QString &imagePath);
-	void clearResultsLayout();
-	void clearExtraLayoutWidgets();
+	void        setFullPageState(const QString &imagePath);
+	void        clearResultsLayout();
+	void        clearExtraLayoutWidgets();
 
-	AppStorage &appStorage;
+	AppStorage  &appStorage;
 	QVBoxLayout *layout;
-	Spinner *spinner;
-	QWidget *resultsContainer;
+	Spinner     *spinner;
+	QWidget     *resultsContainer;
 	QGridLayout *resultsLayout;
 	QScrollArea *scrollArea;
-	OmdbSearch *currentSearch = nullptr;
+	OmdbSearch  *currentSearch = nullptr;
 };

@@ -60,7 +60,7 @@ void SeasonUpdateController::runAttempt(SeasonUpdate *queue)
 	elapsed.start();
 
 	QString errorMessage;
-	bool isNetworkError = false;
+	bool    isNetworkError = false;
 
 	connect(
 	    queue,
@@ -95,7 +95,7 @@ void SeasonUpdateController::runAttempt(SeasonUpdate *queue)
 	);
 
 	QEventLoop loop;
-	auto future = QtConcurrent::run([queue]() { queue->updateSeries(); });
+	auto       future = QtConcurrent::run([queue]() { queue->updateSeries(); });
 
 	QFutureWatcher<void> watcher;
 	connect(

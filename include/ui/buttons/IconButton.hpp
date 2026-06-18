@@ -16,12 +16,12 @@ class IconButton : public QPushButton
 	void showEvent(QShowEvent *event) override;
 
   private:
-	QIcon normalIcon;
-	QIcon hoverIcon;
+	QIcon   normalIcon;
+	QIcon   hoverIcon;
 	QString color1;
 	QString color2;
 
 	QString styleSheet(const QString &bgColor) const;
-	void applyNormal();
-	void applyHover();
+	void    applyNormal();
+	void    applyHover();
 };

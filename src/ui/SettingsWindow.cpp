@@ -1,10 +1,15 @@
 #include "SettingsWindow.hpp"
+#include "AddStreamingPlatformDialog.hpp"
+#include "IconButton.hpp"
+#include "AssetsPaths.hpp"
 #include "Palette.hpp"
 
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QSet>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPixmap>
 #include <QPushButton>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -36,7 +41,6 @@ SettingsWindow::SettingsWindow(AppStorage &appStorage, QWidget *parent)
     : QDialog(parent), appStorage(appStorage)
 {
 	setWindowTitle("Settings");
-	setMinimumWidth(400);
 	setModal(true);
 	setupUi();
 }
@@ -70,10 +74,16 @@ void SettingsWindow::setupUi()
 	auto *layout = new QVBoxLayout(this);
 	layout->setContentsMargins(24, 24, 24, 24);
 	layout->setSpacing(20);
+	layout->setSizeConstraint(QLayout::SetFixedSize);
 
 	layout->addWidget(makeThemeSection());
 	layout->addWidget(makeSeparator());
 	layout->addWidget(makeApiKeySection());
+	layout->addWidget(makeSeparator());
+	if(auto *s = makeCustomStreamingPlatformsSection())
+	{
+		layout->addWidget(s);
+	}
 	layout->addStretch();
 }
 
@@ -197,6 +207,130 @@ QWidget *SettingsWindow::makeApiKeySection()
 	layout->addWidget(fieldRow);
 
 	return container;
+}
+
+QWidget *SettingsWindow::makeCustomStreamingPlatformsSection()
+{
+	auto *container = new QWidget;
+	auto *layout = new QVBoxLayout(container);
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->setSpacing(12);
+
+	auto *title = new QLabel("Custom streaming platforms");
+	QFont titleFont;
+	titleFont.setPixelSize(15);
+	titleFont.setBold(true);
+	title->setFont(titleFont);
+
+	platformsList = new QWidget;
+	new QVBoxLayout(platformsList);
+	platformsList->layout()->setContentsMargins(0, 0, 0, 0);
+	static_cast<QVBoxLayout *>(platformsList->layout())->setSpacing(6);
+
+	addPlatformButton =
+	    new IconButton(AssetsPaths::addIcon, 30, Palette::accent, Palette::surface, this);
+
+	connect(
+	    addPlatformButton,
+	    &QPushButton::clicked,
+	    this,
+	    [this]()
+	    {
+		    QSet<QString> names;
+		    for(const auto &p : appStorage.getStreamingPlatforms())
+			    names.insert(p.name);
+		    auto *dialog = new AddStreamingPlatformDialog(names, this);
+		    dialog->setAttribute(Qt::WA_DeleteOnClose);
+		    connect(
+		        dialog,
+		        &QDialog::accepted,
+		        this,
+		        [this, dialog]()
+		        {
+			        appStorage.addStreamingPlatform(
+			            dialog->platform(),
+			            dialog->imagePath()
+			        );
+		        }
+		    );
+		    dialog->open();
+	    }
+	);
+
+	connect(
+	    &appStorage,
+	    &AppStorage::streamingPlatformsChanged,
+	    this,
+	    &SettingsWindow::refreshPlatformsList
+	);
+
+	layout->addWidget(title);
+	layout->addWidget(platformsList);
+	layout->addWidget(addPlatformButton);
+
+	refreshPlatformsList();
+
+	return container;
+}
+
+void SettingsWindow::refreshPlatformsList()
+{
+	auto *layout = static_cast<QVBoxLayout *>(platformsList->layout());
+
+	while(QLayoutItem *item = layout->takeAt(0))
+	{
+		delete item->widget();
+		delete item;
+	}
+
+	const auto &platforms = appStorage.getStreamingPlatforms();
+
+	for(const StreamingPlatform &p : platforms)
+	{
+		auto *row = new QWidget;
+		auto *rowLayout = new QHBoxLayout(row);
+		rowLayout->setContentsMargins(0, 2, 0, 2);
+		rowLayout->setSpacing(10);
+
+		auto *imgLabel = new QLabel;
+		imgLabel->setFixedSize(30, 30);
+		imgLabel->setAlignment(Qt::AlignCenter);
+		imgLabel->setStyleSheet(
+		    QStringLiteral("QLabel { background-color: %1; border-radius: 6px; }")
+		        .arg(Palette::surface)
+		);
+		if(!p.image.isEmpty())
+		{
+			QPixmap px(p.image);
+			if(!px.isNull())
+				imgLabel->setPixmap(
+				    px.scaled(30, 30, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+				);
+		}
+		rowLayout->addWidget(imgLabel);
+
+		auto *nameLabel = new QLabel(p.name);
+		rowLayout->addWidget(nameLabel, 1);
+
+		auto *deleteBtn = new IconButton(
+		    AssetsPaths::deleteIcon,
+		    30,
+		    Palette::accent,
+		    Palette::surface,
+		    row
+		);
+		connect(
+		    deleteBtn,
+		    &QPushButton::clicked,
+		    this,
+		    [this, name = p.name]() { appStorage.removeStreamingPlatform(name); }
+		);
+		rowLayout->addWidget(deleteBtn);
+
+		layout->addWidget(row);
+	}
+
+	addPlatformButton->setVisible(platforms.size() < 10);
 }
 
 QFrame *SettingsWindow::makeSeparator()

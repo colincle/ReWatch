@@ -31,7 +31,7 @@ QSize ElidedLabel::minimumSizeHint() const
 void ElidedLabel::updateElidedText()
 {
 	const QFontMetrics fm = fontMetrics();
-	const int effectiveLines =
+	const int          effectiveLines =
 	    maxLines > 0 ? maxLines : qMax(1, height() / fm.lineSpacing());
 
 	if(effectiveLines == 1)

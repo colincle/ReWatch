@@ -5,6 +5,7 @@
 #include "AppMenuBar.hpp"
 #include "LibraryView.hpp"
 #include "SearchResults.hpp"
+#include "TitleDetailView.hpp"
 #include "TopBar.hpp"
 #include "ErrorCard.hpp"
 #include "SeasonUpdateController.hpp"
@@ -19,27 +20,29 @@ class MainWindow : public QMainWindow
 	MainWindow(QWidget *parent = nullptr);
 
   private:
-	AppStorage appStorage;
-	AppMenuBar *appMenuBar;
-	ErrorCard *errorCard;
-	TopBar *topBar;
-	AddBar *addBar;
-	SearchResults *searchResults;
-	LibraryView *libraryView;
+	AppStorage              appStorage;
+	AppMenuBar             *appMenuBar;
+	ErrorCard              *errorCard;
+	TopBar                 *topBar;
+	AddBar                 *addBar;
+	SearchResults          *searchResults;
+	LibraryView            *libraryView;
+	TitleDetailView        *titleDetailView;
 	SeasonUpdateController *seasonUpdateController;
-	QWidget *seasonOverlay = nullptr;
+	QWidget                *seasonOverlay = nullptr;
 
-	void buildUi();
+	void     buildUi();
 	QWidget *makeSeasonOverlay();
-	void setupLayout();
-	void setupErrorCard();
-	void setupMenuBar();
-	void setupShortcuts();
-	void connectSignals();
-	void setupSeasonUpdateController();
+	void     setupLayout();
+	void     setupErrorCard();
+	void     setupMenuBar();
+	void     setupShortcuts();
+	void     connectSignals();
+	void     setupSeasonUpdateController();
 
 	void enterAddMode();
 	void enterNormalMode();
+	void enterDetailMode(const Title &title);
 
 	void closeEvent(QCloseEvent *event) override;
 };

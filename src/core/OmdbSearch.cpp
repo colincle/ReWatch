@@ -16,7 +16,7 @@ QUrl OmdbSearch::makeUrl(
     const QString &apiKey, const QString &param, const QString &value
 )
 {
-	QUrl url("https://omdbapi.com/");
+	QUrl      url("https://omdbapi.com/");
 	QUrlQuery query;
 	query.addQueryItem("apikey", apiKey);
 	query.addQueryItem(param, value);

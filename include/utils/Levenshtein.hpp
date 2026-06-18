@@ -8,7 +8,7 @@
 
 inline int levenshtein(const QString &a, const QString &b)
 {
-	const int m = a.size(), n = b.size();
+	const int        m = a.size(), n = b.size();
 	std::vector<int> row(n + 1);
 	std::iota(row.begin(), row.end(), 0);
 

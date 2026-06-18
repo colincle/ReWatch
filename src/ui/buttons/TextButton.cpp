@@ -2,6 +2,7 @@
 #include "Palette.hpp"
 
 #include <QFont>
+#include <utility>
 
 static QString makeStyle(const QString &bg, const QString &fg)
 {
@@ -18,8 +19,10 @@ static QString makeStyle(const QString &bg, const QString &fg)
 	       "}";
 }
 
-TextButton::TextButton(const QString &text, int size, QWidget *parent)
-    : QPushButton(text, parent)
+TextButton::TextButton(
+    const QString &text, int size, QString color1, QString color2, QWidget *parent
+)
+    : QPushButton(text, parent), color1(std::move(color1)), color2(std::move(color2))
 {
 	setCursor(Qt::PointingHandCursor);
 	setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -35,12 +38,12 @@ TextButton::TextButton(const QString &text, int size, QWidget *parent)
 
 QString TextButton::normalStyle() const
 {
-	return makeStyle(Palette::surface, Palette::accent);
+	return makeStyle(color2, color1);
 }
 
 QString TextButton::activeStyle() const
 {
-	return makeStyle(Palette::accent, Palette::surface);
+	return makeStyle(color1, color2);
 }
 
 void TextButton::toggleActive()

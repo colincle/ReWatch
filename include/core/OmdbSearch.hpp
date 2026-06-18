@@ -20,7 +20,7 @@ struct ResultTitle
 	QString type;
 	QString poster;
 	QPixmap posterImage;
-	bool posterNotFound = false;
+	bool    posterNotFound = false;
 };
 
 enum class SearchErrorType
@@ -33,8 +33,8 @@ enum class SearchErrorType
 
 struct Results
 {
-	SearchErrorType errorType = SearchErrorType::None;
-	QString error;
+	SearchErrorType          errorType = SearchErrorType::None;
+	QString                  error;
 	std::vector<ResultTitle> titles;
 };
 

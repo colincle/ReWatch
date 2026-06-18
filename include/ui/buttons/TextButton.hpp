@@ -5,7 +5,10 @@
 class TextButton : public QPushButton
 {
   public:
-	explicit TextButton(const QString &text, int size, QWidget *parent = nullptr);
+	explicit TextButton(
+	    const QString &text, int size, QString color1, QString color2,
+	    QWidget *parent = nullptr
+	);
 
 	void toggleActive();
 	bool isActive() const;
@@ -15,7 +18,9 @@ class TextButton : public QPushButton
 	void leaveEvent(QEvent *event) override;
 
   private:
-	bool active = false;
+	QString color1;
+	QString color2;
+	bool    active = false;
 
 	QString normalStyle() const;
 	QString activeStyle() const;

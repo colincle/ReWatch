@@ -19,19 +19,19 @@ class IconTextButton : public QPushButton
 	void showEvent(QShowEvent *event) override;
 
   private:
-	QIcon normalIcon;
-	QIcon hoverIcon;
-	QString color1;
-	QString color2;
-	QString displayText;
-	bool alwaysShowText;
-	int collapsedWidth;
-	int expandedWidth;
-	int iconPadding;
+	QIcon              normalIcon;
+	QIcon              hoverIcon;
+	QString            color1;
+	QString            color2;
+	QString            displayText;
+	bool               alwaysShowText;
+	int                collapsedWidth;
+	int                expandedWidth;
+	int                iconPadding;
 	QVariantAnimation *animation = nullptr;
 
 	QString buildStyleSheet(const QString &bgColor, const QString &textColor) const;
-	void applyNormal();
-	void applyHover();
-	void animateTo(int targetWidth);
+	void    applyNormal();
+	void    applyHover();
+	void    animateTo(int targetWidth);
 };

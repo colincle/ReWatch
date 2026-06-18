@@ -23,6 +23,7 @@ inline constexpr const char *imageUploadIcon = ASSETS_ROOT_ "/icons/imageUpload.
 inline constexpr const char *notificationsIcon = ASSETS_ROOT_ "/icons/notifications.svg";
 inline constexpr const char *zoomInIcon = ASSETS_ROOT_ "/icons/zoomIn.svg";
 inline constexpr const char *zoomOutIcon = ASSETS_ROOT_ "/icons/zoomOut.svg";
+inline constexpr const char *copyIcon = ASSETS_ROOT_ "/icons/copy.svg";
 
 // Images
 inline constexpr const char *posterPlaceholder =

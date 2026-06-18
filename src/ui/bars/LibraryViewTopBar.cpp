@@ -18,8 +18,9 @@ void LibraryViewTopBar::setupLayout()
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(10);
 
-	showAllButton = new TextButton("All", 40, this);
-	showToWatchButton = new TextButton("To watch", 40, this);
+	showAllButton = new TextButton("All", 40, Palette::accent, Palette::surface, this);
+	showToWatchButton =
+	    new TextButton("To watch", 40, Palette::accent, Palette::surface, this);
 	showAllButton->toggleActive();
 
 	searchInput = new SearchBar(this);

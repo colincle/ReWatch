@@ -21,9 +21,9 @@ class SeasonUpdate : public QObject
 	void seriesUpdated();
 
   private:
-	AppStorage &appStorage;
+	AppStorage      &appStorage;
 	QVector<Title *> titles;
-	bool queueEmpty = false;
+	bool             queueEmpty = false;
 
 	bool isEligible(const Title &t) const;
 };

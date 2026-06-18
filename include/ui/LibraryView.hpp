@@ -37,8 +37,11 @@ class LibraryView : public QWidget
   protected:
 	void resizeEvent(QResizeEvent *event) override;
 
+  signals:
+	void titleClicked(const Title &title);
+
   private:
-	int cardWidth;
+	int                  cardWidth;
 	static constexpr int MIN_CARD_WIDTH = 150;
 	static constexpr int MAX_CARD_WIDTH = 300;
 	static constexpr int CARD_SPACING = 16;
@@ -46,18 +49,18 @@ class LibraryView : public QWidget
 
 	AppStorage &appStorage;
 
-	SortMode currentSort = SortMode::WatchDate;
+	SortMode   currentSort = SortMode::WatchDate;
 	LibraryTab currentTab = LibraryTab::Movies;
 	ViewFilter currentFilter = ViewFilter::All;
 
 	LibraryViewTopBar *libraryViewTopBar;
-	QScrollArea *scrollArea;
-	QWidget *cardsContainer;
-	QGridLayout *cardsLayout;
-	QTimer *resizeTimer;
+	QScrollArea       *scrollArea;
+	QWidget           *cardsContainer;
+	QGridLayout       *cardsLayout;
+	QTimer            *resizeTimer;
 
 	std::vector<Title> titles;
-	QString currentQuery;
+	QString            currentQuery;
 
 	void setupUi();
 	void connectSignals();

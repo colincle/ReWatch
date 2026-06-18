@@ -20,10 +20,10 @@ struct Title
 	QString totalSeasons;
 
 	QPixmap posterImage;
-	bool posterNotFound = false;
+	bool    posterNotFound = false;
 
-	int rank = 0;
-	bool viewed = false;
+	int   rank = 0;
+	bool  viewed = false;
 	QDate lastViewed = QDate::currentDate();
 	QDate lastChecked = QDate::currentDate();
 };

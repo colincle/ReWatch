@@ -1,5 +1,6 @@
 #include "MainWindow.hpp"
 #include "AppMenuBar.hpp"
+#include "TitleDetailView.hpp"
 #include "TopBar.hpp"
 #include "Spinner.hpp"
 #include "ErrorCard.hpp"
@@ -49,17 +50,20 @@ void MainWindow::setupLayout()
 	addBar = new AddBar;
 	searchResults = new SearchResults(appStorage);
 	libraryView = new LibraryView(appStorage);
+	titleDetailView = new TitleDetailView(appStorage);
 
 	topBar->setFixedHeight(TOPBAR_HEIGHT);
 	addBar->setFixedHeight(TOPBAR_HEIGHT);
 
 	addBar->hide();
 	searchResults->hide();
+	titleDetailView->hide();
 
 	layout->addWidget(topBar);
 	layout->addWidget(addBar);
 	layout->addWidget(searchResults);
 	layout->addWidget(libraryView);
+	layout->addWidget(titleDetailView);
 }
 
 void MainWindow::setupErrorCard()
@@ -182,7 +186,16 @@ void MainWindow::enterNormalMode()
 	topBar->show();
 	addBar->hide();
 	searchResults->hide();
+	titleDetailView->hide();
 	libraryView->show();
+}
+
+void MainWindow::enterDetailMode(const Title &title)
+{
+	topBar->hide();
+	libraryView->hide();
+	titleDetailView->setTitle(title);
+	titleDetailView->show();
 }
 
 void MainWindow::connectSignals()
@@ -192,6 +205,13 @@ void MainWindow::connectSignals()
 	connect(topBar, &TopBar::requestSort, libraryView, &LibraryView::applySort);
 	connect(topBar, &TopBar::requestTab, libraryView, &LibraryView::applyTab);
 	connect(addBar, &AddBar::searchRequested, searchResults, &SearchResults::search);
+	connect(libraryView, &LibraryView::titleClicked, this, &MainWindow::enterDetailMode);
+	connect(
+	    titleDetailView,
+	    &TitleDetailView::backRequested,
+	    this,
+	    &MainWindow::enterNormalMode
+	);
 
 	connect(
 	    searchResults,

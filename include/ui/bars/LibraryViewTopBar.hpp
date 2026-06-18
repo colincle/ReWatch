@@ -27,7 +27,7 @@ class LibraryViewTopBar : public QWidget
 	IconButton *closeButton;
 	IconButton *zoomInButton;
 	IconButton *zoomOutButton;
-	SearchBar *searchInput;
+	SearchBar  *searchInput;
 
 	void setupLayout();
 	void connectSignals();

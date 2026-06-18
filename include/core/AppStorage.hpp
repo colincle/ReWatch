@@ -15,6 +15,13 @@ struct WindowSize
 	int height;
 };
 
+struct StreamingPlatform
+{
+	QString url;
+	QString name;
+	QString image;
+};
+
 class AppStorage : public QObject
 {
 	Q_OBJECT
@@ -30,6 +37,8 @@ class AppStorage : public QObject
 	void setLibraryCardWidth(int width);
 	void setTheme(QString theme);
 	void setWindowSize(int width, int height);
+	void addStreamingPlatform(StreamingPlatform platform, const QString &sourceImagePath);
+	void removeStreamingPlatform(const QString &name);
 	bool importFrom(const QString &zipPath);
 	bool exportTo(const QString &zipPath);
 
@@ -40,29 +49,35 @@ class AppStorage : public QObject
 	void addNotifications(const std::vector<QString> &values);
 	void removeNotifications();
 
-	int getLibraryCardWidth() const { return libraryCardWidth; }
-	QString getTheme() const { return theme; }
-	WindowSize getWindowSize() const { return windowSize; }
-	const std::vector<Title> &getTitles() const { return titles; }
-	std::vector<Title> &getTitlesMutable() { return titles; }
+	int                         getLibraryCardWidth() const { return libraryCardWidth; }
+	QString                     getTheme() const { return theme; }
+	WindowSize                  getWindowSize() const { return windowSize; }
+	const std::vector<Title>   &getTitles() const { return titles; }
+	std::vector<Title>         &getTitlesMutable() { return titles; }
 	const std::vector<QString> &getNotifications() const { return notifications; }
+	const std::vector<StreamingPlatform> &getStreamingPlatforms() const
+	{
+		return streamingPlatforms;
+	}
 	QString getKey() const;
 
 	QRecursiveMutex &getMutex() { return mutex; }
 
   private:
-	QString appFilePath;
-	QString omdbApiKey;
-	QString theme;
-	QString postersPath;
-	int libraryCardWidth;
-	WindowSize windowSize;
-	std::vector<Title> titles;
-	std::vector<QString> notifications;
-	mutable QRecursiveMutex mutex;
+	QString                        appFilePath;
+	QString                        omdbApiKey;
+	QString                        theme;
+	QString                        postersPath;
+	QString                        platformImagesPath;
+	int                            libraryCardWidth;
+	WindowSize                     windowSize;
+	std::vector<Title>             titles;
+	std::vector<QString>           notifications;
+	std::vector<StreamingPlatform> streamingPlatforms;
+	mutable QRecursiveMutex        mutex;
 
-	void load();
-	Title titleFromStorageJson(const QJsonObject &obj) const;
+	void        load();
+	Title       titleFromStorageJson(const QJsonObject &obj) const;
 	QJsonObject titleToStorageJson(const Title &t) const;
 
   signals:
@@ -71,4 +86,5 @@ class AppStorage : public QObject
 	void apiKeyChanged();
 	void notificationsChanged();
 	void notificationsAdded();
+	void streamingPlatformsChanged();
 };

@@ -15,19 +15,24 @@ class SettingsWindow : public QDialog
 	explicit SettingsWindow(AppStorage &appStorage, QWidget *parent = nullptr);
 
   private:
-	AppStorage &appStorage;
+	AppStorage  &appStorage;
 	QPushButton *lightTab;
 	QPushButton *darkTab;
-	QLineEdit *apiKeyEdit;
+	QLineEdit   *apiKeyEdit;
 	QPushButton *applyButton;
+	QWidget     *platformsList = nullptr;
+	QPushButton *addPlatformButton = nullptr;
 
 	void setupUi();
+
 	QWidget *makeThemeSection();
 	QWidget *makeApiKeySection();
-	QFrame *makeSeparator();
+	QWidget *makeCustomStreamingPlatformsSection();
+	QFrame  *makeSeparator();
 
-	void onApplyClicked();
-	void refreshStyle();
+	void    onApplyClicked();
+	void    refreshStyle();
+	void    refreshPlatformsList();
 	QString buildStyleSheet() const;
 
   signals:

@@ -18,8 +18,8 @@ class TopBar : public QWidget
   private:
 	AppStorage &appStorage;
 
-	IconButton *notificationsButton;
-	QWidget *notificationDot;
+	IconButton          *notificationsButton;
+	QWidget             *notificationDot;
 	NotificationsCenter *notificationsCenter;
 
 	IconButton *rankButton;

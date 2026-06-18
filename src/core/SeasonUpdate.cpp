@@ -44,9 +44,9 @@ namespace
 
 struct SeasonFetchResult
 {
-	bool success = false;
-	bool isAuthFailure = false;
-	bool isNetworkFailure = false;
+	bool        success = false;
+	bool        isAuthFailure = false;
+	bool        isNetworkFailure = false;
 	QJsonObject data;
 };
 
@@ -107,11 +107,11 @@ void SeasonUpdate::updateSeries()
 {
 	QMutexLocker locker(&appStorage.getMutex());
 
-	const int count = static_cast<int>(titles.size());
-	QNetworkAccessManager manager;
+	const int                  count = static_cast<int>(titles.size());
+	QNetworkAccessManager      manager;
 	QVector<SeasonFetchResult> results(count);
-	int pending = count;
-	QEventLoop loop;
+	int                        pending = count;
+	QEventLoop                 loop;
 
 	for(int i = 0; i < count; ++i)
 	{

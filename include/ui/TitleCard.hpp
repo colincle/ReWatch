@@ -28,18 +28,18 @@ class TitleCard : public QWidget
 	void clicked();
 
   private:
-	Title title;
+	Title       title;
 	AppStorage &appStorage;
-	int cardWidth;
-	int posterHeight;
-	int titleLabelHeight;
+	int         cardWidth;
+	int         posterHeight;
+	int         titleLabelHeight;
 
-	QPixmap posterPixmap;
-	ElidedLabel *titleLabel;
+	QPixmap         posterPixmap;
+	ElidedLabel    *titleLabel;
 	IconTextButton *notViewedButton;
 	IconTextButton *viewedButton;
-	IconButton *deleteButton;
-	IconButton *uploadPosterButton;
+	IconButton     *deleteButton;
+	IconButton     *uploadPosterButton;
 
 	void setupUi();
 	void setupTitleLabel();

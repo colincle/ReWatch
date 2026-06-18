@@ -20,8 +20,8 @@ class ElidedLabel : public QLabel
 
   private:
 	QString fullText;
-	int maxLines;
+	int     maxLines;
 
-	void updateElidedText();
+	void        updateElidedText();
 	QStringList buildLines(const QFontMetrics &fm, int effectiveLines, int w) const;
 };

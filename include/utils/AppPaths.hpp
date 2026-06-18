@@ -13,5 +13,6 @@ inline QString dataDir()
 
 inline constexpr const char *dataFile = "movieTracker.json";
 inline constexpr const char *postersDir = "Posters";
+inline constexpr const char *platformImagesDir = "PlatformImages";
 
 } // namespace AppPaths

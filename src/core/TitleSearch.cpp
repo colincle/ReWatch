@@ -9,7 +9,7 @@
 
 static int fuzzyScore(const QString &pattern, const QString &str)
 {
-	int score = 0;
+	int              score = 0;
 	const QByteArray p = pattern.toLower().toUtf8();
 	const QByteArray s = str.toLower().toUtf8();
 	fts::fuzzy_match(p.constData(), s.constData(), score);
