@@ -51,7 +51,7 @@ const Results &OmdbSearch::getResults() const
 void OmdbSearch::search()
 {
 	QNetworkReply *reply = networkManager.get(QNetworkRequest(QUrl(requestUrl)));
-	connect(reply, &QNetworkReply::finished, this, &OmdbSearch::onReplyFinished);
+	connect(reply, &QNetworkReply::finished, this, [this, reply]() { onReplyFinished(reply); });
 }
 
 void OmdbSearch::fetchById(
@@ -215,21 +215,11 @@ static void classifyResponseError(const QJsonObject &root, Results &out)
 	                                                   : SearchErrorType::NotFound;
 }
 
-void OmdbSearch::onReplyFinished()
+void OmdbSearch::onReplyFinished(QNetworkReply *reply)
 {
-	QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
-
 	searchResults.error.clear();
 	searchResults.errorType = SearchErrorType::None;
 	searchResults.titles.clear();
-
-	if(!reply)
-	{
-		searchResults.error = "Internal error";
-		searchResults.errorType = SearchErrorType::Network;
-		emit searchFinished();
-		return;
-	}
 
 	if(reply->error() != QNetworkReply::NoError)
 	{

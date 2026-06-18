@@ -2,15 +2,15 @@
 #include "Palette.hpp"
 
 #include <QFont>
+#include <utility>
 #include <QIcon>
 #include <QPixmap>
-#include <QTimer>
 
 StreamingPlatformButton::StreamingPlatformButton(
     const StreamingPlatform &platform, int height, QString color1, QString color2,
     QWidget *parent
 )
-    : QPushButton(platform.name, parent), color1(color1), color2(color2)
+    : HoverButton(platform.name, parent), color1(std::move(color1)), color2(std::move(color2))
 {
 	const int iconSize = height * 2 / 3;
 	iconPadding = (height - iconSize) / 2;
@@ -42,7 +42,7 @@ StreamingPlatformButton::StreamingPlatformButton(
 	setFont(f);
 
 	setFixedHeight(height);
-	setCursor(Qt::PointingHandCursor);
+
 
 	applyNormal();
 }
@@ -76,28 +76,4 @@ void StreamingPlatformButton::applyHover()
 	setStyleSheet(buildStyleSheet(color1, color2));
 }
 
-void StreamingPlatformButton::enterEvent(QEnterEvent *event)
-{
-	applyHover();
-	QPushButton::enterEvent(event);
-}
 
-void StreamingPlatformButton::leaveEvent(QEvent *event)
-{
-	applyNormal();
-	QPushButton::leaveEvent(event);
-}
-
-void StreamingPlatformButton::showEvent(QShowEvent *event)
-{
-	QPushButton::showEvent(event);
-	QTimer::singleShot(
-	    0,
-	    this,
-	    [this]()
-	    {
-		    if(underMouse())
-			    applyHover();
-	    }
-	);
-}

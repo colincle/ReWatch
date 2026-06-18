@@ -30,14 +30,14 @@ SearchResults::SearchResults(AppStorage &storage, QWidget *parent)
 
 void SearchResults::setupLayout()
 {
-	layout = new QVBoxLayout(this);
-	layout->setContentsMargins(20, 20, 20, 20);
+	m_layout = new QVBoxLayout(this);
+	m_layout->setContentsMargins(20, 20, 20, 20);
 
 	spinner = new Spinner(Palette::accent, 8, this);
 	spinner->setFixedSize(48, 48);
 	spinner->hide();
 
-	layout->addWidget(spinner, 0, Qt::AlignCenter);
+	m_layout->addWidget(spinner, 0, Qt::AlignCenter);
 
 	resultsContainer = new QWidget;
 	resultsLayout = new QGridLayout(resultsContainer);
@@ -55,7 +55,7 @@ void SearchResults::setupLayout()
 	scrollArea->setWidget(resultsContainer);
 	scrollArea->hide();
 
-	layout->addWidget(scrollArea);
+	m_layout->addWidget(scrollArea);
 }
 
 void SearchResults::resizeEvent(QResizeEvent *event)
@@ -164,6 +164,72 @@ void SearchResults::onSearchFinished(OmdbSearch *omdbSearch)
 	);
 }
 
+namespace
+{
+
+QLabel *makePosterLabel(const ResultTitle &title)
+{
+	auto *poster = new QLabel;
+	poster->setFixedSize(100, 150);
+	poster->setStyleSheet("border: none; background: transparent;");
+	poster->setPixmap(title.posterImage.scaled(
+	    poster->size(),
+	    Qt::KeepAspectRatio,
+	    Qt::SmoothTransformation
+	));
+	return poster;
+}
+
+QLabel *makeTitleLabel(const ResultTitle &title)
+{
+	QFont font;
+	font.setPixelSize(24);
+	font.setBold(true);
+
+	auto *label = new ElidedLabel(title.title);
+	label->setFont(font);
+	label->setStyleSheet(
+	    QStringLiteral("color: %1; border: none; background: transparent;")
+	        .arg(Palette::textPrimary)
+	);
+	label->setFixedHeight(QFontMetrics(font).height());
+	return label;
+}
+
+QLabel *makeYearLabel(const ResultTitle &title)
+{
+	QFont font;
+	font.setPixelSize(15);
+	font.setBold(true);
+
+	auto *label = new QLabel(title.year);
+	label->setFont(font);
+	label->setStyleSheet(
+	    QStringLiteral("color: %1; border: none; background: transparent;")
+	        .arg(Palette::textSecondary)
+	);
+	label->setFixedHeight(QFontMetrics(font).height());
+	return label;
+}
+
+QLabel *makePlotLabel(const ResultTitle &title)
+{
+	const bool hasPlot = !title.plot.isEmpty() && title.plot != "N/A";
+
+	auto *label = new ElidedLabel(hasPlot ? title.plot : QString(), 0);
+	label->setStyleSheet(
+	    QStringLiteral(
+	        "color: %1; font-size: 12px; border: none; background: transparent;"
+	    )
+	        .arg(Palette::textSecondary)
+	);
+	label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+	label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	return label;
+}
+
+} // namespace
+
 QWidget *SearchResults::makeResultRow(const ResultTitle &title)
 {
 	auto *row = new QWidget;
@@ -190,19 +256,6 @@ QWidget *SearchResults::makeResultRow(const ResultTitle &title)
 	return row;
 }
 
-QLabel *SearchResults::makePosterLabel(const ResultTitle &title)
-{
-	auto *poster = new QLabel;
-	poster->setFixedSize(100, 150);
-	poster->setStyleSheet("border: none; background: transparent;");
-	poster->setPixmap(title.posterImage.scaled(
-	    poster->size(),
-	    Qt::KeepAspectRatio,
-	    Qt::SmoothTransformation
-	));
-	return poster;
-}
-
 QWidget *SearchResults::makeTitleInfo(const ResultTitle &title)
 {
 	auto *container = new QWidget;
@@ -220,54 +273,6 @@ QWidget *SearchResults::makeTitleInfo(const ResultTitle &title)
 	layout->addWidget(makePlotLabel(title), 1);
 
 	return container;
-}
-
-QLabel *SearchResults::makeTitleLabel(const ResultTitle &title)
-{
-	QFont font;
-	font.setPixelSize(24);
-	font.setBold(true);
-
-	auto *label = new ElidedLabel(title.title);
-	label->setFont(font);
-	label->setStyleSheet(
-	    QStringLiteral("color: %1; border: none; background: transparent;")
-	        .arg(Palette::textPrimary)
-	);
-	label->setFixedHeight(QFontMetrics(font).height());
-	return label;
-}
-
-QLabel *SearchResults::makeYearLabel(const ResultTitle &title)
-{
-	QFont font;
-	font.setPixelSize(15);
-	font.setBold(true);
-
-	auto *label = new QLabel(title.year);
-	label->setFont(font);
-	label->setStyleSheet(
-	    QStringLiteral("color: %1; border: none; background: transparent;")
-	        .arg(Palette::textSecondary)
-	);
-	label->setFixedHeight(QFontMetrics(font).height());
-	return label;
-}
-
-QLabel *SearchResults::makePlotLabel(const ResultTitle &title)
-{
-	const bool hasPlot = !title.plot.isEmpty() && title.plot != "N/A";
-
-	auto *label = new ElidedLabel(hasPlot ? title.plot : QString(), 0);
-	label->setStyleSheet(
-	    QStringLiteral(
-	        "color: %1; font-size: 12px; border: none; background: transparent;"
-	    )
-	        .arg(Palette::textSecondary)
-	);
-	label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-	label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	return label;
 }
 
 IconButton *SearchResults::makeDoneButton(const ResultTitle &title, QWidget *row)
@@ -372,7 +377,7 @@ void SearchResults::setFullPageState(const QString &imagePath)
 	label->setMinimumSize(1, 1);
 	label->setScaledContents(false);
 
-	layout->addWidget(label, 1);
+	m_layout->addWidget(label, 1);
 }
 
 void SearchResults::clearResultsLayout()
@@ -390,14 +395,14 @@ void SearchResults::clearResultsLayout()
 
 void SearchResults::clearExtraLayoutWidgets()
 {
-	for(int i = layout->count() - 1; i >= 0; --i)
+	for(int i = m_layout->count() - 1; i >= 0; --i)
 	{
-		QLayoutItem *item = layout->itemAt(i);
+		QLayoutItem *item = m_layout->itemAt(i);
 
 		if(item->widget() && item->widget() != spinner && item->widget() != scrollArea)
 		{
 			item->widget()->deleteLater();
-			delete layout->takeAt(i);
+			delete m_layout->takeAt(i);
 		}
 	}
 }

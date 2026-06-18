@@ -4,6 +4,7 @@
 #include "IconButton.hpp"
 
 #include <QHBoxLayout>
+#include <QShowEvent>
 
 static constexpr int BUTTON_HEIGHT = 40;
 
@@ -51,6 +52,12 @@ void AddBar::connectSignals()
 		    emit requestNormalMode();
 	    }
 	);
+}
+
+void AddBar::showEvent(QShowEvent *event)
+{
+	QWidget::showEvent(event);
+	searchBar->setFocus();
 }
 
 void AddBar::onReturnClicked()

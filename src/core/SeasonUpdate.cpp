@@ -17,13 +17,11 @@ SeasonUpdate::SeasonUpdate(AppStorage &appStorage, QObject *parent)
 {
 	QMutexLocker locker(&appStorage.getMutex());
 
-	for(Title &t : appStorage.getTitlesMutable())
+	for(const Title &t : appStorage.getTitlesMutable())
 		if(isEligible(t))
-		{
-			titles.push_back(&t);
-		}
+			imdbIds.push_back(t.imdbId);
 
-	if(titles.empty())
+	if(imdbIds.empty())
 	{
 		queueEmpty = true;
 	}
@@ -35,6 +33,9 @@ bool SeasonUpdate::isEligible(const Title &t) const
 	{
 		return false;
 	}
+
+	if(!t.lastChecked.isValid())
+		return true;
 
 	return t.lastChecked.daysTo(QDate::currentDate()) > RECHECK_INTERVAL_DAYS;
 }
@@ -107,7 +108,7 @@ void SeasonUpdate::updateSeries()
 {
 	QMutexLocker locker(&appStorage.getMutex());
 
-	const int                  count = static_cast<int>(titles.size());
+	const int                  count = static_cast<int>(imdbIds.size());
 	QNetworkAccessManager      manager;
 	QVector<SeasonFetchResult> results(count);
 	int                        pending = count;
@@ -116,7 +117,7 @@ void SeasonUpdate::updateSeries()
 	for(int i = 0; i < count; ++i)
 	{
 		QNetworkReply *reply = manager.get(QNetworkRequest(
-		    OmdbSearch::makeUrl(appStorage.getKey(), "i", titles[i]->imdbId)
+		    OmdbSearch::makeUrl(appStorage.getKey(), "i", imdbIds[i])
 		));
 
 		QObject::connect(
@@ -164,7 +165,14 @@ void SeasonUpdate::updateSeries()
 			continue;
 		}
 
-		applySeasonUpdate(*titles[i], result.data, notifications);
+		auto it = std::find_if(
+		    appStorage.getTitlesMutable().begin(),
+		    appStorage.getTitlesMutable().end(),
+		    [&](const Title &t) { return t.imdbId == imdbIds[i]; }
+		);
+
+		if(it != appStorage.getTitlesMutable().end())
+			applySeasonUpdate(*it, result.data, notifications);
 	}
 
 	appStorage.addNotifications(notifications);

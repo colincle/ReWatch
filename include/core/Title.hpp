@@ -24,6 +24,6 @@ struct Title
 
 	int   rank = 0;
 	bool  viewed = false;
-	QDate lastViewed = QDate::currentDate();
-	QDate lastChecked = QDate::currentDate();
+	QDate lastViewed;
+	QDate lastChecked;
 };

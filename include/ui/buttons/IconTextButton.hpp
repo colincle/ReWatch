@@ -1,10 +1,11 @@
 #pragma once
 
+#include "HoverButton.hpp"
+
 #include <QIcon>
-#include <QPushButton>
 #include <QVariantAnimation>
 
-class IconTextButton : public QPushButton
+class IconTextButton : public HoverButton
 {
   public:
 	explicit IconTextButton(
@@ -31,7 +32,7 @@ class IconTextButton : public QPushButton
 	QVariantAnimation *animation = nullptr;
 
 	QString buildStyleSheet(const QString &bgColor, const QString &textColor) const;
-	void    applyNormal();
-	void    applyHover();
+	void    applyNormal() override;
+	void    applyHover() override;
 	void    animateTo(int targetWidth);
 };

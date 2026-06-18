@@ -205,6 +205,23 @@ void TitleDetailView::updateWatchButtons()
 	watchedBtn->setVisible(currentTitle.viewed);
 }
 
+void TitleDetailView::updateWatchState()
+{
+	watchedValueLabel->setText(currentTitle.viewed ? "Yes" : "No");
+
+	if(currentTitle.lastViewed.isValid())
+	{
+		lastWatchedValueLabel->setText(
+		    currentTitle.lastViewed.toString("MMMM d, yyyy")
+		);
+		lastWatchedRow->show();
+	}
+	else
+	{
+		lastWatchedRow->hide();
+	}
+}
+
 void TitleDetailView::onWatchToggled()
 {
 	appStorage.toggleViewed(currentTitle.imdbId);
@@ -212,7 +229,7 @@ void TitleDetailView::onWatchToggled()
 	if(currentTitle.viewed)
 		currentTitle.lastViewed = QDate::currentDate();
 	updateWatchButtons();
-	populateInfo(currentTitle);
+	updateWatchState();
 }
 
 void TitleDetailView::onDeleteClicked()
@@ -227,6 +244,10 @@ void TitleDetailView::onDeleteClicked()
 
 void TitleDetailView::populateInfo(const Title &title)
 {
+	watchedValueLabel    = nullptr;
+	lastWatchedRow       = nullptr;
+	lastWatchedValueLabel = nullptr;
+
 	if(QLayout *old = infoContainer->layout())
 	{
 		while(QLayoutItem *item = old->takeAt(0))
@@ -244,6 +265,8 @@ void TitleDetailView::populateInfo(const Title &title)
 	addHeaderSection(layout, title);
 	layout->addWidget(makeSeparator());
 	addMetaSection(layout, title);
+	if(!title.plot.isEmpty() && title.plot != "N/A")
+		layout->addWidget(makeSeparator());
 	addPlotSection(layout, title);
 	addWatchOnSection(layout, title);
 	layout->addStretch();
@@ -291,19 +314,23 @@ void TitleDetailView::addMetaSection(QVBoxLayout *layout, const Title &title)
 	}
 	if(title.rank > 0)
 		layout->addWidget(makeRow("Rank", QString::number(title.rank)));
-	layout->addWidget(makeRow("Watched", title.viewed ? "Yes" : "No"));
-	if(title.viewed && title.lastViewed.isValid())
-		layout->addWidget(
-		    makeRow("Last watched", title.lastViewed.toString("MMMM d, yyyy"))
-		);
+	auto *watchedRow = makeRow("Watched", title.viewed ? "Yes" : "No");
+	watchedValueLabel = watchedRow->findChildren<QLabel *>().at(1);
+	layout->addWidget(watchedRow);
+
+	lastWatchedRow = makeRow(
+	    "Last watched",
+	    title.lastViewed.isValid() ? title.lastViewed.toString("MMMM d, yyyy") : ""
+	);
+	lastWatchedValueLabel = lastWatchedRow->findChildren<QLabel *>().at(1);
+	lastWatchedRow->setVisible(title.lastViewed.isValid());
+	layout->addWidget(lastWatchedRow);
 }
 
 void TitleDetailView::addPlotSection(QVBoxLayout *layout, const Title &title)
 {
 	if(title.plot.isEmpty() || title.plot == "N/A")
 		return;
-
-	layout->addWidget(makeSeparator());
 
 	auto *plotLabel = new QLabel(title.plot);
 	plotLabel->setWordWrap(true);

@@ -41,7 +41,7 @@ class LibraryView : public QWidget
 	void titleClicked(const Title &title);
 
   private:
-	int                  cardWidth;
+	int                  cardWidth = 160;
 	static constexpr int MIN_CARD_WIDTH = 150;
 	static constexpr int MAX_CARD_WIDTH = 300;
 	static constexpr int CARD_SPACING = 16;

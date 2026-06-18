@@ -1,10 +1,9 @@
 #pragma once
 
 #include "AppStorage.hpp"
+#include "HoverButton.hpp"
 
-#include <QPushButton>
-
-class StreamingPlatformButton : public QPushButton
+class StreamingPlatformButton : public HoverButton
 {
   public:
 	explicit StreamingPlatformButton(
@@ -13,16 +12,13 @@ class StreamingPlatformButton : public QPushButton
 	);
 
   protected:
-	void enterEvent(QEnterEvent *event) override;
-	void leaveEvent(QEvent *event) override;
-	void showEvent(QShowEvent *event) override;
+	void applyNormal() override;
+	void applyHover() override;
 
   private:
 	QString color1;
 	QString color2;
 	int     iconPadding;
 
-	void    applyNormal();
-	void    applyHover();
 	QString buildStyleSheet(const QString &bgColor, const QString &textColor) const;
 };

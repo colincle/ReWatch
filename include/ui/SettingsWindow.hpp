@@ -31,6 +31,7 @@ class SettingsWindow : public QDialog
 	QFrame  *makeSeparator();
 
 	void    onApplyClicked();
+	void    switchTheme(const QString &theme);
 	void    refreshStyle();
 	void    refreshPlatformsList();
 	QString buildStyleSheet() const;

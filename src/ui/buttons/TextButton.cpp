@@ -24,7 +24,7 @@ TextButton::TextButton(
 )
     : QPushButton(text, parent), color1(std::move(color1)), color2(std::move(color2))
 {
-	setCursor(Qt::PointingHandCursor);
+
 	setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 	setFixedHeight(size);
 	setContentsMargins(0, 0, 0, 0);

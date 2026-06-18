@@ -1,9 +1,10 @@
 #pragma once
 
-#include <QIcon>
-#include <QPushButton>
+#include "HoverButton.hpp"
 
-class IconButton : public QPushButton
+#include <QIcon>
+
+class IconButton : public HoverButton
 {
   public:
 	explicit IconButton(
@@ -11,9 +12,8 @@ class IconButton : public QPushButton
 	);
 
   protected:
-	void enterEvent(QEnterEvent *event) override;
-	void leaveEvent(QEvent *event) override;
-	void showEvent(QShowEvent *event) override;
+	void applyNormal() override;
+	void applyHover() override;
 
   private:
 	QIcon   normalIcon;
@@ -22,6 +22,4 @@ class IconButton : public QPushButton
 	QString color2;
 
 	QString styleSheet(const QString &bgColor) const;
-	void    applyNormal();
-	void    applyHover();
 };

@@ -37,6 +37,10 @@ class TitleDetailView : public QWidget
 	IconTextButton *toWatchBtn;
 	IconTextButton *watchedBtn;
 
+	QLabel  *watchedValueLabel   = nullptr;
+	QWidget *lastWatchedRow      = nullptr;
+	QLabel  *lastWatchedValueLabel = nullptr;
+
 	void     setupUi();
 	QWidget *buildTopBar();
 	QWidget *buildContentRow();
@@ -49,6 +53,7 @@ class TitleDetailView : public QWidget
 
 	void updatePosterSize();
 	void updateWatchButtons();
+	void updateWatchState();
 	void onWatchToggled();
 	void onDeleteClicked();
 

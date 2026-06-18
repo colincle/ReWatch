@@ -10,8 +10,10 @@ A desktop app to track your movies and TV shows. Built with C++ and Qt6.
 
 - **Library** — Browse your movies and TV shows in a poster grid, sortable by title, release date, last viewed, or rank. Zoom the card size in or out to your preference — it's remembered across sessions.
 - **Search & add** — Search the OMDb database by title and add results to your library in one click. Results show the title, year, and plot, and are limited to movies and TV shows.
-- **Missing poster recovery** — If OMDb has no poster for a title, the library card shows an upload button so you can pick a local image to use instead.
+- **Title detail view** — Click any title to open a full detail page: poster, metadata, scrollable plot, and a Watch on section with your configured streaming platform buttons.
 - **Watched tracking** — Mark titles as watched or unwatched. Filter the library to show only titles left to watch.
+- **Missing poster recovery** — If OMDb has no poster for a title, the library card shows an upload button so you can pick a local image to use instead.
+- **Streaming platforms** — Add custom streaming services in Settings with a name, logo, and a search URL. Clicking a platform button on a title opens that platform's search pre-filled with the title. A "Try all" button opens all platforms at once.
 - **Season updates** — On launch, the app checks OMDb for new seasons on your tracked TV shows (checked daily). Shows with a new season are automatically reset to unwatched.
 - **Notifications** — New seasons show up as a badge on the bell icon; click it for a dropdown listing each show with its poster, with a sound played when one arrives.
 - **Light and dark theme** — Switch between themes in Settings; the UI updates instantly.
@@ -69,6 +71,12 @@ Poster images are saved alongside it in:
 
 ```
 ~/Library/Application Support/MovieTracker/Posters/
+```
+
+Streaming platform logos are saved in:
+
+```
+~/Library/Application Support/MovieTracker/PlatformImages/
 ```
 
 ---

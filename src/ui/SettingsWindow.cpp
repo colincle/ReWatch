@@ -14,7 +14,10 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-static QString tabActive()
+namespace
+{
+
+QString tabActive()
 {
 	return QStringLiteral(
 	           "QPushButton {"
@@ -25,7 +28,7 @@ static QString tabActive()
 	    .arg(Palette::accent, Palette::textPrimary);
 }
 
-static QString tabInactive()
+QString tabInactive()
 {
 	return QStringLiteral(
 	           "QPushButton {"
@@ -36,6 +39,8 @@ static QString tabInactive()
 	)
 	    .arg(Palette::surface, Palette::textSecondary, Palette::textPrimary);
 }
+
+} // namespace
 
 SettingsWindow::SettingsWindow(AppStorage &appStorage, QWidget *parent)
     : QDialog(parent), appStorage(appStorage)
@@ -114,43 +119,8 @@ QWidget *SettingsWindow::makeThemeSection()
 	lightTab->setStyleSheet(isLight ? tabActive() : tabInactive());
 	darkTab->setStyleSheet(isLight ? tabInactive() : tabActive());
 
-	connect(
-	    lightTab,
-	    &QPushButton::clicked,
-	    this,
-	    [this]()
-	    {
-		    if(appStorage.getTheme() == "light")
-		    {
-			    return;
-		    }
-
-		    appStorage.setTheme("light");
-		    emit themeChanged("light");
-		    refreshStyle();
-		    lightTab->setStyleSheet(tabActive());
-		    darkTab->setStyleSheet(tabInactive());
-	    }
-	);
-
-	connect(
-	    darkTab,
-	    &QPushButton::clicked,
-	    this,
-	    [this]()
-	    {
-		    if(appStorage.getTheme() == "dark")
-		    {
-			    return;
-		    }
-
-		    appStorage.setTheme("dark");
-		    emit themeChanged("dark");
-		    refreshStyle();
-		    darkTab->setStyleSheet(tabActive());
-		    lightTab->setStyleSheet(tabInactive());
-	    }
-	);
+	connect(lightTab, &QPushButton::clicked, this, [this]() { switchTheme("light"); });
+	connect(darkTab, &QPushButton::clicked, this, [this]() { switchTheme("dark"); });
 
 	tabLayout->addWidget(lightTab);
 	tabLayout->addWidget(darkTab);
@@ -179,8 +149,10 @@ QWidget *SettingsWindow::makeApiKeySection()
 	apiKeyEdit->setPlaceholderText("Enter your OMDb API key…");
 	apiKeyEdit->setText(appStorage.getKey());
 
-	applyButton = new QPushButton("Add Key");
+	applyButton = new QPushButton("Adding...");
 	applyButton->setAutoDefault(false);
+	applyButton->setFixedWidth(applyButton->sizeHint().width() + 8);
+	applyButton->setText("Add Key");
 	applyButton->setEnabled(
 	    !appStorage.getKey().isEmpty() || !apiKeyEdit->text().simplified().isEmpty()
 	);
@@ -340,6 +312,17 @@ QFrame *SettingsWindow::makeSeparator()
 	line->setStyleSheet(QStringLiteral("background-color: %1;").arg(Palette::border));
 	line->setFixedHeight(1);
 	return line;
+}
+
+void SettingsWindow::switchTheme(const QString &theme)
+{
+	if(appStorage.getTheme() == theme)
+		return;
+	appStorage.setTheme(theme);
+	emit themeChanged(theme);
+	refreshStyle();
+	lightTab->setStyleSheet(theme == "light" ? tabActive() : tabInactive());
+	darkTab->setStyleSheet(theme == "dark" ? tabActive() : tabInactive());
 }
 
 void SettingsWindow::refreshStyle()

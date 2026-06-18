@@ -1,22 +1,21 @@
 #include "IconButton.hpp"
 #include "SvgUtils.hpp"
 
-#include <QEvent>
-#include <QTimer>
+#include <utility>
 
 IconButton::IconButton(
     const QString &iconPath, int size, QString color1, QString color2, QWidget *parent
 )
-    : QPushButton(parent), color1(color1), color2(color2)
+    : HoverButton(parent), color1(std::move(color1)), color2(std::move(color2))
 {
 	const int iconSize = size / 1.5;
 
-	normalIcon = loadColoredSvg(iconPath, color1, iconSize);
-	hoverIcon = loadColoredSvg(iconPath, color2, iconSize);
+	normalIcon = loadColoredSvg(iconPath, this->color1, iconSize);
+	hoverIcon = loadColoredSvg(iconPath, this->color2, iconSize);
 
 	setFixedSize(size, size);
 	setIconSize(QSize(iconSize, iconSize));
-	setCursor(Qt::PointingHandCursor);
+
 
 	applyNormal();
 }
@@ -42,32 +41,4 @@ void IconButton::applyHover()
 {
 	setIcon(hoverIcon);
 	setStyleSheet(styleSheet(color1));
-}
-
-void IconButton::enterEvent(QEnterEvent *event)
-{
-	applyHover();
-	QPushButton::enterEvent(event);
-}
-
-void IconButton::leaveEvent(QEvent *event)
-{
-	applyNormal();
-	QPushButton::leaveEvent(event);
-}
-
-void IconButton::showEvent(QShowEvent *event)
-{
-	QPushButton::showEvent(event);
-	QTimer::singleShot(
-	    0,
-	    this,
-	    [this]()
-	    {
-		    if(underMouse())
-		    {
-			    applyHover();
-		    }
-	    }
-	);
 }

@@ -52,6 +52,7 @@ class AppStorage : public QObject
 	int                         getLibraryCardWidth() const { return libraryCardWidth; }
 	QString                     getTheme() const { return theme; }
 	WindowSize                  getWindowSize() const { return windowSize; }
+	// Caller must hold getMutex()
 	const std::vector<Title>   &getTitles() const { return titles; }
 	std::vector<Title>         &getTitlesMutable() { return titles; }
 	const std::vector<QString> &getNotifications() const { return notifications; }

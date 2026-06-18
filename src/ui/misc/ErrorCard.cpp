@@ -12,6 +12,8 @@ static constexpr int CARD_PADDING_RIGHT = 8;
 static constexpr int CARD_PADDING_VERTICAL = 10;
 static constexpr int CARD_ICON_SIZE = 24;
 static constexpr int CARD_SPACING = 8;
+static constexpr int LABEL_WIDTH =
+    CARD_WIDTH - CARD_PADDING_LEFT - CARD_PADDING_RIGHT - CARD_SPACING - CARD_ICON_SIZE;
 
 ErrorCard::ErrorCard(QWidget *parent, const QString &message) : QWidget(parent)
 {
@@ -31,10 +33,6 @@ ErrorCard::ErrorCard(QWidget *parent, const QString &message) : QWidget(parent)
 	layout->setSpacing(CARD_SPACING);
 
 	label = new QLabel(this);
-	label->setFixedWidth(
-	    CARD_WIDTH - CARD_PADDING_LEFT - CARD_PADDING_RIGHT - CARD_SPACING -
-	    CARD_ICON_SIZE
-	);
 	label->setStyleSheet(
 	    "color: white; border: none; background: transparent; font-size: 13px;"
 	);
@@ -51,8 +49,7 @@ ErrorCard::ErrorCard(QWidget *parent, const QString &message) : QWidget(parent)
 	    this
 	);
 
-	layout->addWidget(label);
-	layout->addStretch();
+	layout->addWidget(label, 1);
 	layout->addWidget(closeButton, 0, Qt::AlignTop);
 
 	connect(closeButton, &QPushButton::clicked, this, &QWidget::hide);
@@ -75,6 +72,6 @@ void ErrorCard::setMessage(const QString &message)
 
 void ErrorCard::updateHeight()
 {
-	const int textHeight = label->heightForWidth(label->width());
+	const int textHeight = label->heightForWidth(LABEL_WIDTH);
 	setFixedHeight(qMax(CARD_MIN_HEIGHT, textHeight + 2 * CARD_PADDING_VERTICAL));
 }

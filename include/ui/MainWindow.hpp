@@ -21,14 +21,14 @@ class MainWindow : public QMainWindow
 
   private:
 	AppStorage              appStorage;
-	AppMenuBar             *appMenuBar;
-	ErrorCard              *errorCard;
-	TopBar                 *topBar;
-	AddBar                 *addBar;
-	SearchResults          *searchResults;
-	LibraryView            *libraryView;
-	TitleDetailView        *titleDetailView;
-	SeasonUpdateController *seasonUpdateController;
+	AppMenuBar             *appMenuBar            = nullptr;
+	ErrorCard              *errorCard              = nullptr;
+	TopBar                 *topBar                 = nullptr;
+	AddBar                 *addBar                 = nullptr;
+	SearchResults          *searchResults          = nullptr;
+	LibraryView            *libraryView            = nullptr;
+	TitleDetailView        *titleDetailView        = nullptr;
+	SeasonUpdateController *seasonUpdateController = nullptr;
 	QWidget                *seasonOverlay = nullptr;
 
 	void     buildUi();
@@ -44,5 +44,6 @@ class MainWindow : public QMainWindow
 	void enterNormalMode();
 	void enterDetailMode(const Title &title);
 
+	void resizeEvent(QResizeEvent *event) override;
 	void closeEvent(QCloseEvent *event) override;
 };

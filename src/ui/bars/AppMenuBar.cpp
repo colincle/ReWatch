@@ -37,9 +37,9 @@ AppMenuBar::AppMenuBar(AppStorage &appStorage, QWidget *parent)
 	    settings,
 	    &QAction::triggered,
 	    this,
-	    [this, &appStorage]()
+	    [this]()
 	    {
-		    SettingsWindow window(appStorage, parentWidget());
+		    SettingsWindow window(this->appStorage, parentWidget());
 		    connect(
 		        &window,
 		        &SettingsWindow::themeChanged,

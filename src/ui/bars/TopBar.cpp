@@ -49,6 +49,13 @@ TopBar::TopBar(AppStorage &appStorage, QWidget *parent)
 	notificationsCenter = new NotificationsCenter(appStorage, this);
 
 	connect(
+	    notificationsCenter,
+	    &NotificationsCenter::titleNavigationRequested,
+	    this,
+	    &TopBar::titleNavigationRequested
+	);
+
+	connect(
 	    &appStorage,
 	    &AppStorage::notificationsChanged,
 	    this,
@@ -194,6 +201,7 @@ void TopBar::onSortClicked()
 	    [this]() { emit requestSort(SortMode::Rank); }
 	);
 
+	connect(menu, &QMenu::aboutToHide, sortButton, &HoverButton::unhover);
 	menu->popup(sortButton->mapToGlobal(QPoint(0, sortButton->height() + 4)));
 }
 

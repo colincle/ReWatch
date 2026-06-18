@@ -19,6 +19,9 @@ class NotificationsCenter : public QObject
 
 	void popup(QWidget *anchor);
 
+  signals:
+	void titleNavigationRequested(const Title &title);
+
   private:
 	AppStorage &appStorage;
 
@@ -29,7 +32,6 @@ class NotificationsCenter : public QObject
 	QWidget      *notificationsContainer;
 	QVBoxLayout  *notificationsLayout;
 	QLabel       *noNotificationsLabel;
-	int           notificationRowCount = 0;
 	QSet<QString> knownNotificationIds;
 
 	void setupMenu();
@@ -37,4 +39,6 @@ class NotificationsCenter : public QObject
 
 	void         addNotificationRow(const QString &imdbId);
 	const Title *findTitleForNotification(const QString &imdbId) const;
+
+	bool eventFilter(QObject *obj, QEvent *event) override;
 };

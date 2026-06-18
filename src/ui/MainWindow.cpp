@@ -29,12 +29,21 @@ void MainWindow::buildUi()
 	Palette::setTheme(appStorage.getTheme());
 
 	delete centralWidget();
+	if(errorCard)
+	{
+		delete errorCard;
+		errorCard = nullptr;
+	}
 
 	setupLayout();
 	connectSignals();
 	setupErrorCard();
-	setupSeasonUpdateController();
-	seasonUpdateController->start();
+
+	if(!seasonUpdateController)
+	{
+		setupSeasonUpdateController();
+		seasonUpdateController->start();
+	}
 }
 
 void MainWindow::setupLayout()
@@ -201,6 +210,12 @@ void MainWindow::enterDetailMode(const Title &title)
 void MainWindow::connectSignals()
 {
 	connect(topBar, &TopBar::requestAddMode, this, &MainWindow::enterAddMode);
+	connect(
+	    topBar,
+	    &TopBar::titleNavigationRequested,
+	    this,
+	    &MainWindow::enterDetailMode
+	);
 	connect(addBar, &AddBar::requestNormalMode, this, &MainWindow::enterNormalMode);
 	connect(topBar, &TopBar::requestSort, libraryView, &LibraryView::applySort);
 	connect(topBar, &TopBar::requestTab, libraryView, &LibraryView::applyTab);
@@ -223,6 +238,13 @@ void MainWindow::connectSignals()
 		    errorCard->show();
 	    }
 	);
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+	QMainWindow::resizeEvent(event);
+	if(seasonOverlay)
+		seasonOverlay->setGeometry(rect());
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

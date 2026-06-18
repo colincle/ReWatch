@@ -16,6 +16,9 @@ class AddBar : public QWidget
 	void requestNormalMode();
 	void searchRequested(const QString &query);
 
+  protected:
+	void showEvent(QShowEvent *event) override;
+
   private:
 	IconButton *returnButton;
 	SearchBar  *searchBar;

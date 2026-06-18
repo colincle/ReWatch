@@ -22,7 +22,7 @@ class SeasonUpdate : public QObject
 
   private:
 	AppStorage      &appStorage;
-	QVector<Title *> titles;
+	QVector<QString> imdbIds;
 	bool             queueEmpty = false;
 
 	bool isEligible(const Title &t) const;

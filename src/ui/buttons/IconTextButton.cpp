@@ -2,6 +2,7 @@
 #include "SvgUtils.hpp"
 
 #include <QFont>
+#include <utility>
 #include <QFontMetrics>
 #include <QTimer>
 
@@ -13,15 +14,15 @@ IconTextButton::IconTextButton(
     const QString &iconPath, const QString &text, int size, QString color1,
     QString color2, bool alwaysShowText, bool textOnLeft, QWidget *parent
 )
-    : QPushButton(text, parent)
-    , color1(color1)
-    , color2(color2)
+    : HoverButton(text, parent)
+    , color1(std::move(color1))
+    , color2(std::move(color2))
     , alwaysShowText(alwaysShowText)
 {
 	const int iconSize = size / 1.5;
 
-	normalIcon = loadColoredSvg(iconPath, color1, iconSize);
-	hoverIcon = loadColoredSvg(iconPath, color2, iconSize);
+	normalIcon = loadColoredSvg(iconPath, this->color1, iconSize);
+	hoverIcon = loadColoredSvg(iconPath, this->color2, iconSize);
 
 	QFont f = font();
 	f.setPixelSize(static_cast<int>(size * 0.4));
@@ -35,7 +36,7 @@ IconTextButton::IconTextButton(
 
 	setFixedHeight(size);
 	setIconSize(QSize(iconSize, iconSize));
-	setCursor(Qt::PointingHandCursor);
+
 	if(textOnLeft)
 		setLayoutDirection(Qt::RightToLeft);
 

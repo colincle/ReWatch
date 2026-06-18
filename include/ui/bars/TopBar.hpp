@@ -42,4 +42,5 @@ class TopBar : public QWidget
 	void requestAddMode();
 	void requestSort(SortMode sortMode);
 	void requestTab(LibraryTab tab);
+	void titleNavigationRequested(const Title &title);
 };

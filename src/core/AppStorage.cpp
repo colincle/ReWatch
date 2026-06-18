@@ -50,18 +50,7 @@ Title AppStorage::titleFromStorageJson(const QJsonObject &obj) const
 	t.viewed = obj["viewed"].toBool(false);
 
 	t.lastViewed = QDate::fromString(obj["lastViewed"].toString(), Qt::ISODate);
-
-	if(!t.lastViewed.isValid())
-	{
-		t.lastViewed = QDate::currentDate();
-	}
-
 	t.lastChecked = QDate::fromString(obj["lastChecked"].toString(), Qt::ISODate);
-
-	if(!t.lastChecked.isValid())
-	{
-		t.lastChecked = QDate::currentDate();
-	}
 
 	return t;
 }

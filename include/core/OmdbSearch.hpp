@@ -62,9 +62,6 @@ class OmdbSearch : public QObject
 	void titleFetched();
 	void titleFetchFailed();
 
-  private slots:
-	void onReplyFinished();
-
   private:
 	AppStorage &appStorage;
 
@@ -87,5 +84,6 @@ class OmdbSearch : public QObject
 	    QNetworkReply *reply, const QPixmap &posterImage, bool posterNotFound
 	);
 	void onPosterFinished(QNetworkReply *reply, int i);
+	void onReplyFinished(QNetworkReply *reply);
 	void checkSearchComplete();
 };

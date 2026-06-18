@@ -2,8 +2,10 @@
 #include "AssetsPaths.hpp"
 #include "Palette.hpp"
 
+#include <QEvent>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QMouseEvent>
 #include <QUrl>
 #include <QWidgetAction>
 
@@ -130,7 +132,18 @@ void NotificationsCenter::addNotificationRow(const QString &imdbId)
 	const QString text = match->title + "<br>" + newSeasonString;
 
 	auto *row = new QWidget;
-	row->setStyleSheet("background: transparent;");
+	row->setObjectName("notificationRow");
+	row->setAttribute(Qt::WA_StyledBackground, true);
+	row->setAttribute(Qt::WA_Hover, true);
+	row->setStyleSheet(
+	    QStringLiteral(
+	        "#notificationRow { background: transparent; border-radius: 6px; }"
+	        "#notificationRow:hover { background-color: %1; }"
+	    )
+	        .arg(Palette::surface)
+	);
+	row->setProperty("imdbId", imdbId);
+	row->installEventFilter(this);
 
 	auto *rowLayout = new QHBoxLayout(row);
 	rowLayout->setContentsMargins(4, 4, 4, 4);
@@ -160,7 +173,6 @@ void NotificationsCenter::addNotificationRow(const QString &imdbId)
 
 	notificationsLayout->insertWidget(0, row);
 
-	++notificationRowCount;
 	noNotificationsLabel->setVisible(false);
 }
 
@@ -172,6 +184,24 @@ void NotificationsCenter::onNotificationsAdded()
 	}
 
 	notificationSound.play();
+}
+
+bool NotificationsCenter::eventFilter(QObject *obj, QEvent *event)
+{
+	if(event->type() == QEvent::MouseButtonRelease)
+	{
+		const QString imdbId = obj->property("imdbId").toString();
+		if(!imdbId.isEmpty())
+		{
+			const Title *t = findTitleForNotification(imdbId);
+			if(t)
+			{
+				notificationsMenu->close();
+				emit titleNavigationRequested(*t);
+			}
+		}
+	}
+	return QObject::eventFilter(obj, event);
 }
 
 void NotificationsCenter::popup(QWidget *anchor)
