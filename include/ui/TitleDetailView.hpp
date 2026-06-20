@@ -19,6 +19,7 @@ class TitleDetailView : public QWidget
 	explicit TitleDetailView(AppStorage &appStorage, QWidget *parent = nullptr);
 
 	void setTitle(const Title &title);
+	void refreshStyle();
 
   signals:
 	void backRequested();
@@ -34,6 +35,8 @@ class TitleDetailView : public QWidget
 	QWidget        *topBar;
 	QLabel         *posterLabel;
 	QWidget        *infoContainer;
+	IconButton     *backBtn = nullptr;
+	IconButton     *deleteBtn = nullptr;
 	IconTextButton *toWatchBtn;
 	IconTextButton *watchedBtn;
 

@@ -17,6 +17,13 @@ LibraryView::LibraryView(AppStorage &appStorage, QWidget *parent)
 	QTimer::singleShot(0, this, &LibraryView::populate);
 }
 
+void LibraryView::refreshStyle()
+{
+	setStyleSheet(QStringLiteral("background-color: %1;").arg(Palette::bgPrimary));
+	libraryViewTopBar->refreshStyle();
+	populate();
+}
+
 void LibraryView::setupUi()
 {
 	setStyleSheet(QStringLiteral("background-color: %1;").arg(Palette::bgPrimary));

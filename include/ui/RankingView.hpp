@@ -1,13 +1,16 @@
 #pragma once
 
 #include "AppStorage.hpp"
+#include "IconButton.hpp"
 #include "Title.hpp"
 
 #include <QLabel>
 #include <QWidget>
 #include <vector>
 
+class QResizeEvent;
 class QVBoxLayout;
+class RankingCard;
 
 class RankingView : public QWidget
 {
@@ -16,12 +19,14 @@ class RankingView : public QWidget
   public:
 	explicit RankingView(AppStorage &appStorage, QWidget *parent = nullptr);
 	void start();
+	void refreshStyle();
 
   signals:
 	void finished();
 
   protected:
 	bool eventFilter(QObject *obj, QEvent *event) override;
+	void resizeEvent(QResizeEvent *event) override;
 
   private:
 	AppStorage &appStorage;
@@ -40,23 +45,21 @@ class RankingView : public QWidget
 	int processedMovies = 0;
 	int processedTvShows = 0;
 
-	QWidget *leftCard = nullptr;
-	QWidget *rightCard = nullptr;
-	QLabel  *leftPosterLabel = nullptr;
-	QLabel  *rightPosterLabel = nullptr;
-	QLabel  *leftTitleLabel = nullptr;
-	QLabel  *rightTitleLabel = nullptr;
-	QLabel  *progressLabel = nullptr;
+	QWidget     *cardsRow = nullptr;
+	RankingCard *leftCard = nullptr;
+	RankingCard *rightCard = nullptr;
+	QLabel      *progressLabel = nullptr;
+	QLabel      *instructionLabel = nullptr;
+	QLabel      *vsLabel = nullptr;
+	IconButton  *exitBtn = nullptr;
 
-	void     setupUi();
-	QWidget *makeCard(QLabel *&posterOut, QLabel *&titleOut);
-	void     populateCard(QLabel *posterLabel, QLabel *titleLabel, const Title &title);
-
+	void setupUi();
 	void startNextTitle();
 	void showComparison();
 	void onLeftChosen();
 	void onRightChosen();
 	void insertCurrent();
+	void updateCardSize();
 
 	std::vector<Title> rankedTitlesOfType(const QString &type) const;
 	void               updateProgress();

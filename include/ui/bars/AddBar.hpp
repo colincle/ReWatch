@@ -19,6 +19,9 @@ class AddBar : public QWidget
   protected:
 	void showEvent(QShowEvent *event) override;
 
+  public:
+	void refreshStyle();
+
   private:
 	IconButton *returnButton;
 	SearchBar  *searchBar;

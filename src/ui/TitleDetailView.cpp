@@ -38,6 +38,24 @@ TitleDetailView::TitleDetailView(AppStorage &appStorage, QWidget *parent)
 	);
 }
 
+void TitleDetailView::refreshStyle()
+{
+	setStyleSheet(QStringLiteral("background-color: %1;").arg(Palette::bgPrimary));
+	topBar->setStyleSheet(
+	    QStringLiteral("background-color: %1;").arg(Palette::bgPrimary)
+	);
+	if(backBtn)
+		backBtn->updateColors(Palette::accent, Palette::surface);
+	if(deleteBtn)
+		deleteBtn->updateColors(Palette::error, Palette::surface);
+	if(toWatchBtn)
+		toWatchBtn->updateColors(Palette::error, Palette::surface);
+	if(watchedBtn)
+		watchedBtn->updateColors(Palette::success, Palette::surface);
+	if(!currentTitle.imdbId.isEmpty())
+		populateInfo(currentTitle);
+}
+
 void TitleDetailView::setTitle(const Title &title)
 {
 	currentTitle = title;
@@ -71,7 +89,7 @@ QWidget *TitleDetailView::buildTopBar()
 	layout->setContentsMargins(MARGIN, MARGIN, MARGIN, MARGIN);
 	layout->setSpacing(8);
 
-	auto *backBtn = new IconButton(
+	backBtn = new IconButton(
 	    AssetsPaths::crossIcon,
 	    32,
 	    Palette::accent,
@@ -100,7 +118,7 @@ QWidget *TitleDetailView::buildTopBar()
 	    true,
 	    this
 	);
-	auto *deleteBtn = new IconButton(
+	deleteBtn = new IconButton(
 	    AssetsPaths::deleteIcon,
 	    32,
 	    Palette::error,

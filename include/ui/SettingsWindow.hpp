@@ -51,7 +51,4 @@ class SettingsWindow : public QDialog
 	void    refreshStyle();
 	void    refreshPlatformsList();
 	QString buildStyleSheet() const;
-
-  signals:
-	void themeChanged(const QString &theme);
 };

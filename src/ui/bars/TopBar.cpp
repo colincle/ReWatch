@@ -132,6 +132,24 @@ void TopBar::setupLayout()
 	layout->addWidget(addButton);
 }
 
+void TopBar::refreshStyle()
+{
+	setStyleSheet(QStringLiteral("background-color: %1; border-bottom: 1px solid %2;")
+	                  .arg(Palette::bgSecondary, Palette::border));
+	notificationDot->setStyleSheet(
+	    QStringLiteral("background-color: %1; border-radius: %2px;")
+	        .arg(Palette::error)
+	        .arg(NOTIFICATION_DOT_SIZE / 2)
+	);
+	notificationsButton->updateColors(Palette::accent, Palette::surface);
+	sortButton->updateColors(Palette::accent, Palette::surface);
+	rankButton->updateColors(Palette::accent, Palette::surface);
+	addButton->updateColors(Palette::accent, Palette::surface);
+	moviesButton->updateColors(Palette::accent, Palette::surface);
+	tvShowsButton->updateColors(Palette::accent, Palette::surface);
+	notificationsCenter->refreshStyle();
+}
+
 void TopBar::onMoviesClicked()
 {
 	if(moviesButton->isActive())

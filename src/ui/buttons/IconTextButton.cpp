@@ -15,6 +15,7 @@ IconTextButton::IconTextButton(
     QString color2, bool alwaysShowText, bool textOnLeft, QWidget *parent
 )
     : HoverButton(text, parent)
+    , iconPath(iconPath)
     , color1(std::move(color1))
     , color2(std::move(color2))
     , alwaysShowText(alwaysShowText)
@@ -70,6 +71,16 @@ IconTextButton::IconTextButton(
 	    }
 	);
 
+	applyNormal();
+}
+
+void IconTextButton::updateColors(const QString &c1, const QString &c2)
+{
+	color1 = c1;
+	color2 = c2;
+	const int iSize = iconSize().width();
+	normalIcon = loadColoredSvg(iconPath, color1, iSize);
+	hoverIcon = loadColoredSvg(iconPath, color2, iSize);
 	applyNormal();
 }
 

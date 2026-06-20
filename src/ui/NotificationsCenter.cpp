@@ -204,6 +204,46 @@ bool NotificationsCenter::eventFilter(QObject *obj, QEvent *event)
 	return QObject::eventFilter(obj, event);
 }
 
+void NotificationsCenter::refreshStyle()
+{
+	notificationsMenu->setStyleSheet(notificationsMenuStyleSheet());
+	noNotificationsLabel->setStyleSheet(
+	    QStringLiteral(
+	        "color: %1; font-size: 14px; border: none; background: transparent;"
+	    )
+	        .arg(Palette::textSecondary)
+	);
+	for(QWidget *row : notificationsContainer->findChildren<QWidget *>("notificationRow"))
+	{
+		row->setStyleSheet(
+		    QStringLiteral(
+		        "#notificationRow { background: transparent; border-radius: 6px; }"
+		        "#notificationRow:hover { background-color: %1; }"
+		    )
+		        .arg(Palette::surface)
+		);
+		const QString imdbId = row->property("imdbId").toString();
+		const Title  *match = findTitleForNotification(imdbId);
+		if(!match)
+			continue;
+		for(QLabel *label : row->findChildren<QLabel *>())
+		{
+			if(label->wordWrap())
+			{
+				const QString tag =
+				    QStringLiteral("<span style=\"color: %1;\">New Season</span>")
+				        .arg(Palette::accentLight);
+				label->setText(match->title + "<br>" + tag);
+				label->setStyleSheet(QStringLiteral(
+				                         "color: %1; font-size: 14px; border: none; "
+				                         "background: transparent;"
+				)
+				                         .arg(Palette::textSecondary));
+			}
+		}
+	}
+}
+
 void NotificationsCenter::popup(QWidget *anchor)
 {
 	const int maxHeight = anchor->window()->height() / 2;

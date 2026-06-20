@@ -1,5 +1,6 @@
 #include "RankingView.hpp"
 #include "AssetsPaths.hpp"
+#include "ElidedLabel.hpp"
 #include "IconButton.hpp"
 #include "Palette.hpp"
 
@@ -8,10 +9,134 @@
 #include <QFont>
 #include <QHBoxLayout>
 #include <QMouseEvent>
+#include <QPainter>
+#include <QPainterPath>
+#include <QResizeEvent>
 #include <QVBoxLayout>
 
-static constexpr int POSTER_W = 180;
-static constexpr int POSTER_H = 270;
+static constexpr int DEFAULT_CARD_W = 180;
+static constexpr int MAX_CARD_HEIGHT = 840;
+static constexpr int POSTER_RADIUS = 10;
+static constexpr int CARD_PAD = 12;
+static constexpr int TITLE_H = 44;
+
+static QString cardStyleSheet()
+{
+	return QStringLiteral(
+	           "#rankCard {"
+	           "    background: transparent;"
+	           "    border: 2px solid transparent;"
+	           "    border-radius: 12px;"
+	           "}"
+	           "#rankCard:hover {"
+	           "    border: 2px solid %1;"
+	           "    background-color: %2;"
+	           "}"
+	)
+	    .arg(Palette::accent, Palette::surface);
+}
+
+// ---------------------------------------------------------------------------
+class RankingCard : public QWidget
+{
+  public:
+	explicit RankingCard(QWidget *parent = nullptr) : QWidget(parent)
+	{
+		setAttribute(Qt::WA_StyledBackground, true);
+		setAttribute(Qt::WA_Hover, true);
+		setObjectName("rankCard");
+		setCursor(Qt::PointingHandCursor);
+
+		titleLabel = new ElidedLabel({}, 2, this);
+		titleLabel->setAlignment(Qt::AlignCenter);
+
+		setStyleSheet(cardStyleSheet());
+		rescale(DEFAULT_CARD_W);
+	}
+
+	void setTitle(const Title &title)
+	{
+		sourcePixmap = title.posterImage;
+		titleLabel->setText(title.title);
+		updateScaledPixmap();
+		update();
+	}
+
+	void rescale(int newCardW)
+	{
+		cardW = newCardW;
+		posterH = cardW * 3 / 2;
+		setFixedSize(
+		    cardW + 2 * CARD_PAD,
+		    CARD_PAD + posterH + CARD_PAD / 2 + TITLE_H + CARD_PAD / 2
+		);
+		titleLabel
+		    ->setGeometry(CARD_PAD, CARD_PAD + posterH + CARD_PAD / 2, cardW, TITLE_H);
+		applyLabelStyle();
+		updateScaledPixmap();
+		update();
+	}
+
+	void refreshStyle()
+	{
+		setStyleSheet(cardStyleSheet());
+		applyLabelStyle();
+		update();
+	}
+
+  protected:
+	void paintEvent(QPaintEvent *) override
+	{
+		QPainter p(this);
+		p.setRenderHint(QPainter::Antialiasing);
+
+		QPainterPath clip;
+		clip.addRoundedRect(
+		    QRectF(CARD_PAD, CARD_PAD, cardW, posterH),
+		    POSTER_RADIUS,
+		    POSTER_RADIUS
+		);
+		p.setClipPath(clip);
+
+		if(scaledPixmap.isNull())
+			p.fillRect(CARD_PAD, CARD_PAD, cardW, posterH, QColor(Palette::surface));
+		else
+		{
+			const int x = CARD_PAD + (cardW - scaledPixmap.width()) / 2;
+			const int y = CARD_PAD + (posterH - scaledPixmap.height()) / 2;
+			p.drawPixmap(x, y, scaledPixmap);
+		}
+	}
+
+  private:
+	void applyLabelStyle()
+	{
+		titleLabel->setStyleSheet(
+		    QStringLiteral(
+		        "border: none; background: transparent; color: %1; font-size: 12px;"
+		    )
+		        .arg(Palette::textPrimary)
+		);
+	}
+
+	void updateScaledPixmap()
+	{
+		if(sourcePixmap.isNull() || cardW == 0)
+			return;
+		scaledPixmap = sourcePixmap.scaled(
+		    QSize(cardW, posterH),
+		    Qt::KeepAspectRatioByExpanding,
+		    Qt::SmoothTransformation
+		);
+	}
+
+	ElidedLabel *titleLabel = nullptr;
+	QPixmap      sourcePixmap;
+	QPixmap      scaledPixmap;
+	int          cardW = 0;
+	int          posterH = 0;
+};
+// ---------------------------------------------------------------------------
 
 RankingView::RankingView(AppStorage &appStorage, QWidget *parent)
     : QWidget(parent), appStorage(appStorage)
@@ -43,14 +168,14 @@ void RankingView::setupUi()
 	setAttribute(Qt::WA_StyledBackground, true);
 
 	auto *mainLayout = new QVBoxLayout(this);
-	mainLayout->setContentsMargins(40, 24, 40, 40);
+	mainLayout->setContentsMargins(20, 20, 20, 20);
 	mainLayout->setSpacing(0);
 
 	auto *topRow = new QWidget;
 	auto *topLayout = new QHBoxLayout(topRow);
 	topLayout->setContentsMargins(0, 0, 0, 0);
 
-	auto *exitBtn = new IconButton(
+	exitBtn = new IconButton(
 	    AssetsPaths::crossIcon,
 	    32,
 	    Palette::accent,
@@ -68,7 +193,7 @@ void RankingView::setupUi()
 	topLayout->addStretch();
 	topLayout->addWidget(progressLabel);
 
-	auto *instructionLabel = new QLabel("Which do you prefer?");
+	instructionLabel = new QLabel("Which do you prefer?");
 	instructionLabel->setAlignment(Qt::AlignCenter);
 	QFont instrFont;
 	instrFont.setPixelSize(22);
@@ -78,19 +203,18 @@ void RankingView::setupUi()
 	    QStringLiteral("color: %1;").arg(Palette::textPrimary)
 	);
 
-	auto *cardsRow = new QWidget;
+	cardsRow = new QWidget;
 	auto *cardsLayout = new QHBoxLayout(cardsRow);
 	cardsLayout->setContentsMargins(0, 0, 0, 0);
 	cardsLayout->setSpacing(48);
 	cardsLayout->setAlignment(Qt::AlignCenter);
 
-	leftCard = makeCard(leftPosterLabel, leftTitleLabel);
-	rightCard = makeCard(rightPosterLabel, rightTitleLabel);
-
+	leftCard = new RankingCard(this);
+	rightCard = new RankingCard(this);
 	leftCard->installEventFilter(this);
 	rightCard->installEventFilter(this);
 
-	auto *vsLabel = new QLabel("VS");
+	vsLabel = new QLabel("VS");
 	vsLabel->setAlignment(Qt::AlignCenter);
 	QFont vsFont;
 	vsFont.setPixelSize(28);
@@ -108,65 +232,23 @@ void RankingView::setupUi()
 	mainLayout->addSpacing(36);
 	mainLayout->addWidget(cardsRow, 0, Qt::AlignCenter);
 	mainLayout->addStretch();
+
+	updateCardSize();
 }
 
-QWidget *RankingView::makeCard(QLabel *&posterOut, QLabel *&titleOut)
+void RankingView::refreshStyle()
 {
-	auto *card = new QWidget;
-	card->setObjectName("rankCard");
-	card->setAttribute(Qt::WA_StyledBackground, true);
-	card->setAttribute(Qt::WA_Hover, true);
-	card->setStyleSheet(QStringLiteral(
-	                        "#rankCard {"
-	                        "    background: transparent;"
-	                        "    border: 2px solid transparent;"
-	                        "    border-radius: 12px;"
-	                        "}"
-	                        "#rankCard:hover {"
-	                        "    border: 2px solid %1;"
-	                        "    background-color: %2;"
-	                        "}"
-	)
-	                        .arg(Palette::accent, Palette::surface));
-
-	auto *layout = new QVBoxLayout(card);
-	layout->setContentsMargins(12, 12, 12, 16);
-	layout->setSpacing(12);
-
-	posterOut = new QLabel;
-	posterOut->setFixedSize(POSTER_W, POSTER_H);
-	posterOut->setAlignment(Qt::AlignCenter);
-	posterOut->setStyleSheet("background: transparent; border: none;");
-
-	titleOut = new QLabel;
-	titleOut->setAlignment(Qt::AlignCenter);
-	titleOut->setWordWrap(true);
-	titleOut->setFixedWidth(POSTER_W);
-	QFont titleFont;
-	titleFont.setPixelSize(14);
-	titleFont.setBold(true);
-	titleOut->setFont(titleFont);
-	titleOut->setStyleSheet(
-	    QStringLiteral("color: %1; background: transparent; border: none;")
-	        .arg(Palette::textPrimary)
+	setStyleSheet(QStringLiteral("background-color: %1;").arg(Palette::bgPrimary));
+	exitBtn->updateColors(Palette::accent, Palette::surface);
+	progressLabel->setStyleSheet(
+	    QStringLiteral("color: %1; font-size: 14px;").arg(Palette::textSecondary)
 	);
-
-	layout->addWidget(posterOut);
-	layout->addWidget(titleOut, 0, Qt::AlignCenter);
-
-	return card;
-}
-
-void RankingView::populateCard(
-    QLabel *posterLabel, QLabel *titleLabel, const Title &title
-)
-{
-	posterLabel->setPixmap(title.posterImage.scaled(
-	    posterLabel->size(),
-	    Qt::KeepAspectRatio,
-	    Qt::SmoothTransformation
-	));
-	titleLabel->setText(title.title);
+	instructionLabel->setStyleSheet(
+	    QStringLiteral("color: %1;").arg(Palette::textPrimary)
+	);
+	vsLabel->setStyleSheet(QStringLiteral("color: %1;").arg(Palette::textSecondary));
+	leftCard->refreshStyle();
+	rightCard->refreshStyle();
 }
 
 bool RankingView::eventFilter(QObject *obj, QEvent *event)
@@ -179,6 +261,23 @@ bool RankingView::eventFilter(QObject *obj, QEvent *event)
 			onRightChosen();
 	}
 	return QObject::eventFilter(obj, event);
+}
+
+void RankingView::resizeEvent(QResizeEvent *event)
+{
+	QWidget::resizeEvent(event);
+	updateCardSize();
+}
+
+void RankingView::updateCardSize()
+{
+	if(!leftCard)
+		return;
+	const int posterH = qMax(150, qMin(height() - 220, MAX_CARD_HEIGHT));
+	const int cardW = posterH * 2 / 3;
+	leftCard->rescale(cardW);
+	rightCard->rescale(cardW);
+	cardsRow->adjustSize();
 }
 
 std::vector<Title> RankingView::rankedTitlesOfType(const QString &type) const
@@ -231,20 +330,16 @@ void RankingView::startNextTitle()
 	updateProgress();
 
 	if(high == 0)
-	{
 		insertCurrent();
-	}
 	else
-	{
 		showComparison();
-	}
 }
 
 void RankingView::showComparison()
 {
 	const int mid = (low + high) / 2;
-	populateCard(leftPosterLabel, leftTitleLabel, currentUnranked);
-	populateCard(rightPosterLabel, rightTitleLabel, currentRanked[mid]);
+	leftCard->setTitle(currentUnranked);
+	rightCard->setTitle(currentRanked[mid]);
 }
 
 void RankingView::onLeftChosen()

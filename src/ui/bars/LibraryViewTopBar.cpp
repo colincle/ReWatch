@@ -73,6 +73,17 @@ void LibraryViewTopBar::setupLayout()
 	layout->addWidget(closeButton);
 }
 
+void LibraryViewTopBar::refreshStyle()
+{
+	showAllButton->updateColors(Palette::accent, Palette::surface);
+	showToWatchButton->updateColors(Palette::accent, Palette::surface);
+	searchButton->updateColors(Palette::accent, Palette::surface);
+	closeButton->updateColors(Palette::accent, Palette::surface);
+	zoomInButton->updateColors(Palette::accent, Palette::surface);
+	zoomOutButton->updateColors(Palette::accent, Palette::surface);
+	searchInput->refreshStyle();
+}
+
 void LibraryViewTopBar::connectSignals()
 {
 	connect(

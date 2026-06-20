@@ -15,6 +15,9 @@ class TopBar : public QWidget
   public:
 	explicit TopBar(AppStorage &appStorage, QWidget *parent = nullptr);
 
+  public:
+	void refreshStyle();
+
   private:
 	AppStorage &appStorage;
 

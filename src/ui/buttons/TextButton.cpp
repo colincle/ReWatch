@@ -57,6 +57,13 @@ bool TextButton::isActive() const
 	return active;
 }
 
+void TextButton::updateColors(const QString &c1, const QString &c2)
+{
+	color1 = c1;
+	color2 = c2;
+	setStyleSheet(active ? activeStyle() : normalStyle());
+}
+
 void TextButton::enterEvent(QEnterEvent *event)
 {
 	if(!active)

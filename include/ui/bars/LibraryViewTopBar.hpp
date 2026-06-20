@@ -13,6 +13,7 @@ class LibraryViewTopBar : public QWidget
 
   public:
 	explicit LibraryViewTopBar(QWidget *parent = nullptr);
+	void refreshStyle();
 
   signals:
 	void searchRequested(const QString &query);

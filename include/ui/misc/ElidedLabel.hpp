@@ -11,6 +11,7 @@ class ElidedLabel : public QLabel
 	    const QString &text, int maxLines = 1, QWidget *parent = nullptr
 	);
 
+	void setText(const QString &text);
 	void refreshElision();
 
 	QSize minimumSizeHint() const override;

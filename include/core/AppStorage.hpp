@@ -111,5 +111,5 @@ class AppStorage : public QObject
 	void notificationsChanged();
 	void notificationsAdded();
 	void streamingPlatformsChanged();
-	void accentColorChanged();
+	void styleChanged();
 };

@@ -51,13 +51,13 @@ inline void setDark()
 
 inline void setLight()
 {
-	bgPrimary = "#EDEAE5";
-	bgSecondary = "#E2DED9";
-	surface = "#D3CFC8";
-	border = "#B6B1A9";
+	bgPrimary = "#CAC7C2";
+	bgSecondary = "#BFBBB6";
+	surface = "#B0ACA5";
+	border = "#938E86";
 	textPrimary = "#1F2328";
 	textSecondary = "#656D76";
-	success = "#22C55E";
+	success = "#008430";
 	error = "#EF4444";
 }
 } // namespace detail

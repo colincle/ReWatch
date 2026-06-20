@@ -60,12 +60,7 @@ SettingsWindow::SettingsWindow(AppStorage &appStorage, QWidget *parent)
 	setWindowTitle("Settings");
 	setModal(true);
 	setupUi();
-	connect(
-	    &appStorage,
-	    &AppStorage::accentColorChanged,
-	    this,
-	    &SettingsWindow::refreshStyle
-	);
+	connect(&appStorage, &AppStorage::styleChanged, this, &SettingsWindow::refreshStyle);
 }
 
 QString SettingsWindow::buildStyleSheet() const
@@ -515,14 +510,12 @@ void SettingsWindow::switchTheme(const QString &theme)
 	if(appStorage.getTheme() == theme)
 		return;
 	appStorage.setTheme(theme);
-	emit themeChanged(theme);
 	if(darkAccentRow && lightAccentRow)
 	{
 		darkAccentRow->hide();
 		lightAccentRow->hide();
 		(theme == "dark" ? darkAccentRow : lightAccentRow)->show();
 	}
-	refreshStyle();
 }
 
 void SettingsWindow::refreshStyle()

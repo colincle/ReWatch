@@ -34,6 +34,7 @@ class MainWindow : public QMainWindow
 	RankingView            *rankingView = nullptr;
 
 	void     buildUi();
+	void     onStyleChanged();
 	QWidget *makeSeasonOverlay();
 	void     setupLayout();
 	void     setupErrorCard();

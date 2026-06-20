@@ -18,6 +18,14 @@ AddBar::AddBar(QWidget *parent) : QWidget(parent)
 	connectSignals();
 }
 
+void AddBar::refreshStyle()
+{
+	setStyleSheet(QStringLiteral("background-color: %1; border-bottom: 1px solid %2;")
+	                  .arg(Palette::bgSecondary, Palette::border));
+	returnButton->updateColors(Palette::accent, Palette::surface);
+	searchBar->refreshStyle();
+}
+
 void AddBar::setupLayout()
 {
 	auto *layout = new QHBoxLayout(this);

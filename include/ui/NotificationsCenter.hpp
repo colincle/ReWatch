@@ -18,6 +18,7 @@ class NotificationsCenter : public QObject
 	explicit NotificationsCenter(AppStorage &appStorage, QObject *parent = nullptr);
 
 	void popup(QWidget *anchor);
+	void refreshStyle();
 
   signals:
 	void titleNavigationRequested(const Title &title);

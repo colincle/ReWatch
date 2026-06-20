@@ -11,11 +11,15 @@ class IconButton : public HoverButton
 	    const QString &iconPath, int size, QString color1, QString color2, QWidget *parent
 	);
 
+  public:
+	void updateColors(const QString &c1, const QString &c2);
+
   protected:
 	void applyNormal() override;
 	void applyHover() override;
 
   private:
+	QString iconPath;
 	QIcon   normalIcon;
 	QIcon   hoverIcon;
 	QString color1;

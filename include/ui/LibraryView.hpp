@@ -18,6 +18,8 @@ class LibraryView : public QWidget
   public:
 	explicit LibraryView(AppStorage &appStorage, QWidget *parent = nullptr);
 
+	void refreshStyle();
+
 	void applySort(SortMode sort)
 	{
 		currentSort = sort;
@@ -42,7 +44,7 @@ class LibraryView : public QWidget
 
   private:
 	int                  cardWidth = 160;
-	static constexpr int MIN_CARD_WIDTH = 150;
+	static constexpr int MIN_CARD_WIDTH = 170;
 	static constexpr int MAX_CARD_WIDTH = 300;
 	static constexpr int CARD_SPACING = 16;
 	static constexpr int MARGIN = 20;

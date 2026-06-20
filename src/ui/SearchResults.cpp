@@ -39,6 +39,13 @@ SearchResults::SearchResults(AppStorage &storage, QWidget *parent)
 	);
 }
 
+void SearchResults::refreshStyle()
+{
+	setStyleSheet(QStringLiteral("background-color: %1;").arg(Palette::bgPrimary));
+	if(!lastResults.empty())
+		rebuildResults();
+}
+
 void SearchResults::setupLayout()
 {
 	m_layout = new QVBoxLayout(this);

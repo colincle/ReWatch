@@ -17,6 +17,12 @@ void ElidedLabel::resizeEvent(QResizeEvent *event)
 	updateElidedText();
 }
 
+void ElidedLabel::setText(const QString &text)
+{
+	fullText = text;
+	updateElidedText();
+}
+
 void ElidedLabel::refreshElision()
 {
 	updateElidedText();

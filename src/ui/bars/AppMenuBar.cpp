@@ -40,12 +40,6 @@ AppMenuBar::AppMenuBar(AppStorage &appStorage, QWidget *parent)
 	    [this]()
 	    {
 		    SettingsWindow window(this->appStorage, parentWidget());
-		    connect(
-		        &window,
-		        &SettingsWindow::themeChanged,
-		        this,
-		        &AppMenuBar::themeChanged
-		    );
 		    window.exec();
 	    }
 	);

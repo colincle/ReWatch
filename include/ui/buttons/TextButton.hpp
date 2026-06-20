@@ -12,6 +12,7 @@ class TextButton : public QPushButton
 
 	void toggleActive();
 	bool isActive() const;
+	void updateColors(const QString &c1, const QString &c2);
 
   protected:
 	void enterEvent(QEnterEvent *event) override;

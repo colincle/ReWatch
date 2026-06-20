@@ -262,6 +262,7 @@ void AppStorage::setTheme(QString newTheme)
 
 	theme = newTheme;
 	save();
+	emit styleChanged();
 }
 
 void AppStorage::setDarkAccentColor(const QString &color)
@@ -270,7 +271,7 @@ void AppStorage::setDarkAccentColor(const QString &color)
 
 	darkAccentColor = color;
 	save();
-	emit accentColorChanged();
+	emit styleChanged();
 }
 
 void AppStorage::setLightAccentColor(const QString &color)
@@ -279,7 +280,7 @@ void AppStorage::setLightAccentColor(const QString &color)
 
 	lightAccentColor = color;
 	save();
-	emit accentColorChanged();
+	emit styleChanged();
 }
 
 void AppStorage::addTitle(const Title &title, const QPixmap &posterImage)

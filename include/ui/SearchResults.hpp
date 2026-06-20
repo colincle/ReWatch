@@ -20,6 +20,7 @@ class SearchResults : public QWidget
   public:
 	explicit SearchResults(AppStorage &storage, QWidget *parent = nullptr);
 	void search(QString query);
+	void refreshStyle();
 
   signals:
 	void searchError(const QString &message);

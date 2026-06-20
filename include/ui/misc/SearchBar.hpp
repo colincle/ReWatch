@@ -8,6 +8,7 @@ class SearchBar : public QLineEdit
 
   public:
 	explicit SearchBar(QWidget *parent = nullptr);
+	void refreshStyle();
 
   signals:
 	void escapePressed();

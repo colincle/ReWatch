@@ -16,7 +16,4 @@ class AppMenuBar : public QMenuBar
 
 	void onImportLibraryTriggered();
 	void onExportLibraryTriggered();
-
-  signals:
-	void themeChanged(const QString &theme);
 };

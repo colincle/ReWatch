@@ -170,6 +170,19 @@ QWidget *MainWindow::makeSeasonOverlay()
 	return overlay;
 }
 
+void MainWindow::onStyleChanged()
+{
+	Palette::setTheme(appStorage.getTheme());
+	Palette::setAccent(appStorage.getAccentColor());
+	topBar->refreshStyle();
+	addBar->refreshStyle();
+	searchResults->refreshStyle();
+	libraryView->refreshStyle();
+	titleDetailView->refreshStyle();
+	if(rankingView)
+		rankingView->refreshStyle();
+}
+
 void MainWindow::setupShortcuts()
 {
 	auto *quitShortcut = new QShortcut(QKeySequence::Close, this);
@@ -180,8 +193,7 @@ void MainWindow::setupMenuBar()
 {
 	appMenuBar = new AppMenuBar(appStorage, this);
 	setMenuBar(appMenuBar);
-	connect(appMenuBar, &AppMenuBar::themeChanged, this, &MainWindow::buildUi);
-	connect(&appStorage, &AppStorage::accentColorChanged, this, &MainWindow::buildUi);
+	connect(&appStorage, &AppStorage::styleChanged, this, &MainWindow::onStyleChanged);
 }
 
 void MainWindow::enterAddMode()
