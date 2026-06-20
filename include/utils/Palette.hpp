@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QColor>
 #include <QString>
 
 namespace Palette
@@ -12,9 +13,27 @@ inline QString textPrimary;
 inline QString textSecondary;
 inline QString accent;
 inline QString accentLight;
-inline QString highlight;
 inline QString success;
 inline QString error;
+
+inline constexpr const char *defaultAccent = "#7C5CFF";
+
+inline QString lightenAccent(const QString &color)
+{
+	QColor c(color);
+	return QColor::fromHslF(
+	           c.hslHueF(),
+	           c.hslSaturationF() * 0.9,
+	           qMin(1.0, c.lightnessF() + 0.08)
+	)
+	    .name();
+}
+
+inline void setAccent(const QString &color)
+{
+	accent = color;
+	accentLight = lightenAccent(color);
+}
 
 namespace detail
 {
@@ -26,9 +45,6 @@ inline void setDark()
 	border = "#30363D";
 	textPrimary = "#E6EDF3";
 	textSecondary = "#8B949E";
-	accent = "#7C5CFF";
-	accentLight = "#A78BFA";
-	highlight = "#F5C518";
 	success = "#22C55E";
 	error = "#EF4444";
 }
@@ -41,9 +57,6 @@ inline void setLight()
 	border = "#B6B1A9";
 	textPrimary = "#1F2328";
 	textSecondary = "#656D76";
-	accent = "#7C5CFF";
-	accentLight = "#A78BFA";
-	highlight = "#F5C518";
 	success = "#22C55E";
 	error = "#EF4444";
 }

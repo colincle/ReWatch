@@ -111,6 +111,9 @@ void AppStorage::load()
 	windowSize.height = root["windowHeight"].toInt(800);
 	omdbApiKey = root["omdbApiKey"].toString();
 	theme = root["theme"].toString("dark");
+	const QString legacyAccent = root["accentColor"].toString(Palette::defaultAccent);
+	darkAccentColor = root["darkAccentColor"].toString(legacyAccent);
+	lightAccentColor = root["lightAccentColor"].toString(legacyAccent);
 	libraryCardWidth = root["libraryCardWidth"].toInt(160);
 	titles.clear();
 	notifications.clear();
@@ -179,6 +182,8 @@ void AppStorage::save()
 	root["windowHeight"] = windowSize.height;
 	root["libraryCardWidth"] = libraryCardWidth;
 	root["theme"] = theme;
+	root["darkAccentColor"] = darkAccentColor;
+	root["lightAccentColor"] = lightAccentColor;
 	root["omdbApiKey"] = omdbApiKey;
 	root["notifications"] = notificationsArr;
 	root["streamingPlatforms"] = platformsArr;
@@ -257,6 +262,24 @@ void AppStorage::setTheme(QString newTheme)
 
 	theme = newTheme;
 	save();
+}
+
+void AppStorage::setDarkAccentColor(const QString &color)
+{
+	QMutexLocker locker(&mutex);
+
+	darkAccentColor = color;
+	save();
+	emit accentColorChanged();
+}
+
+void AppStorage::setLightAccentColor(const QString &color)
+{
+	QMutexLocker locker(&mutex);
+
+	lightAccentColor = color;
+	save();
+	emit accentColorChanged();
 }
 
 void AppStorage::addTitle(const Title &title, const QPixmap &posterImage)

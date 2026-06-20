@@ -4,6 +4,7 @@
 #include "Palette.hpp"
 #include "SvgUtils.hpp"
 
+#include <QColor>
 #include <QClipboard>
 #include <QFileDialog>
 #include <QGuiApplication>
@@ -30,8 +31,9 @@ void AddStreamingPlatformDialog::setupUi()
 	        "QLabel { color: %2; background: transparent; }"
 	        "QLineEdit { background-color: %3; color: %2; border: 1px solid %4; "
 	        "border-radius: 6px; padding: 6px 10px; }"
-	        "QPushButton { background-color: %5; color: %2; border: none; "
+	        "QPushButton { background-color: %3; color: %5; border: none; "
 	        "border-radius: 6px; padding: 6px 18px; }"
+	        "QPushButton:pressed { background-color: %7; color: %5; }"
 	        "QPushButton:disabled { background-color: %3; color: %6; }"
 	    )
 	        .arg(
@@ -40,7 +42,8 @@ void AddStreamingPlatformDialog::setupUi()
 	            Palette::surface,
 	            Palette::border,
 	            Palette::accent,
-	            Palette::textSecondary
+	            Palette::textSecondary,
+	            QColor(Palette::surface).darker(115).name()
 	        )
 	);
 
@@ -86,7 +89,7 @@ void AddStreamingPlatformDialog::setupUi()
 
 	auto *copyBtn = new QPushButton("Copy \"movietracker\"");
 	copyBtn->setAutoDefault(false);
-	copyBtn->setIcon(loadColoredSvg(AssetsPaths::copyIcon, Palette::textPrimary, 16));
+	copyBtn->setIcon(loadColoredSvg(AssetsPaths::copyIcon, Palette::accent, 16));
 	copyBtn->ensurePolished();
 	copyBtn->setFixedWidth(copyBtn->sizeHint().width());
 	connect(

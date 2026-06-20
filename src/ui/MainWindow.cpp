@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 void MainWindow::buildUi()
 {
 	Palette::setTheme(appStorage.getTheme());
+	Palette::setAccent(appStorage.getAccentColor());
 
 	delete centralWidget();
 	if(errorCard)
@@ -180,6 +181,7 @@ void MainWindow::setupMenuBar()
 	appMenuBar = new AppMenuBar(appStorage, this);
 	setMenuBar(appMenuBar);
 	connect(appMenuBar, &AppMenuBar::themeChanged, this, &MainWindow::buildUi);
+	connect(&appStorage, &AppStorage::accentColorChanged, this, &MainWindow::buildUi);
 }
 
 void MainWindow::enterAddMode()

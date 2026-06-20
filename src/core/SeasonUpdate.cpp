@@ -5,7 +5,6 @@
 #include <QEventLoop>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QMutexLocker>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -13,9 +12,9 @@
 SeasonUpdate::SeasonUpdate(AppStorage &appStorage, QObject *parent)
     : QObject(parent), appStorage(appStorage)
 {
-	QMutexLocker locker(&appStorage.getMutex());
+	auto lock = appStorage.lock();
 
-	for(const Title &t : appStorage.getTitlesMutable())
+	for(const Title &t : appStorage.getTitlesMutable(lock))
 		if(isEligible(t))
 			imdbIds.push_back(t.imdbId);
 
@@ -104,7 +103,7 @@ void applySeasonUpdate(
 
 void SeasonUpdate::updateSeries()
 {
-	QMutexLocker locker(&appStorage.getMutex());
+	auto lock = appStorage.lock();
 
 	const int                  count = static_cast<int>(imdbIds.size());
 	QNetworkAccessManager      manager;
@@ -163,13 +162,14 @@ void SeasonUpdate::updateSeries()
 			continue;
 		}
 
-		auto it = std::find_if(
-		    appStorage.getTitlesMutable().begin(),
-		    appStorage.getTitlesMutable().end(),
+		auto &titles = appStorage.getTitlesMutable(lock);
+		auto  it = std::find_if(
+		    titles.begin(),
+		    titles.end(),
 		    [&](const Title &t) { return t.imdbId == imdbIds[i]; }
 		);
 
-		if(it != appStorage.getTitlesMutable().end())
+		if(it != titles.end())
 			applySeasonUpdate(*it, result.data, notifications);
 	}
 

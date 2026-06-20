@@ -4,6 +4,7 @@
 #include "AssetsPaths.hpp"
 #include "Palette.hpp"
 
+#include <QColorDialog>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QMessageBox>
@@ -26,7 +27,7 @@ QString tabActive()
 	           "    border: none; border-radius: 6px; padding: 5px 16px;"
 	           "}"
 	)
-	    .arg(Palette::accent, Palette::textPrimary);
+	    .arg(Palette::accent, Palette::surface);
 }
 
 QString tabInactive()
@@ -36,9 +37,19 @@ QString tabInactive()
 	           "    background-color: %1; color: %2;"
 	           "    border: none; border-radius: 6px; padding: 5px 16px;"
 	           "}"
-	           "QPushButton:hover { color: %3; }"
 	)
-	    .arg(Palette::surface, Palette::textSecondary, Palette::textPrimary);
+	    .arg(Palette::surface, Palette::accent);
+}
+
+QString accentButtonStyle(const QString &color)
+{
+	const QString darker = QColor(Palette::surface).darker(115).name();
+	return QStringLiteral(
+	           "QPushButton { background-color: %1; color: %2; border: none;"
+	           "              border-radius: 6px; padding: 6px 18px; }"
+	           "QPushButton:pressed { background-color: %3; color: %2; }"
+	)
+	    .arg(Palette::surface, color, darker);
 }
 
 } // namespace
@@ -49,6 +60,12 @@ SettingsWindow::SettingsWindow(AppStorage &appStorage, QWidget *parent)
 	setWindowTitle("Settings");
 	setModal(true);
 	setupUi();
+	connect(
+	    &appStorage,
+	    &AppStorage::accentColorChanged,
+	    this,
+	    &SettingsWindow::refreshStyle
+	);
 }
 
 QString SettingsWindow::buildStyleSheet() const
@@ -57,11 +74,10 @@ QString SettingsWindow::buildStyleSheet() const
 	           "QDialog { background-color: %1; }"
 	           "QLabel { color: %2; background: transparent; }"
 	           "QLineEdit { background-color: %3; color: %2; border: 1px solid %4; "
-	           "border-radius: 6px; padding: 6px "
-	           "10px; }"
-	           "QPushButton { background-color: %5; color: %2; border: none; "
+	           "border-radius: 6px; padding: 6px 10px; }"
+	           "QPushButton { background-color: %3; color: %5; border: none; "
 	           "border-radius: 6px; padding: 6px 18px; }"
-	           "QPushButton:pressed { background-color: %7; }"
+	           "QPushButton:pressed { background-color: %7; color: %5; }"
 	           "QPushButton:disabled { background-color: %3; color: %6; }"
 	           "QFrame#separator { background-color: %4; border: none; }"
 	)
@@ -72,7 +88,7 @@ QString SettingsWindow::buildStyleSheet() const
 	        Palette::border,
 	        Palette::accent,
 	        Palette::textSecondary,
-	        Palette::accentLight
+	        QColor(Palette::surface).darker(115).name()
 	    );
 }
 
@@ -82,34 +98,61 @@ void SettingsWindow::setupUi()
 
 	auto *layout = new QVBoxLayout(this);
 	layout->setContentsMargins(24, 24, 24, 24);
-	layout->setSpacing(20);
+	layout->setSpacing(16);
 	layout->setSizeConstraint(QLayout::SetFixedSize);
 
-	layout->addWidget(makeThemeSection());
-	layout->addWidget(makeSeparator());
-	layout->addWidget(makeApiKeySection());
-	layout->addWidget(makeSeparator());
-	if(auto *s = makeCustomStreamingPlatformsSection())
+	auto *tabRow = new QWidget;
+	auto *tabLayout = new QHBoxLayout(tabRow);
+	tabLayout->setContentsMargins(0, 0, 0, 0);
+	tabLayout->setSpacing(4);
+
+	const char *labels[] = {"Appearance", "API Key", "Platforms", "Rankings"};
+	for(int i = 0; i < 4; i++)
 	{
-		layout->addWidget(s);
-		layout->addWidget(makeSeparator());
+		sectionTabBtns[i] = new QPushButton(labels[i]);
+		sectionTabBtns[i]->setAutoDefault(false);
+		tabLayout->addWidget(sectionTabBtns[i]);
+		connect(
+		    sectionTabBtns[i],
+		    &QPushButton::clicked,
+		    this,
+		    [this, i]() { switchSection(i); }
+		);
 	}
-	layout->addWidget(makeRankingSection());
-	layout->addStretch();
+	tabLayout->addStretch();
+
+	sectionStack = new QStackedWidget;
+	sectionStack->addWidget(makeAppearanceSection());
+	sectionStack->addWidget(makeApiKeySection());
+	sectionStack->addWidget(makeCustomStreamingPlatformsSection());
+	sectionStack->addWidget(makeRankingSection());
+
+	layout->addWidget(tabRow);
+	layout->addWidget(sectionStack);
+
+	switchSection(0);
 }
 
-QWidget *SettingsWindow::makeThemeSection()
+void SettingsWindow::switchSection(int index)
+{
+	for(int i = 0; i < 4; i++)
+	{
+		sectionTabBtns[i]->setStyleSheet(i == index ? tabActive() : tabInactive());
+		sectionStack->widget(i)->setSizePolicy(
+		    QSizePolicy::Preferred,
+		    i == index ? QSizePolicy::Preferred : QSizePolicy::Ignored
+		);
+	}
+	sectionStack->setCurrentIndex(index);
+	adjustSize();
+}
+
+QWidget *SettingsWindow::makeAppearanceSection()
 {
 	auto *container = new QWidget;
 	auto *layout = new QVBoxLayout(container);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(12);
-
-	auto *title = new QLabel("Appearance");
-	QFont titleFont;
-	titleFont.setPixelSize(15);
-	titleFont.setBold(true);
-	title->setFont(titleFont);
 
 	auto *tabRow = new QWidget;
 	auto *tabLayout = new QHBoxLayout(tabRow);
@@ -132,8 +175,18 @@ QWidget *SettingsWindow::makeThemeSection()
 	tabLayout->addWidget(darkTab);
 	tabLayout->addStretch();
 
-	layout->addWidget(title);
+	const bool isDark = appStorage.getTheme() == "dark";
+
+	darkAccentRow = makeAccentRow(true, darkColorSwatch, resetDarkAccentButton);
+	lightAccentRow = makeAccentRow(false, lightColorSwatch, resetLightAccentButton);
+
+	darkAccentRow->setVisible(isDark);
+	lightAccentRow->setVisible(!isDark);
+
+	layout->addWidget(makeSectionTitle("Appearance"));
 	layout->addWidget(tabRow);
+	layout->addWidget(darkAccentRow);
+	layout->addWidget(lightAccentRow);
 
 	return container;
 }
@@ -145,11 +198,7 @@ QWidget *SettingsWindow::makeApiKeySection()
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(8);
 
-	auto *title = new QLabel("OMDb API Key");
-	QFont titleFont;
-	titleFont.setPixelSize(15);
-	titleFont.setBold(true);
-	title->setFont(titleFont);
+	auto *title = makeSectionTitle("OMDb API Key");
 
 	apiKeyEdit = new QLineEdit;
 	apiKeyEdit->setPlaceholderText("Enter your OMDb API key…");
@@ -194,46 +243,12 @@ QWidget *SettingsWindow::makeCustomStreamingPlatformsSection()
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(12);
 
-	auto *title = new QLabel("Custom streaming platforms");
-	QFont titleFont;
-	titleFont.setPixelSize(15);
-	titleFont.setBold(true);
-	title->setFont(titleFont);
+	auto *title = makeSectionTitle("Custom streaming platforms");
 
 	platformsList = new QWidget;
 	new QVBoxLayout(platformsList);
 	platformsList->layout()->setContentsMargins(0, 0, 0, 0);
 	static_cast<QVBoxLayout *>(platformsList->layout())->setSpacing(6);
-
-	addPlatformButton =
-	    new IconButton(AssetsPaths::addIcon, 30, Palette::accent, Palette::surface, this);
-
-	connect(
-	    addPlatformButton,
-	    &QPushButton::clicked,
-	    this,
-	    [this]()
-	    {
-		    QSet<QString> names;
-		    for(const auto &p : appStorage.getStreamingPlatforms())
-			    names.insert(p.name);
-		    auto *dialog = new AddStreamingPlatformDialog(names, this);
-		    dialog->setAttribute(Qt::WA_DeleteOnClose);
-		    connect(
-		        dialog,
-		        &QDialog::accepted,
-		        this,
-		        [this, dialog]()
-		        {
-			        appStorage.addStreamingPlatform(
-			            dialog->platform(),
-			            dialog->imagePath()
-			        );
-		        }
-		    );
-		    dialog->open();
-	    }
-	);
 
 	connect(
 	    &appStorage,
@@ -244,7 +259,6 @@ QWidget *SettingsWindow::makeCustomStreamingPlatformsSection()
 
 	layout->addWidget(title);
 	layout->addWidget(platformsList);
-	layout->addWidget(addPlatformButton);
 
 	refreshPlatformsList();
 
@@ -308,7 +322,35 @@ void SettingsWindow::refreshPlatformsList()
 		layout->addWidget(row);
 	}
 
-	addPlatformButton->setVisible(platforms.size() < 10);
+	if(platforms.size() < 10)
+	{
+		auto *row = new QWidget;
+		auto *rowLayout = new QHBoxLayout(row);
+		rowLayout->setContentsMargins(0, 2, 0, 2);
+		rowLayout->setSpacing(10);
+		rowLayout->addStretch();
+
+		addPlatformButton = new IconButton(
+		    AssetsPaths::addIcon,
+		    30,
+		    Palette::accent,
+		    Palette::surface,
+		    row
+		);
+		connect(
+		    addPlatformButton,
+		    &QPushButton::clicked,
+		    this,
+		    &SettingsWindow::onAddPlatformClicked
+		);
+		rowLayout->addWidget(addPlatformButton);
+
+		layout->addWidget(row);
+	}
+	else
+	{
+		addPlatformButton = nullptr;
+	}
 }
 
 QWidget *SettingsWindow::makeRankingSection()
@@ -318,11 +360,7 @@ QWidget *SettingsWindow::makeRankingSection()
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(12);
 
-	auto *title = new QLabel("Rankings");
-	QFont titleFont;
-	titleFont.setPixelSize(15);
-	titleFont.setBold(true);
-	title->setFont(titleFont);
+	auto *title = makeSectionTitle("Rankings");
 
 	auto *buttonRow = new QWidget;
 	auto *buttonLayout = new QHBoxLayout(buttonRow);
@@ -344,30 +382,17 @@ QWidget *SettingsWindow::makeRankingSection()
 	moviesBtn->setStyleSheet(resetButtonStyle);
 	showsBtn->setStyleSheet(resetButtonStyle);
 
-	auto confirmReset = [this](const QString &label, const QString &type)
-	{
-		QMessageBox box(this);
-		box.setWindowTitle("Reset Rankings");
-		box.setText(
-		    "This will remove all " + label + " rankings. This cannot be undone."
-		);
-		box.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-		box.setDefaultButton(QMessageBox::Cancel);
-		if(box.exec() == QMessageBox::Yes)
-			appStorage.resetRankings(type);
-	};
-
 	connect(
 	    moviesBtn,
 	    &QPushButton::clicked,
 	    this,
-	    [this, confirmReset]() { confirmReset("movie", "movie"); }
+	    [this]() { confirmResetRankings("movie", "movie"); }
 	);
 	connect(
 	    showsBtn,
 	    &QPushButton::clicked,
 	    this,
-	    [this, confirmReset]() { confirmReset("TV show", "series"); }
+	    [this]() { confirmResetRankings("TV show", "series"); }
 	);
 
 	buttonLayout->addWidget(moviesBtn);
@@ -389,15 +414,115 @@ QFrame *SettingsWindow::makeSeparator()
 	return line;
 }
 
+QLabel *SettingsWindow::makeSectionTitle(const QString &text)
+{
+	auto *label = new QLabel(text);
+	QFont font;
+	font.setPixelSize(15);
+	font.setBold(true);
+	label->setFont(font);
+	return label;
+}
+
+QWidget *
+SettingsWindow::makeAccentRow(bool isDark, QPushButton *&swatch, QPushButton *&reset)
+{
+	const QString accent =
+	    isDark ? appStorage.getDarkAccentColor() : appStorage.getLightAccentColor();
+
+	swatch = new QPushButton("Change color");
+	swatch->setAutoDefault(false);
+	swatch->setStyleSheet(accentButtonStyle(accent));
+
+	reset = new QPushButton("Reset");
+	reset->setAutoDefault(false);
+	reset->setVisible(accent != Palette::defaultAccent);
+
+	connect(
+	    swatch,
+	    &QPushButton::clicked,
+	    this,
+	    [this, swatch, reset, isDark]()
+	    {
+		    const QString current = isDark ? appStorage.getDarkAccentColor()
+		                                   : appStorage.getLightAccentColor();
+		    const QColor  picked =
+		        QColorDialog::getColor(QColor(current), this, "Choose accent color");
+		    if(!picked.isValid())
+			    return;
+		    const QString hex = picked.name();
+		    isDark ? appStorage.setDarkAccentColor(hex)
+		           : appStorage.setLightAccentColor(hex);
+		    swatch->setStyleSheet(accentButtonStyle(hex));
+		    reset->setVisible(hex != Palette::defaultAccent);
+	    }
+	);
+
+	connect(
+	    reset,
+	    &QPushButton::clicked,
+	    this,
+	    [this, swatch, reset, isDark]()
+	    {
+		    const QString def = Palette::defaultAccent;
+		    isDark ? appStorage.setDarkAccentColor(def)
+		           : appStorage.setLightAccentColor(def);
+		    swatch->setStyleSheet(accentButtonStyle(def));
+		    reset->hide();
+	    }
+	);
+
+	auto *row = new QWidget;
+	auto *rowLayout = new QHBoxLayout(row);
+	rowLayout->setContentsMargins(0, 0, 0, 0);
+	rowLayout->setSpacing(8);
+	rowLayout->addWidget(swatch);
+	rowLayout->addWidget(reset);
+	rowLayout->addStretch();
+	return row;
+}
+
+void SettingsWindow::onAddPlatformClicked()
+{
+	QSet<QString> names;
+	for(const auto &p : appStorage.getStreamingPlatforms())
+		names.insert(p.name);
+	auto *dialog = new AddStreamingPlatformDialog(names, this);
+	dialog->setAttribute(Qt::WA_DeleteOnClose);
+	connect(
+	    dialog,
+	    &QDialog::accepted,
+	    this,
+	    [this, dialog]()
+	    { appStorage.addStreamingPlatform(dialog->platform(), dialog->imagePath()); }
+	);
+	dialog->open();
+}
+
+void SettingsWindow::confirmResetRankings(const QString &label, const QString &type)
+{
+	QMessageBox box(this);
+	box.setWindowTitle("Reset Rankings");
+	box.setText("This will remove all " + label + " rankings. This cannot be undone.");
+	box.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+	box.setDefaultButton(QMessageBox::Cancel);
+	if(box.exec() == QMessageBox::Yes)
+		appStorage.resetRankings(type);
+}
+
 void SettingsWindow::switchTheme(const QString &theme)
 {
 	if(appStorage.getTheme() == theme)
 		return;
 	appStorage.setTheme(theme);
 	emit themeChanged(theme);
+	if(darkAccentRow && lightAccentRow)
+	{
+		darkAccentRow->hide();
+		lightAccentRow->hide();
+		(theme == "dark" ? darkAccentRow : lightAccentRow)->show();
+	}
 	refreshStyle();
-	lightTab->setStyleSheet(theme == "light" ? tabActive() : tabInactive());
-	darkTab->setStyleSheet(theme == "dark" ? tabActive() : tabInactive());
 }
 
 void SettingsWindow::refreshStyle()
@@ -407,13 +532,39 @@ void SettingsWindow::refreshStyle()
 	if(platformsList)
 		refreshPlatformsList();
 
-	if(addPlatformButton)
-		addPlatformButton->setStyleSheet(
-		    QStringLiteral(
-		        "QPushButton { background-color: %1; border: none; border-radius: 6px; }"
-		    )
-		        .arg(Palette::surface)
-		);
+	if(sectionStack)
+	{
+		const int cur = sectionStack->currentIndex();
+		for(int i = 0; i < 4; i++)
+			sectionTabBtns[i]->setStyleSheet(i == cur ? tabActive() : tabInactive());
+	}
+
+	if(lightTab && darkTab)
+	{
+		const bool isLight = appStorage.getTheme() == "light";
+		lightTab->setStyleSheet(isLight ? tabActive() : tabInactive());
+		darkTab->setStyleSheet(isLight ? tabInactive() : tabActive());
+	}
+
+	auto refreshAccentRow =
+	    [](QPushButton *swatch, QPushButton *reset, const QString &accent)
+	{
+		if(swatch)
+			swatch->setStyleSheet(accentButtonStyle(accent));
+		if(reset)
+			reset->setVisible(accent != Palette::defaultAccent);
+	};
+
+	refreshAccentRow(
+	    darkColorSwatch,
+	    resetDarkAccentButton,
+	    appStorage.getDarkAccentColor()
+	);
+	refreshAccentRow(
+	    lightColorSwatch,
+	    resetLightAccentButton,
+	    appStorage.getLightAccentColor()
+	);
 }
 
 void SettingsWindow::onApplyClicked()

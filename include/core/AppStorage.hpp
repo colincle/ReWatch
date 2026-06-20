@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Palette.hpp"
 #include "Title.hpp"
 
 #include <vector>
@@ -8,6 +9,7 @@
 #include <QObject>
 #include <QPixmap>
 #include <QString>
+#include <QMutexLocker>
 
 struct WindowSize
 {
@@ -27,6 +29,16 @@ class AppStorage : public QObject
 	Q_OBJECT
 
   public:
+	class LockGuard
+	{
+		friend class AppStorage;
+		explicit LockGuard(QRecursiveMutex &m) : locker(&m) {}
+		QMutexLocker<QRecursiveMutex> locker;
+
+	  public:
+		LockGuard(LockGuard &&) = default;
+	};
+
 	AppStorage();
 
 	void setOmdbApiKey(QString key);
@@ -36,6 +48,8 @@ class AppStorage : public QObject
 	void setPoster(const QString &imdbId, const QPixmap &image);
 	void setLibraryCardWidth(int width);
 	void setTheme(QString theme);
+	void setDarkAccentColor(const QString &color);
+	void setLightAccentColor(const QString &color);
 	void setWindowSize(int width, int height);
 	void addStreamingPlatform(StreamingPlatform platform, const QString &sourceImagePath);
 	void removeStreamingPlatform(const QString &name);
@@ -52,11 +66,18 @@ class AppStorage : public QObject
 	void resetRankings(const QString &type);
 	void clearRank(const QString &imdbId);
 
-	int                         getLibraryCardWidth() const { return libraryCardWidth; }
-	QString                     getTheme() const { return theme; }
+	int     getLibraryCardWidth() const { return libraryCardWidth; }
+	QString getTheme() const { return theme; }
+	QString getDarkAccentColor() const { return darkAccentColor; }
+	QString getLightAccentColor() const { return lightAccentColor; }
+	QString getAccentColor() const
+	{
+		return theme == "light" ? lightAccentColor : darkAccentColor;
+	}
 	WindowSize                  getWindowSize() const { return windowSize; }
 	const std::vector<Title>   &getTitles() const { return titles; }
-	std::vector<Title>         &getTitlesMutable() { return titles; }
+	[[nodiscard]] LockGuard     lock() { return LockGuard(mutex); }
+	std::vector<Title>         &getTitlesMutable(LockGuard &) { return titles; }
 	const std::vector<QString> &getNotifications() const { return notifications; }
 	const std::vector<StreamingPlatform> &getStreamingPlatforms() const
 	{
@@ -64,12 +85,12 @@ class AppStorage : public QObject
 	}
 	QString getKey() const;
 
-	QRecursiveMutex &getMutex() { return mutex; }
-
   private:
 	QString                        appFilePath;
 	QString                        omdbApiKey;
 	QString                        theme;
+	QString                        darkAccentColor = Palette::defaultAccent;
+	QString                        lightAccentColor = Palette::defaultAccent;
 	QString                        postersPath;
 	QString                        platformImagesPath;
 	int                            libraryCardWidth;
@@ -90,4 +111,5 @@ class AppStorage : public QObject
 	void notificationsChanged();
 	void notificationsAdded();
 	void streamingPlatformsChanged();
+	void accentColorChanged();
 };
