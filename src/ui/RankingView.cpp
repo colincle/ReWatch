@@ -26,7 +26,7 @@ RankingView::RankingView(AppStorage &appStorage, QWidget *parent)
 			unrankedTvShows.push_back(t);
 	}
 
-	totalMovies  = static_cast<int>(unrankedMovies.size());
+	totalMovies = static_cast<int>(unrankedMovies.size());
 	totalTvShows = static_cast<int>(unrankedTvShows.size());
 
 	setupUi();
@@ -46,12 +46,17 @@ void RankingView::setupUi()
 	mainLayout->setContentsMargins(40, 24, 40, 40);
 	mainLayout->setSpacing(0);
 
-	auto *topRow    = new QWidget;
+	auto *topRow = new QWidget;
 	auto *topLayout = new QHBoxLayout(topRow);
 	topLayout->setContentsMargins(0, 0, 0, 0);
 
-	auto *exitBtn =
-	    new IconButton(AssetsPaths::crossIcon, 32, Palette::accent, Palette::surface, this);
+	auto *exitBtn = new IconButton(
+	    AssetsPaths::crossIcon,
+	    32,
+	    Palette::accent,
+	    Palette::surface,
+	    this
+	);
 	connect(exitBtn, &QPushButton::clicked, this, &RankingView::finished);
 
 	progressLabel = new QLabel;
@@ -73,13 +78,13 @@ void RankingView::setupUi()
 	    QStringLiteral("color: %1;").arg(Palette::textPrimary)
 	);
 
-	auto *cardsRow    = new QWidget;
+	auto *cardsRow = new QWidget;
 	auto *cardsLayout = new QHBoxLayout(cardsRow);
 	cardsLayout->setContentsMargins(0, 0, 0, 0);
 	cardsLayout->setSpacing(48);
 	cardsLayout->setAlignment(Qt::AlignCenter);
 
-	leftCard  = makeCard(leftPosterLabel, leftTitleLabel);
+	leftCard = makeCard(leftPosterLabel, leftTitleLabel);
 	rightCard = makeCard(rightPosterLabel, rightTitleLabel);
 
 	leftCard->installEventFilter(this);
@@ -111,20 +116,18 @@ QWidget *RankingView::makeCard(QLabel *&posterOut, QLabel *&titleOut)
 	card->setObjectName("rankCard");
 	card->setAttribute(Qt::WA_StyledBackground, true);
 	card->setAttribute(Qt::WA_Hover, true);
-	card->setStyleSheet(
-	    QStringLiteral(
-	        "#rankCard {"
-	        "    background: transparent;"
-	        "    border: 2px solid transparent;"
-	        "    border-radius: 12px;"
-	        "}"
-	        "#rankCard:hover {"
-	        "    border: 2px solid %1;"
-	        "    background-color: %2;"
-	        "}"
-	    )
-	        .arg(Palette::accent, Palette::surface)
-	);
+	card->setStyleSheet(QStringLiteral(
+	                        "#rankCard {"
+	                        "    background: transparent;"
+	                        "    border: 2px solid transparent;"
+	                        "    border-radius: 12px;"
+	                        "}"
+	                        "#rankCard:hover {"
+	                        "    border: 2px solid %1;"
+	                        "    background-color: %2;"
+	                        "}"
+	)
+	                        .arg(Palette::accent, Palette::surface));
 
 	auto *layout = new QVBoxLayout(card);
 	layout->setContentsMargins(12, 12, 12, 16);
@@ -199,7 +202,7 @@ void RankingView::updateProgress()
 {
 	const QString phase = processingTvShows ? "TV Shows" : "Movies";
 	const int     total = processingTvShows ? totalTvShows : totalMovies;
-	const int done = processingTvShows ? processedTvShows : processedMovies;
+	const int     done = processingTvShows ? processedTvShows : processedMovies;
 	progressLabel->setText(
 	    QStringLiteral("Ranking %1: %2 / %3").arg(phase).arg(done + 1).arg(total)
 	);
@@ -222,8 +225,8 @@ void RankingView::startNextTitle()
 	queue.erase(queue.begin());
 
 	currentRanked = rankedTitlesOfType(currentUnranked.type);
-	low           = 0;
-	high          = static_cast<int>(currentRanked.size());
+	low = 0;
+	high = static_cast<int>(currentRanked.size());
 
 	updateProgress();
 

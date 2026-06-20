@@ -32,25 +32,25 @@ class RankingView : public QWidget
 
 	Title              currentUnranked;
 	std::vector<Title> currentRanked;
-	int                low  = 0;
+	int                low = 0;
 	int                high = 0;
 
-	int totalMovies   = 0;
-	int totalTvShows  = 0;
-	int processedMovies  = 0;
+	int totalMovies = 0;
+	int totalTvShows = 0;
+	int processedMovies = 0;
 	int processedTvShows = 0;
 
-	QWidget *leftCard  = nullptr;
+	QWidget *leftCard = nullptr;
 	QWidget *rightCard = nullptr;
-	QLabel  *leftPosterLabel  = nullptr;
+	QLabel  *leftPosterLabel = nullptr;
 	QLabel  *rightPosterLabel = nullptr;
-	QLabel  *leftTitleLabel   = nullptr;
-	QLabel  *rightTitleLabel  = nullptr;
-	QLabel  *progressLabel    = nullptr;
+	QLabel  *leftTitleLabel = nullptr;
+	QLabel  *rightTitleLabel = nullptr;
+	QLabel  *progressLabel = nullptr;
 
-	void    setupUi();
+	void     setupUi();
 	QWidget *makeCard(QLabel *&posterOut, QLabel *&titleOut);
-	void    populateCard(QLabel *posterLabel, QLabel *titleLabel, const Title &title);
+	void     populateCard(QLabel *posterLabel, QLabel *titleLabel, const Title &title);
 
 	void startNextTitle();
 	void showComparison();

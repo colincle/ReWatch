@@ -47,10 +47,10 @@ inline void setLight()
 	success = "#22C55E";
 	error = "#EF4444";
 }
-}
+} // namespace detail
 
 inline void setTheme(const QString &theme)
 {
 	theme == "light" ? detail::setLight() : detail::setDark();
 }
-}
+} // namespace Palette

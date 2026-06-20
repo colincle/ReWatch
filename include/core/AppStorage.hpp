@@ -52,9 +52,9 @@ class AppStorage : public QObject
 	void resetRankings(const QString &type);
 	void clearRank(const QString &imdbId);
 
-	int        getLibraryCardWidth() const { return libraryCardWidth; }
-	QString    getTheme() const { return theme; }
-	WindowSize getWindowSize() const { return windowSize; }
+	int                         getLibraryCardWidth() const { return libraryCardWidth; }
+	QString                     getTheme() const { return theme; }
+	WindowSize                  getWindowSize() const { return windowSize; }
 	const std::vector<Title>   &getTitles() const { return titles; }
 	std::vector<Title>         &getTitlesMutable() { return titles; }
 	const std::vector<QString> &getNotifications() const { return notifications; }

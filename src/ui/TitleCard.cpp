@@ -143,12 +143,17 @@ void TitleCard::connectButtons()
 	    this,
 	    &TitleCard::onUploadPosterClicked
 	);
-	connect(unrankButton, &QPushButton::clicked, this, [this]()
-	{
-		appStorage.clearRank(title.imdbId);
-		title.rank = 0;
-		unrankButton->hide();
-	});
+	connect(
+	    unrankButton,
+	    &QPushButton::clicked,
+	    this,
+	    [this]()
+	    {
+		    appStorage.clearRank(title.imdbId);
+		    title.rank = 0;
+		    unrankButton->hide();
+	    }
+	);
 }
 
 void TitleCard::onViewedClicked()

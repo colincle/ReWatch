@@ -27,11 +27,16 @@ SearchResults::SearchResults(AppStorage &storage, QWidget *parent)
 
 	setupLayout();
 
-	connect(&appStorage, &AppStorage::titlesUpdated, this, [this]()
-	{
-		if(!lastResults.empty())
-			rebuildResults();
-	});
+	connect(
+	    &appStorage,
+	    &AppStorage::titlesUpdated,
+	    this,
+	    [this]()
+	    {
+		    if(!lastResults.empty())
+			    rebuildResults();
+	    }
+	);
 }
 
 void SearchResults::setupLayout()
@@ -209,7 +214,7 @@ QLabel *makePlotLabel(const ResultTitle &title)
 	return label;
 }
 
-}
+} // namespace
 
 QWidget *SearchResults::makeResultRow(const ResultTitle &title)
 {
@@ -365,11 +370,15 @@ void SearchResults::rebuildResults()
 
 	scrollArea->show();
 
-	QTimer::singleShot(0, this, [this]()
-	{
-		for(ElidedLabel *label : resultsContainer->findChildren<ElidedLabel *>())
-			label->refreshElision();
-	});
+	QTimer::singleShot(
+	    0,
+	    this,
+	    [this]()
+	    {
+		    for(ElidedLabel *label : resultsContainer->findChildren<ElidedLabel *>())
+			    label->refreshElision();
+	    }
+	);
 }
 
 void SearchResults::setFullPageState(const QString &imagePath)

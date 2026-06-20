@@ -41,7 +41,7 @@ QString tabInactive()
 	    .arg(Palette::surface, Palette::textSecondary, Palette::textPrimary);
 }
 
-}
+} // namespace
 
 SettingsWindow::SettingsWindow(AppStorage &appStorage, QWidget *parent)
     : QDialog(parent), appStorage(appStorage)
@@ -313,7 +313,7 @@ void SettingsWindow::refreshPlatformsList()
 QWidget *SettingsWindow::makeRankingSection()
 {
 	auto *container = new QWidget;
-	auto *layout    = new QVBoxLayout(container);
+	auto *layout = new QVBoxLayout(container);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(12);
 
@@ -323,22 +323,23 @@ QWidget *SettingsWindow::makeRankingSection()
 	titleFont.setBold(true);
 	title->setFont(titleFont);
 
-	auto *buttonRow    = new QWidget;
+	auto *buttonRow = new QWidget;
 	auto *buttonLayout = new QHBoxLayout(buttonRow);
 	buttonLayout->setContentsMargins(0, 0, 0, 0);
 	buttonLayout->setSpacing(8);
 
-	auto *moviesBtn  = new QPushButton("Reset Movies");
-	auto *showsBtn   = new QPushButton("Reset TV Shows");
+	auto *moviesBtn = new QPushButton("Reset Movies");
+	auto *showsBtn = new QPushButton("Reset TV Shows");
 	moviesBtn->setAutoDefault(false);
 	showsBtn->setAutoDefault(false);
 
-	const QString resetButtonStyle = QStringLiteral(
-	    "QPushButton { background-color: %1; color: white; border: none;"
-	    "              border-radius: 6px; padding: 6px 18px; }"
-	    "QPushButton:pressed { background-color: %2; }"
-	)
-	    .arg(Palette::error, "#B91C1C");
+	const QString resetButtonStyle =
+	    QStringLiteral(
+	        "QPushButton { background-color: %1; color: white; border: none;"
+	        "              border-radius: 6px; padding: 6px 18px; }"
+	        "QPushButton:pressed { background-color: %2; }"
+	    )
+	        .arg(Palette::error, "#B91C1C");
 	moviesBtn->setStyleSheet(resetButtonStyle);
 	showsBtn->setStyleSheet(resetButtonStyle);
 
@@ -347,8 +348,7 @@ QWidget *SettingsWindow::makeRankingSection()
 		QMessageBox box(this);
 		box.setWindowTitle("Reset Rankings");
 		box.setText(
-		    "This will remove all " + label +
-		    " rankings. This cannot be undone."
+		    "This will remove all " + label + " rankings. This cannot be undone."
 		);
 		box.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
 		box.setDefaultButton(QMessageBox::Cancel);
@@ -356,10 +356,18 @@ QWidget *SettingsWindow::makeRankingSection()
 			appStorage.resetRankings(type);
 	};
 
-	connect(moviesBtn, &QPushButton::clicked, this, [this, confirmReset]()
-	    { confirmReset("movie", "movie"); });
-	connect(showsBtn, &QPushButton::clicked, this, [this, confirmReset]()
-	    { confirmReset("TV show", "series"); });
+	connect(
+	    moviesBtn,
+	    &QPushButton::clicked,
+	    this,
+	    [this, confirmReset]() { confirmReset("movie", "movie"); }
+	);
+	connect(
+	    showsBtn,
+	    &QPushButton::clicked,
+	    this,
+	    [this, confirmReset]() { confirmReset("TV show", "series"); }
+	);
 
 	buttonLayout->addWidget(moviesBtn);
 	buttonLayout->addWidget(showsBtn);

@@ -52,5 +52,5 @@ class SearchResults : public QWidget
 	OmdbSearch  *currentSearch = nullptr;
 
 	std::vector<ResultTitle> lastResults;
-	void rebuildResults();
+	void                     rebuildResults();
 };

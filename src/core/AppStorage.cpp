@@ -379,8 +379,8 @@ void AppStorage::clearRank(const QString &imdbId)
 	if(it == titles.end() || it->rank == 0)
 		return;
 
-	const int    removedRank = it->rank;
-	const QString type       = it->type;
+	const int     removedRank = it->rank;
+	const QString type = it->type;
 
 	it->rank = 0;
 

@@ -27,12 +27,13 @@ inline constexpr const char *zoomOutIcon = ASSETS_ROOT_ "/icons/zoomOut.svg";
 inline constexpr const char *copyIcon = ASSETS_ROOT_ "/icons/copy.svg";
 
 // Images
-inline constexpr const char *posterPlaceholder = ASSETS_ROOT_ "/images/placeholderPoster.png";
+inline constexpr const char *posterPlaceholder =
+    ASSETS_ROOT_ "/images/placeholderPoster.png";
 inline constexpr const char *noMoviesFound = ASSETS_ROOT_ "/images/noMoviesFound.png";
 
 // Sounds
 inline constexpr const char *notificationSound = ASSETS_ROOT_ "/sounds/notification.wav";
 
-}
+} // namespace AssetsPaths
 
 #undef ASSETS_ROOT_
