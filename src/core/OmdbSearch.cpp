@@ -1,3 +1,5 @@
+// Two-phase search: first fetches details (plot, poster URL) for each result, then
+// downloads poster images. Poster failures fall back to the placeholder silently.
 #include "OmdbSearch.hpp"
 #include "AssetsPaths.hpp"
 #include "Title.hpp"

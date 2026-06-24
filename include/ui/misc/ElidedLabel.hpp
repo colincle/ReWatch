@@ -1,3 +1,4 @@
+// QLabel subclass that truncates text with an ellipsis after a configurable line count.
 #pragma once
 
 #include <QLabel>

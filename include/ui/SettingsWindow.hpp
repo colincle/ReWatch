@@ -1,3 +1,4 @@
+// Modal settings dialog with four tabs: Appearance, API Key, Platforms, Rankings.
 #pragma once
 
 #include "AppStorage.hpp"

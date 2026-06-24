@@ -1,3 +1,4 @@
+// Canonical paths for the app's data directory and the files/dirs within it.
 #pragma once
 
 #include <QStandardPaths>

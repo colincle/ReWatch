@@ -1,3 +1,4 @@
+// Dismissible error banner shown below the top bar for API and network errors.
 #pragma once
 
 #include "IconButton.hpp"

@@ -1,3 +1,5 @@
+// Renders HelpItems as searchable cards. Search filters by simple case-insensitive
+// substring match across the concatenated name + description.
 #include "HelpDialog.hpp"
 #include "HelpItems.hpp"
 #include "Palette.hpp"

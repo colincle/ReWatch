@@ -1,3 +1,5 @@
+// Base class for all dialogs. Applies a consistent stylesheet on construction;
+// subclasses call applyStyleSheet() again after theme changes.
 #pragma once
 
 #include "Palette.hpp"

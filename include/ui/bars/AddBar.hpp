@@ -1,3 +1,4 @@
+// The top bar shown in search/add mode — a back button and a search input field.
 #pragma once
 
 #include "IconButton.hpp"

@@ -1,3 +1,5 @@
+// Base for buttons that change appearance on hover. Subclasses implement applyNormal/
+// applyHover; buildStyleSheet generates the shared stylesheet string both variants use.
 #pragma once
 
 #include <QPushButton>

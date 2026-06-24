@@ -1,3 +1,5 @@
+// Poster is drawn manually in paintEvent with a rounded clip path; Qt stylesheet
+// border-radius doesn't clip content, only the widget border.
 #include "TitleCard.hpp"
 #include "AssetsPaths.hpp"
 #include "Palette.hpp"

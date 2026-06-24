@@ -1,3 +1,5 @@
+// Guards against malicious zip imports — validates file type and checks for path-traversal
+// entries before extraction.
 #pragma once
 
 #include <QString>

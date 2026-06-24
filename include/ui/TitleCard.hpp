@@ -1,3 +1,5 @@
+// Single card in the library grid: rounded poster, title label, hover-revealed action
+// buttons (mark watched, delete, upload poster, unrank).
 #pragma once
 
 #include "AppStorage.hpp"

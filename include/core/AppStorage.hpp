@@ -1,3 +1,6 @@
+// Persistent store for all app data. All writes go through this class and are saved to
+// disk immediately. getTitles/getTitlesMutable require a held LockGuard to prevent data
+// races with the background season-update thread.
 #pragma once
 
 #include "Palette.hpp"

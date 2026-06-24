@@ -1,3 +1,5 @@
+// fts_fuzzy_match scores each title field; Levenshtein is the fallback for typos that
+// fuzzy misses. sortKey strips leading articles so "The Wire" sorts under W.
 #include "TitleSearch.hpp"
 #include "Levenshtein.hpp"
 

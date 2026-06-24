@@ -1,3 +1,5 @@
+// Binary-search ranking: low/high converge on the insertion point with each pick.
+// rankedTitlesOfType reads from storage each call so it reflects any concurrent updates.
 #include "RankingView.hpp"
 #include "AssetsPaths.hpp"
 #include "ElidedLabel.hpp"

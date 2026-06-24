@@ -1,3 +1,5 @@
+// showEvent checks underMouse() deferred via singleShot(0) because the widget geometry
+// isn't fully committed yet at the moment showEvent fires.
 #include "HoverButton.hpp"
 
 #include <QString>

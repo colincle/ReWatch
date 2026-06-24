@@ -1,3 +1,5 @@
+// When a new search arrives, the previous OmdbSearch is disconnected and deleted
+// (not just abandoned) so stale results never land after a faster subsequent query.
 #include "SearchResults.hpp"
 #include "AssetsPaths.hpp"
 #include "Palette.hpp"

@@ -1,3 +1,4 @@
+// All help dialog content in one place. Add or edit items here; HelpDialog renders them.
 #pragma once
 
 #include <QString>

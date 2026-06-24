@@ -1,3 +1,4 @@
+// writeJsonFile uses QSaveFile so a crash mid-write never leaves a partial/corrupt file.
 #include "JsonFileIO.hpp"
 
 #include <QApplication>

@@ -1,3 +1,4 @@
+// User-facing error strings shown by ErrorCard. Centralised so wording stays consistent.
 #pragma once
 
 #include <QString>

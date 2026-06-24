@@ -1,3 +1,5 @@
+// CompositionMode_SourceIn tints: renders the SVG shape, then flood-fills it with the
+// target color while preserving per-pixel alpha from the original render.
 #include "SvgUtils.hpp"
 
 #include <QFile>

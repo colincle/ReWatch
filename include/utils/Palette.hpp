@@ -1,3 +1,5 @@
+// Global color variables for the current theme. Call setTheme() on launch and after
+// theme changes; all widgets read from these globals when building their stylesheets.
 #pragma once
 
 #include <QColor>

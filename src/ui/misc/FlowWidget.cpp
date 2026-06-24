@@ -1,3 +1,5 @@
+// reflow() deletes and recreates the layout on each call; there's no incremental update
+// because Qt layouts don't support row-wrapping natively.
 #include "FlowWidget.hpp"
 
 #include <QHBoxLayout>

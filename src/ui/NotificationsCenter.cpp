@@ -1,3 +1,5 @@
+// knownNotificationIds deduplicates rows so re-opening the panel or calling
+// onNotificationsAdded twice never shows the same title twice.
 #include "NotificationsCenter.hpp"
 #include "AssetsPaths.hpp"
 #include "Palette.hpp"

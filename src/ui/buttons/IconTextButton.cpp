@@ -1,3 +1,5 @@
+// Text is cleared after the collapse animation finishes so it doesn't briefly
+// appear during the next expand. setText({}) while animating would cause layout jitter.
 #include "IconTextButton.hpp"
 #include "SvgUtils.hpp"
 

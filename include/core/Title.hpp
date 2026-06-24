@@ -1,3 +1,4 @@
+// Central data type representing a movie or TV series in the user's library.
 #pragma once
 
 #include <QDate>

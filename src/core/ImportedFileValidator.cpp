@@ -1,3 +1,5 @@
+// Validates a backup zip before import: checks for path-traversal entries, then extracts
+// and schema-validates the JSON data file without fully unpacking the archive.
 #include "ImportedFileValidator.hpp"
 #include "AppPaths.hpp"
 

@@ -1,3 +1,5 @@
+// Text-only toggle button with normal/hover/active states, used for library tab and
+// filter controls.
 #pragma once
 
 #include <QPushButton>

@@ -1,3 +1,4 @@
+// Animated loading indicator that slides three blocks in a 2x2 grid (sliding puzzle).
 #pragma once
 
 #include <QString>

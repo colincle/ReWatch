@@ -1,3 +1,5 @@
+// switchSection() hides non-active sections via QSizePolicy::Ignored + adjustSize()
+// rather than show/hide to keep the dialog from jumping between fixed sizes.
 #include "SettingsWindow.hpp"
 #include "AddStreamingPlatformDialog.hpp"
 #include "IconButton.hpp"

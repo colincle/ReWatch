@@ -1,3 +1,5 @@
+// Displays OMDb search results in a two-column grid. Manages OmdbSearch lifecycle —
+// cancels the previous search when a new query arrives.
 #pragma once
 
 #include "AppStorage.hpp"

@@ -1,3 +1,4 @@
+// Button for a streaming platform entry on the title detail page, with logo and name.
 #pragma once
 
 #include "AppStorage.hpp"

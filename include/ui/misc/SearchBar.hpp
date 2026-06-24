@@ -1,3 +1,4 @@
+// Styled QLineEdit with an escapePressed signal for dismissing the search mode.
 #pragma once
 
 #include <QLineEdit>

@@ -1,3 +1,5 @@
+// Container that arranges child widgets in a wrapping horizontal flow, used for the
+// streaming platform buttons on the title detail page.
 #pragma once
 
 #include <QList>

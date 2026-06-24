@@ -1,3 +1,4 @@
+// ApplicationSpecificRole moves "Settings" to the macOS application menu automatically.
 #include "AppMenuBar.hpp"
 #include "HelpDialog.hpp"
 #include "ImportedFileValidator.hpp"

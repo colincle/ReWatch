@@ -1,3 +1,5 @@
+// OMDb API client. Handles both text searches (search/searchFinished) and single-title
+// fetches by IMDb ID (fetchById/titleFetched). Two-phase: fetches details then posters.
 #pragma once
 
 #include "AppStorage.hpp"

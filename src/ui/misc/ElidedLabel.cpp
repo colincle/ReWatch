@@ -1,3 +1,5 @@
+// maxLines == 0 means fill available height; QTextLayout is used for multi-line wrapping
+// because QFontMetrics::elidedText only handles single-line elision.
 #include "ElidedLabel.hpp"
 
 #include <QFontMetrics>

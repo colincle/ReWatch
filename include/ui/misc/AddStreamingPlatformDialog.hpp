@@ -1,3 +1,4 @@
+// Modal dialog for adding a custom streaming platform (name, search URL, optional logo).
 #pragma once
 
 #include "AppStorage.hpp"

@@ -1,3 +1,5 @@
+// Owns the season-update lifecycle: runs SeasonUpdate on a background thread,
+// enforces a minimum display duration, and retries on transient network failures.
 #pragma once
 
 #include "AppStorage.hpp"

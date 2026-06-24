@@ -1,3 +1,4 @@
+// Icon button that animates to reveal a text label on hover.
 #pragma once
 
 #include "HoverButton.hpp"

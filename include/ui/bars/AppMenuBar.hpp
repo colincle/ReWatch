@@ -1,3 +1,4 @@
+// Native macOS menu bar with Library > Import/Export actions.
 #pragma once
 
 #include "AppStorage.hpp"

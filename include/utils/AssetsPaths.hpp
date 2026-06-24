@@ -1,3 +1,5 @@
+// Compile-time asset paths. SHIPPED switches the root to the macOS bundle Resources
+// directory; in dev builds assets live next to the binary.
 #pragma once
 
 #ifdef SHIPPED
@@ -9,7 +11,6 @@
 namespace AssetsPaths
 {
 
-// Icons
 inline constexpr const char *addIcon = ASSETS_ROOT_ "/icons/add.svg";
 inline constexpr const char *addedIcon = ASSETS_ROOT_ "/icons/added.svg";
 inline constexpr const char *searchIcon = ASSETS_ROOT_ "/icons/search.svg";
@@ -26,12 +27,10 @@ inline constexpr const char *zoomInIcon = ASSETS_ROOT_ "/icons/zoomIn.svg";
 inline constexpr const char *zoomOutIcon = ASSETS_ROOT_ "/icons/zoomOut.svg";
 inline constexpr const char *copyIcon = ASSETS_ROOT_ "/icons/copy.svg";
 
-// Images
 inline constexpr const char *posterPlaceholder =
     ASSETS_ROOT_ "/images/placeholderPoster.png";
 inline constexpr const char *noMoviesFound = ASSETS_ROOT_ "/images/noMoviesFound.png";
 
-// Sounds
 inline constexpr const char *notificationSound = ASSETS_ROOT_ "/sounds/notification.wav";
 
 } // namespace AssetsPaths

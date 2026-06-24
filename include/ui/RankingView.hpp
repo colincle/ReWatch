@@ -1,3 +1,5 @@
+// Binary-search ranking UI. Presents pairs of titles for the user to compare; inserts
+// each new title into its correct position with O(log n) comparisons.
 #pragma once
 
 #include "AppStorage.hpp"

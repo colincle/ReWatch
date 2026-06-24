@@ -1,3 +1,5 @@
+// Levenshtein distance and fuzzy-match helpers used as a fallback in TitleSearch when
+// fts_fuzzy_match scores too low.
 #pragma once
 
 #include <QString>

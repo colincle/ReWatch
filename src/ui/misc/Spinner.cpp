@@ -1,3 +1,5 @@
+// Sliding-puzzle animation: three blocks rotate clockwise around a 2x2 grid one step
+// at a time. prepareNextMove() always picks the block adjacent to the empty cell.
 #include "Spinner.hpp"
 
 #include <QPainter>

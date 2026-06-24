@@ -1,3 +1,6 @@
+// Drives the season-update lifecycle. Runs SeasonUpdate on a QtConcurrent thread,
+// holds the overlay visible for at least MIN_DISPLAY_MS, and retries network failures
+// every SEASON_RETRY_INTERVAL_MS until connectivity is restored.
 #include "SeasonUpdateController.hpp"
 #include "ErrorMessages.hpp"
 #include "SeasonUpdate.hpp"

@@ -1,3 +1,5 @@
+// Scrollable grid of TitleCards. Rebuilds on every filter/sort/search/resize change;
+// debounced via a timer on resize to avoid thrashing.
 #pragma once
 
 #include "AppStorage.hpp"

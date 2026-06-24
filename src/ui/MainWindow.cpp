@@ -1,3 +1,6 @@
+// Orchestrates all view transitions and owns the season-update overlay.
+// buildUi() is called on construction and again on every theme change to rebuild
+// the full widget tree with fresh palette values.
 #include "MainWindow.hpp"
 #include "AppMenuBar.hpp"
 #include "TitleDetailView.hpp"

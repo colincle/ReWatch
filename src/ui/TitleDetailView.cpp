@@ -1,3 +1,6 @@
+// populateInfo() tears down and rebuilds the entire info layout each time to avoid
+// stale widget state. watchedValueLabel and lastWatchedRow are nulled before rebuild so
+// updateWatchState() never touches dangling pointers.
 #include "TitleDetailView.hpp"
 #include "AssetsPaths.hpp"
 #include "FlowWidget.hpp"

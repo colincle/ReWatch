@@ -1,3 +1,5 @@
+// Root window. Owns AppStorage and all top-level views; routes mode transitions
+// (normal / add / detail / ranking) and wires season update to the loading overlay.
 #pragma once
 
 #include "AppStorage.hpp"

@@ -1,3 +1,5 @@
+// Dropdown notification panel anchored to the bell button. Adds rows for new-season
+// alerts, plays a sound, and emits titleNavigationRequested on row click.
 #pragma once
 
 #include "AppStorage.hpp"

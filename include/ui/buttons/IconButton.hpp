@@ -1,3 +1,4 @@
+// Square icon-only button that swaps between two tinted SVG icons on hover.
 #pragma once
 
 #include "HoverButton.hpp"

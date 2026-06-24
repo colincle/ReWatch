@@ -1,3 +1,5 @@
+// Constructs the priority-ordered, budget-capped update queue and runs all OMDb fetches
+// synchronously in updateSeries(), which is designed to run on a background thread.
 #include "SeasonUpdate.hpp"
 #include "OmdbSearch.hpp"
 
@@ -15,9 +17,7 @@ SeasonUpdate::SeasonUpdate(AppStorage &appStorage, QObject *parent)
 {
 	auto lock = appStorage.lock();
 
-	// Collect all eligible IDs and build a priority-ordered list.
-	// IDs that were skipped last run (updatePriority) go first so they
-	// eventually get a turn even when the library exceeds the request limit.
+	// Priority IDs (skipped last run) go first so they eventually get a turn.
 	const auto &priority = appStorage.getUpdatePriority(lock);
 	const QDate today = QDate::currentDate();
 	const int   usedToday =
@@ -42,7 +42,6 @@ SeasonUpdate::SeasonUpdate(AppStorage &appStorage, QObject *parent)
 	const int take = std::min(static_cast<int>(ordered.size()), maxRequests);
 	imdbIds = ordered.mid(0, take);
 
-	// Record requests consumed today and persist skipped IDs for next run.
 	appStorage.addUpdateChecks(take);
 	std::vector<QString> overflow(ordered.begin() + take, ordered.end());
 	appStorage.setUpdatePriority(std::move(overflow));
@@ -53,8 +52,8 @@ SeasonUpdate::SeasonUpdate(AppStorage &appStorage, QObject *parent)
 
 static bool isFinished(const Title &t)
 {
-	// OMDb returns "YYYY–" for ongoing and "YYYY–YYYY" for ended series.
-	// A series is finished when there are digits after the last dash/en-dash.
+	// OMDb uses "YYYY–" for ongoing, "YYYY–YYYY" for ended. Finished = digits after the
+	// last separator. Both plain hyphen and en-dash (0x2013) appear in the wild.
 	for(QChar sep : {QChar('-'), QChar(0x2013)})
 	{
 		const int pos = t.year.lastIndexOf(sep);
@@ -142,8 +141,7 @@ void applySeasonUpdate(
 
 void SeasonUpdate::updateSeries()
 {
-	// Network phase — no lock needed, imdbIds were captured in the constructor
-	// and getKey() acquires the mutex internally.
+	// Network phase — no lock held; imdbIds captured at construction, getKey() locks internally.
 	const int                  count = static_cast<int>(imdbIds.size());
 	QNetworkAccessManager      manager;
 	QVector<SeasonFetchResult> results(count);
@@ -174,9 +172,8 @@ void SeasonUpdate::updateSeries()
 	if(pending > 0)
 		loop.exec();
 
-	// Mutation phase — acquire lock only here, for the minimum duration.
-	// Process all results: apply successful ones, track errors without bailing
-	// early so that shows with valid responses get their lastChecked updated.
+	// Lock only for the mutation phase. Apply all successful results even when others
+	// failed — partial progress is better than rolling back the whole batch.
 	std::vector<QString> notifications;
 	bool                 hasAuthError = false;
 	bool                 hasNetworkError = false;

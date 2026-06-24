@@ -1,3 +1,4 @@
+// App-wide top bar with tab switcher, sort, rank, add, and notifications controls.
 #pragma once
 
 #include "AppStorage.hpp"

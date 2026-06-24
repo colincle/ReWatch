@@ -1,3 +1,5 @@
+// Full detail page for a single title: poster, metadata, plot, streaming links, and
+// actions (watch toggle, delete, upload poster, unrank).
 #pragma once
 
 #include "AppStorage.hpp"

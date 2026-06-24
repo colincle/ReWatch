@@ -1,3 +1,5 @@
+// unhover() is called explicitly before showing sort/rank menus so the button doesn't
+// stay in hover state while the menu is open.
 #include "TopBar.hpp"
 #include "AssetsPaths.hpp"
 #include "Palette.hpp"

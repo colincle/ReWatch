@@ -1,3 +1,4 @@
+// Searchable help dialog that renders all items from HelpItems.hpp.
 #pragma once
 
 #include <QDialog>

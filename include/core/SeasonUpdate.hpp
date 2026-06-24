@@ -1,3 +1,5 @@
+// Builds the per-launch season-check queue (priority-ordered, daily-budget-capped) and
+// runs all OMDb fetches synchronously on whatever thread calls updateSeries().
 #pragma once
 
 #include "AppStorage.hpp"
