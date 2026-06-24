@@ -14,7 +14,7 @@ class TestImportedFileValidator : public QObject
 	Q_OBJECT
 
   private slots:
-	void initTestCase() { QCoreApplication::setApplicationName("MovieTrackerTests"); }
+	void initTestCase() { QCoreApplication::setApplicationName("ReWatchTests"); }
 
 	// validate()
 	void validateNonExistentFileIsInvalid()

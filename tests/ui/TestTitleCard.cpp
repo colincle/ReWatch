@@ -89,7 +89,7 @@ class TestTitleCard : public QObject
 
 	void initTestCase()
 	{
-		QCoreApplication::setApplicationName("MovieTrackerTests");
+		QCoreApplication::setApplicationName("ReWatchTests");
 		cleanStorage();
 	}
 

@@ -28,7 +28,8 @@ enum class SearchErrorType
 	None,
 	Network,
 	AuthInvalid,
-	NotFound
+	NotFound,
+	RateLimited
 };
 
 struct Results
@@ -56,11 +57,13 @@ class OmdbSearch : public QObject
 	static QUrl
 	makeUrl(const QString &apiKey, const QString &param, const QString &value);
 	static bool isAuthError(const QString &message);
+	static bool isRateLimitError(const QString &message);
 
   signals:
 	void searchFinished();
 	void titleFetched();
 	void titleFetchFailed();
+	void rateLimitReached();
 
   private:
 	AppStorage &appStorage;

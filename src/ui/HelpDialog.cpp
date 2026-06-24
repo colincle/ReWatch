@@ -10,7 +10,7 @@
 
 HelpDialog::HelpDialog(QWidget *parent) : QDialog(parent)
 {
-	setWindowTitle("How to use MovieTracker");
+	setWindowTitle("How to use ReWatch");
 	resize(520, 580);
 	setMinimumSize(380, 320);
 	setStyleSheet(QStringLiteral("background-color: %1;").arg(Palette::bgPrimary));

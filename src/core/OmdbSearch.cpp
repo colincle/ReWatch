@@ -30,6 +30,11 @@ bool OmdbSearch::isAuthError(const QString &message)
 	       message.contains("authentication", Qt::CaseInsensitive);
 }
 
+bool OmdbSearch::isRateLimitError(const QString &message)
+{
+	return message.contains("request limit", Qt::CaseInsensitive);
+}
+
 OmdbSearch::OmdbSearch(
     AppStorage &appStorage, QString query, QString key, QObject *parent
 )
@@ -91,6 +96,8 @@ void OmdbSearch::onFetchByIdFinished(
 
 	if(root["Response"].toString() == "False")
 	{
+		if(isRateLimitError(root["Error"].toString()))
+			emit rateLimitReached();
 		emit titleFetchFailed();
 		return;
 	}
@@ -143,8 +150,17 @@ void OmdbSearch::onDetailsFinished(QNetworkReply *reply, int i)
 	if(reply->error() == QNetworkReply::NoError)
 	{
 		QJsonObject root = QJsonDocument::fromJson(reply->readAll()).object();
-		searchResults.titles[i].plot = root["Plot"].toString();
-		posterUrl = root["Poster"].toString();
+
+		if(root["Response"].toString() == "False")
+		{
+			if(isRateLimitError(root["Error"].toString()))
+				emit rateLimitReached();
+		}
+		else
+		{
+			searchResults.titles[i].plot = root["Plot"].toString();
+			posterUrl = root["Poster"].toString();
+		}
 	}
 
 	reply->deleteLater();
@@ -216,8 +232,12 @@ static void classifyReplyError(QNetworkReply *reply, Results &out)
 static void classifyResponseError(const QJsonObject &root, Results &out)
 {
 	out.error = root["Error"].toString();
-	out.errorType = OmdbSearch::isAuthError(out.error) ? SearchErrorType::AuthInvalid
-	                                                   : SearchErrorType::NotFound;
+	if(OmdbSearch::isAuthError(out.error))
+		out.errorType = SearchErrorType::AuthInvalid;
+	else if(OmdbSearch::isRateLimitError(out.error))
+		out.errorType = SearchErrorType::RateLimited;
+	else
+		out.errorType = SearchErrorType::NotFound;
 }
 
 void OmdbSearch::onReplyFinished(QNetworkReply *reply)
@@ -226,7 +246,19 @@ void OmdbSearch::onReplyFinished(QNetworkReply *reply)
 	searchResults.errorType = SearchErrorType::None;
 	searchResults.titles.clear();
 
-	if(reply->error() != QNetworkReply::NoError)
+	const QByteArray    raw  = reply->readAll();
+	const bool          err  = reply->error() != QNetworkReply::NoError;
+	const QJsonObject   root = QJsonDocument::fromJson(raw).object();
+
+	if(root["Response"].toString() == "False")
+	{
+		classifyResponseError(root, searchResults);
+		reply->deleteLater();
+		emit searchFinished();
+		return;
+	}
+
+	if(err)
 	{
 		classifyReplyError(reply, searchResults);
 		reply->deleteLater();
@@ -234,15 +266,7 @@ void OmdbSearch::onReplyFinished(QNetworkReply *reply)
 		return;
 	}
 
-	QJsonObject root = QJsonDocument::fromJson(reply->readAll()).object();
 	reply->deleteLater();
-
-	if(root["Response"].toString() == "False")
-	{
-		classifyResponseError(root, searchResults);
-		emit searchFinished();
-		return;
-	}
 
 	for(const QJsonValue &value : root["Search"].toArray())
 	{

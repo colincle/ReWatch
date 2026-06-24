@@ -130,16 +130,22 @@ void SearchResults::onSearchFinished(OmdbSearch *omdbSearch)
 	const Results &r = omdbSearch->getResults();
 
 	if(r.errorType == SearchErrorType::AuthInvalid ||
-	   r.errorType == SearchErrorType::Network)
+	   r.errorType == SearchErrorType::Network ||
+	   r.errorType == SearchErrorType::RateLimited)
 	{
 		clearResultsLayout();
 		scrollArea->hide();
 		clearExtraLayoutWidgets();
 
-		emit searchError(
-		    r.errorType == SearchErrorType::AuthInvalid ? API_KEY_ERROR_MESSAGE
-		                                                : SEARCH_NETWORK_ERROR_MESSAGE
-		);
+		QString message;
+		if(r.errorType == SearchErrorType::AuthInvalid)
+			message = API_KEY_ERROR_MESSAGE;
+		else if(r.errorType == SearchErrorType::RateLimited)
+			message = RATE_LIMIT_ERROR_MESSAGE;
+		else
+			message = SEARCH_NETWORK_ERROR_MESSAGE;
+
+		emit searchError(message);
 
 		omdbSearch->deleteLater();
 		return;
@@ -353,6 +359,9 @@ void SearchResults::onAddClicked(
 		    fetch->deleteLater();
 	    }
 	);
+
+	connect(fetch, &OmdbSearch::rateLimitReached, this,
+	        [this]() { emit searchError(RATE_LIMIT_ERROR_MESSAGE); });
 
 	fetch->fetchById(title.imdbId, title.posterImage, title.posterNotFound);
 }

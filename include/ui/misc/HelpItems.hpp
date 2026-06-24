@@ -79,10 +79,10 @@ inline QVector<HelpItem> helpItems()
 	        "Open Settings and go to the Platforms tab. "
 	        "Click Add, then enter the platform name, a search URL, and optionally "
 	        "upload a logo image. "
-	        "In the URL, write movietracker as a placeholder where the title should go - "
+	        "In the URL, write rewatch as a placeholder where the title should go - "
 	        "the app replaces it with the actual title name when you click the platform "
 	        "button. "
-	        "Example: https://www.example.com/search?q=movietracker",
+	        "Example: https://www.example.com/search?q=rewatch",
 	    },
 	    {
 	        "Exporting and backing up your library",
@@ -121,7 +121,7 @@ inline QVector<HelpItem> helpItems()
 	    },
 	    {
 	        "Setting up your OMDb API key",
-	        "MovieTracker uses the OMDb API to search for movies and TV shows. "
+	        "ReWatch uses the OMDb API to search for movies and TV shows. "
 	        "You need a free API key to enable the search feature. "
 	        "Go to omdbapi.com to request a free key, then open Settings > API Key, "
 	        "paste your key into the field, and click Add Key to activate it.",

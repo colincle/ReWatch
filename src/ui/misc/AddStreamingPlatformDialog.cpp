@@ -76,7 +76,7 @@ void AddStreamingPlatformDialog::setupUi()
 	makeField("Search URL", urlEdit, "");
 
 	auto *hint = new QLabel(
-	    "Go to your streaming platform, search for exactly \"movietracker\",\n"
+	    "Go to your streaming platform, search for exactly \"rewatch\",\n"
 	    "then copy the URL from your address bar and paste it here.\n\n"
 	    "This may not work with every platform. If it doesn't,\n"
 	    "delete it and add it again with just the homepage URL the\n"
@@ -87,7 +87,7 @@ void AddStreamingPlatformDialog::setupUi()
 	hint->setWordWrap(true);
 	hint->setStyleSheet(QString("color: %1;").arg(Palette::textSecondary));
 
-	auto *copyBtn = new QPushButton("Copy \"movietracker\"");
+	auto *copyBtn = new QPushButton("Copy \"rewatch\"");
 	copyBtn->setAutoDefault(false);
 	copyBtn->setIcon(loadColoredSvg(AssetsPaths::copyIcon, Palette::accent, 16));
 	copyBtn->ensurePolished();
@@ -98,7 +98,7 @@ void AddStreamingPlatformDialog::setupUi()
 	    this,
 	    [copyBtn]()
 	    {
-		    QGuiApplication::clipboard()->setText("movietracker");
+		    QGuiApplication::clipboard()->setText("rewatch");
 		    copyBtn->setText("Copied!");
 		    copyBtn->setEnabled(false);
 		    QTimer::singleShot(
@@ -106,7 +106,7 @@ void AddStreamingPlatformDialog::setupUi()
 		        copyBtn,
 		        [copyBtn]()
 		        {
-			        copyBtn->setText("Copy \"movietracker\"");
+			        copyBtn->setText("Copy \"rewatch\"");
 			        copyBtn->setEnabled(true);
 		        }
 		    );

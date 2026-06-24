@@ -5,8 +5,8 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 compile_commands.json
-MovieTracker_autogen/
-MovieTracker
+ReWatch_autogen/
+ReWatch
 
 # Compiled objects
 moc_*

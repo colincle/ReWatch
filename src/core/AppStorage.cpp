@@ -227,6 +227,7 @@ bool AppStorage::importFrom(const QString &zipPath)
 
 	load();
 	emit titlesUpdated();
+	emit styleChanged();
 	return true;
 }
 

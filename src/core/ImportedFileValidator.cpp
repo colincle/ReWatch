@@ -89,7 +89,7 @@ ValidationResult ImportedFileValidator::validate(const QString &zipPath)
 		return {false, "Failed to read zip file."};
 
 	if(process.exitCode() != 0)
-		return {false, "Zip does not contain a valid movieTracker library."};
+		return {false, "Zip does not contain a valid ReWatch library."};
 
 	return validateJson(process.readAllStandardOutput());
 }

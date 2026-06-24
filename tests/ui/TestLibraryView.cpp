@@ -29,7 +29,7 @@ class TestLibraryView : public QObject
 
 	void initTestCase()
 	{
-		QCoreApplication::setApplicationName("MovieTrackerTests");
+		QCoreApplication::setApplicationName("ReWatchTests");
 		cleanStorage();
 	}
 

@@ -80,7 +80,7 @@ class TestTitleDetailView : public QObject
 
 	void initTestCase()
 	{
-		QCoreApplication::setApplicationName("MovieTrackerTests");
+		QCoreApplication::setApplicationName("ReWatchTests");
 		cleanStorage();
 	}
 
@@ -242,7 +242,7 @@ class TestTitleDetailView : public QObject
 	void withPlatformsShowsTryAllButton()
 	{
 		AppStorage storage;
-		storage.addStreamingPlatform({"https://x/movietracker", "Netflix", ""}, "");
+		storage.addStreamingPlatform({"https://x/rewatch", "Netflix", ""}, "");
 		TitleDetailView v(storage);
 		v.setTitle(makeTitle("tt1", "X"));
 		QVERIFY(buttonWithText(v, "Try all"));

@@ -369,7 +369,11 @@ void TitleDetailView::addMetaSection(QVBoxLayout *layout, const Title &title)
 			layout->addWidget(makeRow(label, value));
 	};
 
-	add("Released", title.released);
+	const QDate releaseDate = QDate::fromString(title.released, "dd MMM yyyy");
+	if(releaseDate.isValid() && QDate::currentDate() < releaseDate)
+		add("Releasing", title.released);
+	else
+		add("Released", title.released);
 	add("Director", title.director);
 	add("Actors", title.actors);
 	if(title.type == "series")
@@ -463,7 +467,7 @@ void TitleDetailView::addWatchOnSection(QVBoxLayout *layout, const Title &title)
 		    {
 			    const QByteArray query = QUrl::toPercentEncoding(title.title.toLower());
 			    const QString    url =
-			        QString(p.url).replace("movietracker", QString::fromUtf8(query));
+			        QString(p.url).replace("rewatch", QString::fromUtf8(query));
 			    QDesktopServices::openUrl(QUrl(url));
 		    }
 		);
@@ -481,7 +485,7 @@ void TitleDetailView::addWatchOnSection(QVBoxLayout *layout, const Title &title)
 		    for(const auto &p : platforms)
 		    {
 			    const QString url =
-			        QString(p.url).replace("movietracker", QString::fromUtf8(query));
+			        QString(p.url).replace("rewatch", QString::fromUtf8(query));
 			    QDesktopServices::openUrl(QUrl(url));
 		    }
 	    }

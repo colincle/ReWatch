@@ -22,7 +22,7 @@ class TestHelpDialog : public QObject
 	void windowTitleIsCorrect()
 	{
 		HelpDialog d;
-		QCOMPARE(d.windowTitle(), QString("How to use MovieTracker"));
+		QCOMPARE(d.windowTitle(), QString("How to use ReWatch"));
 	}
 
 	void itemCountMatchesHelpItems()

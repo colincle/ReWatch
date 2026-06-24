@@ -1,8 +1,8 @@
-# MovieTracker
+# ReWatch
 
 A desktop app to track your movies and TV shows. Built with C++ and Qt6.
 
-![screenshot](screenshots/MovieTrackerLibrary.png)
+![screenshot](screenshots/ReWatchLibrary.png)
 
 ---
 
@@ -38,7 +38,7 @@ For development, build and run directly:
 ```bash
 cmake -B build
 cmake --build build
-cd build && ./MovieTracker
+cd build && ./ReWatch
 ```
 
 ### Bundle (macOS .app)
@@ -46,10 +46,10 @@ cd build && ./MovieTracker
 To produce a standalone `.app` with Qt dependencies bundled in, use the provided script. `macdeployqt` must be in your PATH.
 
 ```bash
-./scripts/bundle.sh "MovieTracker"
+./scripts/bundle.sh "ReWatch"
 ```
 
-This builds the binary, creates the `.app` structure, generates the icon, copies assets, runs `macdeployqt`, and cleans up the build directory. The result is a `MovieTracker.app` ready to run.
+This builds the binary, creates the `.app` structure, generates the icon, copies assets, runs `macdeployqt`, and cleans up the build directory. The result is a `ReWatch.app` ready to run.
 
 ---
 
@@ -64,19 +64,19 @@ On first launch, open **Settings** from the menu bar and enter your OMDb API key
 The app stores your library at:
 
 ```
-~/Library/Application Support/MovieTracker/movieTracker.json
+~/Library/Application Support/ReWatch/ReWatch.json
 ```
 
 Poster images are saved alongside it in:
 
 ```
-~/Library/Application Support/MovieTracker/Posters/
+~/Library/Application Support/ReWatch/Posters/
 ```
 
 Streaming platform logos are saved in:
 
 ```
-~/Library/Application Support/MovieTracker/PlatformImages/
+~/Library/Application Support/ReWatch/PlatformImages/
 ```
 
 ---
@@ -89,7 +89,7 @@ The project has a [Qt Test](https://doc.qt.io/qt-6/qttest-index.html) suite — 
 - **UI behavior** — widgets, bars, dialogs, and views, exercised through signals, state transitions, and visibility (not pixels).
 - **Utilities** — JSON file IO, Levenshtein distance, and SVG recoloring.
 
-The app code is compiled once into a shared object library (`MovieTrackerLib`) that both the app and the test runner link against.
+The app code is compiled once into a shared object library (`ReWatchLib`) that both the app and the test runner link against.
 
 Build and run the suite:
 
@@ -102,7 +102,7 @@ It prompts for an OMDb API key — press Enter to skip the network-dependent int
 ```bash
 cmake -B build -DBUILD_TESTS=ON
 cmake --build build
-cd build && ./tests/MovieTrackerTests
+cd build && ./tests/ReWatchTests
 ```
 
 Any failures are written to `build/test_results.log`.

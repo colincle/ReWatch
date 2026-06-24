@@ -15,3 +15,6 @@ inline const QString SEARCH_NETWORK_ERROR_MESSAGE =
 
 inline const QString SEASON_NETWORK_ERROR_MESSAGE =
     "Couldn't check for new seasons — check your internet connection.";
+
+inline const QString RATE_LIMIT_ERROR_MESSAGE =
+    "OMDb request limit reached — your daily quota is used up. Try again tomorrow.";

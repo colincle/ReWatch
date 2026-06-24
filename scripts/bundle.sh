@@ -15,7 +15,7 @@
 #     - Builds the binary using cmake and make in a temporary 'build/' directory
 #     - Creates a .app bundle named after the argument provided
 #     - Converts assets/appIcon/icon.png into icon.icns and includes it
-#     - Copies the compiled binary (default: MovieTracker) into the bundle
+#     - Copies the compiled binary (default: ReWatch) into the bundle
 #     - Copies the assets/ folder into the bundle's Resources
 #     - Runs macdeployqt to embed Qt dependencies
 #     - Cleans up: deletes build/ and icon.iconset/ even if the script fails
@@ -26,7 +26,7 @@
 #
 # - Requirements:
 #     - Qt’s macdeployqt must be in your PATH
-#     - CMakeLists.txt must produce a binary named "MovieTracker"
+#     - CMakeLists.txt must produce a binary named "ReWatch"
 
 
 #!/bin/bash
@@ -39,7 +39,7 @@ if [ -z "$1" ]; then
 fi
 
 BUNDLE_NAME="$1"
-BINARY_NAME="MovieTracker"
+BINARY_NAME="ReWatch"
 ROOT_DIR="$(pwd)"
 BUILD_DIR="$ROOT_DIR/build"
 ICONSET_DIR="$ROOT_DIR/icon.iconset"

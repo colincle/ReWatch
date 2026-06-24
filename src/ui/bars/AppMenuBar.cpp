@@ -66,7 +66,7 @@ void AppMenuBar::onImportLibraryTriggered()
 	    parentWidget(),
 	    "Import Library",
 	    QDir::homePath(),
-	    "MovieTracker Backup (*.zip)"
+	    "ReWatch Backup (*.zip)"
 	);
 
 	if(zipPath.isEmpty())
@@ -111,8 +111,8 @@ void AppMenuBar::onExportLibraryTriggered()
 	QString zipPath = QFileDialog::getSaveFileName(
 	    parentWidget(),
 	    "Export Library",
-	    QDir::homePath() + "/movieTracker_backup.zip",
-	    "MovieTracker Backup (*.zip)"
+	    QDir::homePath() + "/ReWatch_backup.zip",
+	    "ReWatch Backup (*.zip)"
 	);
 
 	if(zipPath.isEmpty())

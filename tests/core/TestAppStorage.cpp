@@ -14,7 +14,7 @@ class TestAppStorage : public QObject
   private slots:
 	void initTestCase()
 	{
-		QCoreApplication::setApplicationName("MovieTrackerTests");
+		QCoreApplication::setApplicationName("ReWatchTests");
 		QDir(testDataDir()).removeRecursively();
 	}
 
@@ -495,7 +495,7 @@ class TestAppStorage : public QObject
 		{
 			AppStorage s;
 			s.addStreamingPlatform(
-			    {"https://netflix.com/search?q=movietracker", "Netflix", ""},
+			    {"https://netflix.com/search?q=rewatch", "Netflix", ""},
 			    ""
 			);
 		}
@@ -504,7 +504,7 @@ class TestAppStorage : public QObject
 		QCOMPARE(reloaded.getStreamingPlatforms()[0].name, "Netflix");
 		QCOMPARE(
 		    reloaded.getStreamingPlatforms()[0].url,
-		    "https://netflix.com/search?q=movietracker"
+		    "https://netflix.com/search?q=rewatch"
 		);
 	}
 
@@ -513,7 +513,7 @@ class TestAppStorage : public QObject
 		AppStorage s;
 		QSignalSpy spy(&s, &AppStorage::streamingPlatformsChanged);
 		s.addStreamingPlatform(
-		    {"https://netflix.com/search?q=movietracker", "Netflix", ""},
+		    {"https://netflix.com/search?q=rewatch", "Netflix", ""},
 		    ""
 		);
 		QCOMPARE(spy.count(), 1);
@@ -526,7 +526,7 @@ class TestAppStorage : public QObject
 		{
 			AppStorage s;
 			s.addStreamingPlatform(
-			    {"https://netflix.com/search?q=movietracker", "Netflix", ""},
+			    {"https://netflix.com/search?q=rewatch", "Netflix", ""},
 			    ""
 			);
 			s.removeStreamingPlatform("Netflix");
@@ -546,7 +546,7 @@ class TestAppStorage : public QObject
 	{
 		AppStorage s;
 		s.addStreamingPlatform(
-		    {"https://netflix.com/search?q=movietracker", "Netflix", ""},
+		    {"https://netflix.com/search?q=rewatch", "Netflix", ""},
 		    ""
 		);
 		QSignalSpy spy(&s, &AppStorage::streamingPlatformsChanged);

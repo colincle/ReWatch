@@ -62,7 +62,7 @@ class TestTopBar : public QObject
   private slots:
 	void initTestCase()
 	{
-		QCoreApplication::setApplicationName("MovieTrackerTests");
+		QCoreApplication::setApplicationName("ReWatchTests");
 		QDir(testDataDir()).removeRecursively();
 	}
 

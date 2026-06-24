@@ -1,4 +1,4 @@
-# MovieTracker — Manual Test Plan
+# ReWatch — Manual Test Plan
 
 The automated QTest suite covers logic, storage, parsing and signal wiring. It
 **cannot** verify what only a human can judge: visual layout, live theming,
@@ -84,7 +84,7 @@ Work top to bottom. Run it before tagging a release.
 - [ ] **7.2** Click **Add** (available while fewer than 10 platforms exist) — the add-platform dialog opens
 - [ ] **7.3** Dialog: type a Name and Search URL — **Add** enables only when both are filled
 - [ ] **7.4** Dialog: type a name that already exists — "already exists" error shows; Add stays disabled
-- [ ] **7.5** Dialog: click **Copy "movietracker"** — clipboard contains `movietracker`; button shows "Copied!" for ~1.5 s
+- [ ] **7.5** Dialog: click **Copy "rewatch"** — clipboard contains `rewatch`; button shows "Copied!" for ~1.5 s
 - [ ] **7.6** Dialog: click the logo **browse** button — file picker opens; chosen path appears in the (read-only) field
 - [ ] **7.7** Dialog: click **Add** — platform is added (logo copied into storage); the Settings list refreshes
 - [ ] **7.8** Dialog: click **Cancel** — dialog closes; nothing added

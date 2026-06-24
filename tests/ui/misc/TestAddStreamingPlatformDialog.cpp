@@ -232,7 +232,7 @@ class TestAddStreamingPlatformDialog : public QObject
 		auto                      *btn = copyButton(d);
 		QVERIFY(btn);
 		btn->click();
-		QCOMPARE(QGuiApplication::clipboard()->text(), QString("movietracker"));
+		QCOMPARE(QGuiApplication::clipboard()->text(), QString("rewatch"));
 	}
 
 	void copyButtonDisabledAfterClick()
