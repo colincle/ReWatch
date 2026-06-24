@@ -99,12 +99,11 @@ void NotificationsCenter::setupMenu()
 
 const Title *NotificationsCenter::findTitleForNotification(const QString &imdbId) const
 {
-	for(const Title &t : appStorage.getTitles())
+	auto guard = appStorage.lock();
+	for(const Title &t : appStorage.getTitles(guard))
 	{
 		if(t.imdbId == imdbId)
-		{
 			return &t;
-		}
 	}
 
 	return nullptr;

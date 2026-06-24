@@ -2,6 +2,7 @@
 #include <QDir>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QStackedWidget>
 #include <QStandardPaths>
 #include <QTest>
@@ -161,6 +162,27 @@ class TestSettingsWindow : public QObject
 		SettingsWindow w(storage);
 		buttonWithText(w, "Dark")->click();
 		QCOMPARE(storage.getTheme(), QString("dark"));
+	}
+
+	// ── daily limit spinbox ──────────────────────────────────────────────────
+
+	void dailyLimitSpinBoxDefaultValueIs500()
+	{
+		AppStorage     storage;
+		SettingsWindow w(storage);
+		auto          *spinBox = w.findChild<QSpinBox *>();
+		QVERIFY(spinBox != nullptr);
+		QCOMPARE(spinBox->value(), 500);
+	}
+
+	void dailyLimitSpinBoxUpdatesStorage()
+	{
+		AppStorage     storage;
+		SettingsWindow w(storage);
+		auto          *spinBox = w.findChild<QSpinBox *>();
+		QVERIFY(spinBox != nullptr);
+		spinBox->setValue(200);
+		QCOMPARE(storage.getMaxUpdateRequests(), 200);
 	}
 };
 

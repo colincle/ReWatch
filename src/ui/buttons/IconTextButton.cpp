@@ -84,35 +84,16 @@ void IconTextButton::updateColors(const QString &c1, const QString &c2)
 	applyNormal();
 }
 
-QString
-IconTextButton::buildStyleSheet(const QString &bgColor, const QString &textColor) const
-{
-	return QStringLiteral(
-	           "QPushButton {"
-	           "    background-color: %1;"
-	           "    color: %2;"
-	           "    border: none;"
-	           "    border-radius: 6px;"
-	           "    text-align: left;"
-	           "    padding-left: %3px;"
-	           "    padding-right: %4px;"
-	           "}"
-	)
-	    .arg(bgColor, textColor)
-	    .arg(iconPadding)
-	    .arg(RIGHT_PADDING);
-}
-
 void IconTextButton::applyNormal()
 {
 	setIcon(normalIcon);
-	setStyleSheet(buildStyleSheet(color2, color1));
+	setStyleSheet(buildStyleSheet(color2, color1, iconPadding, RIGHT_PADDING));
 }
 
 void IconTextButton::applyHover()
 {
 	setIcon(hoverIcon);
-	setStyleSheet(buildStyleSheet(color1, color2));
+	setStyleSheet(buildStyleSheet(color1, color2, iconPadding, RIGHT_PADDING));
 }
 
 void IconTextButton::animateTo(int targetWidth)

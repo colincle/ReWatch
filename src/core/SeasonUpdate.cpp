@@ -3,6 +3,7 @@
 
 #include <QDate>
 #include <QEventLoop>
+#include <QSet>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
@@ -14,27 +15,65 @@ SeasonUpdate::SeasonUpdate(AppStorage &appStorage, QObject *parent)
 {
 	auto lock = appStorage.lock();
 
+	// Collect all eligible IDs and build a priority-ordered list.
+	// IDs that were skipped last run (updatePriority) go first so they
+	// eventually get a turn even when the library exceeds the request limit.
+	const auto &priority = appStorage.getUpdatePriority(lock);
+	const QDate today = QDate::currentDate();
+	const int   usedToday =
+	    (appStorage.getChecksDate() == today) ? appStorage.getChecksToday() : 0;
+	const int maxRequests = std::max(0, appStorage.getMaxUpdateRequests() - usedToday);
+
+	QSet<QString> prioritySet(priority.begin(), priority.end());
+	QSet<QString> eligibleSet;
+
 	for(const Title &t : appStorage.getTitlesMutable(lock))
 		if(isEligible(t))
-			imdbIds.push_back(t.imdbId);
+			eligibleSet.insert(t.imdbId);
 
-	if(imdbIds.empty())
-	{
+	QVector<QString> ordered;
+	for(const QString &id : priority)
+		if(eligibleSet.contains(id))
+			ordered.push_back(id);
+	for(const Title &t : appStorage.getTitlesMutable(lock))
+		if(isEligible(t) && !prioritySet.contains(t.imdbId))
+			ordered.push_back(t.imdbId);
+
+	const int take = std::min(static_cast<int>(ordered.size()), maxRequests);
+	imdbIds = ordered.mid(0, take);
+
+	// Record requests consumed today and persist skipped IDs for next run.
+	appStorage.addUpdateChecks(take);
+	std::vector<QString> overflow(ordered.begin() + take, ordered.end());
+	appStorage.setUpdatePriority(std::move(overflow));
+
+	if(imdbIds.isEmpty())
 		queueEmpty = true;
+}
+
+static bool isFinished(const Title &t)
+{
+	// OMDb returns "YYYY–" for ongoing and "YYYY–YYYY" for ended series.
+	// A series is finished when there are digits after the last dash/en-dash.
+	for(QChar sep : {QChar('-'), QChar(0x2013)})
+	{
+		const int pos = t.year.lastIndexOf(sep);
+		if(pos != -1 && pos < t.year.size() - 1)
+			return true;
 	}
+	return false;
 }
 
 bool SeasonUpdate::isEligible(const Title &t) const
 {
 	if(t.type != "series")
-	{
 		return false;
-	}
 
 	if(!t.lastChecked.isValid())
 		return true;
 
-	return t.lastChecked != QDate::currentDate();
+	const int intervalDays = isFinished(t) ? 30 : 1;
+	return t.lastChecked.daysTo(QDate::currentDate()) >= intervalDays;
 }
 
 namespace
@@ -103,8 +142,8 @@ void applySeasonUpdate(
 
 void SeasonUpdate::updateSeries()
 {
-	auto lock = appStorage.lock();
-
+	// Network phase — no lock needed, imdbIds were captured in the constructor
+	// and getKey() acquires the mutex internally.
 	const int                  count = static_cast<int>(imdbIds.size());
 	QNetworkAccessManager      manager;
 	QVector<SeasonFetchResult> results(count);
@@ -127,52 +166,55 @@ void SeasonUpdate::updateSeries()
 			    reply->deleteLater();
 
 			    if(--pending == 0)
-			    {
 				    loop.quit();
-			    }
 		    }
 		);
 	}
 
 	if(pending > 0)
-	{
 		loop.exec();
-	}
 
+	// Mutation phase — acquire lock only here, for the minimum duration.
+	// Process all results: apply successful ones, track errors without bailing
+	// early so that shows with valid responses get their lastChecked updated.
 	std::vector<QString> notifications;
-
-	for(int i = 0; i < count; ++i)
+	bool                 hasAuthError = false;
+	bool                 hasNetworkError = false;
 	{
-		const SeasonFetchResult &result = results[i];
-
-		if(result.isAuthFailure)
-		{
-			emit apiKeyError();
-			return;
-		}
-
-		if(result.isNetworkFailure)
-		{
-			emit networkError();
-			return;
-		}
-
-		if(!result.success)
-		{
-			continue;
-		}
-
+		auto  lock = appStorage.lock();
 		auto &titles = appStorage.getTitlesMutable(lock);
-		auto  it = std::find_if(
-		    titles.begin(),
-		    titles.end(),
-		    [&](const Title &t) { return t.imdbId == imdbIds[i]; }
-		);
 
-		if(it != titles.end())
-			applySeasonUpdate(*it, result.data, notifications);
+		for(int i = 0; i < count; ++i)
+		{
+			if(results[i].isAuthFailure)
+			{
+				hasAuthError = true;
+				continue;
+			}
+			if(results[i].isNetworkFailure)
+			{
+				hasNetworkError = true;
+				continue;
+			}
+			if(!results[i].success)
+				continue;
+
+			auto it = std::find_if(
+			    titles.begin(),
+			    titles.end(),
+			    [&](const Title &t) { return t.imdbId == imdbIds[i]; }
+			);
+
+			if(it != titles.end())
+				applySeasonUpdate(*it, results[i].data, notifications);
+		}
 	}
 
 	appStorage.addNotifications(notifications);
 	emit seriesUpdated();
+
+	if(hasAuthError)
+		emit apiKeyError();
+	else if(hasNetworkError)
+		emit networkError();
 }

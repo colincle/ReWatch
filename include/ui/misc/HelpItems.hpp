@@ -18,7 +18,10 @@ inline QVector<HelpItem> helpItems()
 	        "A red dot appears on the bell automatically when a new season of a TV show "
 	        "in your library is detected - no need to check manually. "
 	        "Click any notification alert in the panel to jump directly to that title's "
-	        "detail page.",
+	        "detail page. "
+	        "Ongoing series are checked every day. "
+	        "Ended series - those with a complete year range such as 2007-2013 - are "
+	        "checked once every 30 days since new seasons are rare but not impossible.",
 	    },
 	    {
 	        "Sorting and ordering the library",
@@ -125,6 +128,16 @@ inline QVector<HelpItem> helpItems()
 	        "You need a free API key to enable the search feature. "
 	        "Go to omdbapi.com to request a free key, then open Settings > API Key, "
 	        "paste your key into the field, and click Add Key to activate it.",
+	    },
+	    {
+	        "Daily title update limit",
+	        "Each time ReWatch launches it checks your tracked TV shows for new seasons. "
+	        "The free OMDb API allows up to 1 000 requests per day. "
+	        "The daily title update limit (Settings > API Key) caps how many shows are "
+	        "checked in a single day so you stay within that quota. "
+	        "Shows that could not be checked because the limit was reached are "
+	        "automatically prioritised on the next launch. "
+	        "The default limit is 500.",
 	    },
 	    {
 	        "Resetting and clearing all rankings",

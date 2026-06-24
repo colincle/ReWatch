@@ -46,8 +46,8 @@ class TestAppStorage : public QObject
 			s.addTitle(makeTitle("tt0000001"), QPixmap{});
 		}
 		AppStorage reloaded;
-		QCOMPARE((int)reloaded.getTitles().size(), 1);
-		QCOMPARE(reloaded.getTitles()[0].imdbId, "tt0000001");
+		QCOMPARE((int)titlesOf(reloaded).size(), 1);
+		QCOMPARE(titlesOf(reloaded)[0].imdbId, "tt0000001");
 	}
 
 	void addTitleSetsViewedFalse()
@@ -59,7 +59,7 @@ class TestAppStorage : public QObject
 			s.addTitle(t, QPixmap{});
 		}
 		AppStorage reloaded;
-		QVERIFY(!reloaded.getTitles()[0].viewed);
+		QVERIFY(!titlesOf(reloaded)[0].viewed);
 	}
 
 	void addTitleDuplicateDoesNotAdd()
@@ -67,10 +67,10 @@ class TestAppStorage : public QObject
 		AppStorage s;
 		s.addTitle(makeTitle("tt0000001"), QPixmap{});
 		s.addTitle(makeTitle("tt0000001"), QPixmap{});
-		QCOMPARE((int)s.getTitles().size(), 1);
+		QCOMPARE((int)titlesOf(s).size(), 1);
 
 		AppStorage reloaded;
-		QCOMPARE((int)reloaded.getTitles().size(), 1);
+		QCOMPARE((int)titlesOf(reloaded).size(), 1);
 	}
 
 	void addTitleEmitsTitlesUpdated()
@@ -98,7 +98,8 @@ class TestAppStorage : public QObject
 			s.addTitle(t, QPixmap{});
 		}
 		AppStorage   reloaded;
-		const Title &r = reloaded.getTitles()[0];
+		const auto   ts = titlesOf(reloaded);
+		const Title &r = ts[0];
 		QCOMPARE(r.title, "Inception");
 		QCOMPARE(r.year, "2010");
 		QCOMPARE(r.plot, "A thief enters dreams.");
@@ -119,14 +120,14 @@ class TestAppStorage : public QObject
 			s.deleteTitle("tt0000001");
 		}
 		AppStorage reloaded;
-		QCOMPARE((int)reloaded.getTitles().size(), 0);
+		QCOMPARE((int)titlesOf(reloaded).size(), 0);
 	}
 
 	void deleteTitleUnknownIdDoesNotCrash()
 	{
 		AppStorage s;
 		s.deleteTitle("tt9999999");
-		QCOMPARE((int)s.getTitles().size(), 0);
+		QCOMPARE((int)titlesOf(s).size(), 0);
 	}
 
 	void deleteTitleEmitsTitlesUpdated()
@@ -151,8 +152,9 @@ class TestAppStorage : public QObject
 			s.toggleViewed("tt0000001");
 		}
 		AppStorage reloaded;
-		QVERIFY(reloaded.getTitles()[0].viewed);
-		QCOMPARE(reloaded.getTitles()[0].lastViewed, QDate::currentDate());
+		const auto ts = titlesOf(reloaded);
+		QVERIFY(ts[0].viewed);
+		QCOMPARE(ts[0].lastViewed, QDate::currentDate());
 	}
 
 	void toggleViewedPersistsUnwatched()
@@ -170,7 +172,7 @@ class TestAppStorage : public QObject
 			s.toggleViewed("tt0000001");
 		}
 		AppStorage reloaded;
-		QVERIFY(!reloaded.getTitles()[0].viewed);
+		QVERIFY(!titlesOf(reloaded)[0].viewed);
 	}
 
 	void toggleViewedUnknownIdDoesNotCrash()
@@ -201,7 +203,7 @@ class TestAppStorage : public QObject
 			s.insertRank("tt0000001", 0, "movie");
 		}
 		AppStorage reloaded;
-		QCOMPARE(reloaded.getTitles()[0].rank, 1);
+		QCOMPARE(titlesOf(reloaded)[0].rank, 1);
 	}
 
 	void insertRankShiftsExistingRanksPersists()
@@ -213,8 +215,8 @@ class TestAppStorage : public QObject
 			s.insertRank("tt0000001", 0, "movie");
 			s.insertRank("tt0000002", 0, "movie");
 		}
-		AppStorage  reloaded;
-		const auto &titles = reloaded.getTitles();
+		AppStorage reloaded;
+		const auto titles = titlesOf(reloaded);
 		QCOMPARE(findById(titles, "tt0000001")->rank, 2);
 		QCOMPARE(findById(titles, "tt0000002")->rank, 1);
 	}
@@ -228,8 +230,8 @@ class TestAppStorage : public QObject
 			s.insertRank("tt0000001", 0, "movie");
 			s.insertRank("tt0000002", 0, "series");
 		}
-		AppStorage  reloaded;
-		const auto &titles = reloaded.getTitles();
+		AppStorage reloaded;
+		const auto titles = titlesOf(reloaded);
 		QCOMPARE(findById(titles, "tt0000001")->rank, 1);
 		QCOMPARE(findById(titles, "tt0000002")->rank, 1);
 	}
@@ -245,7 +247,7 @@ class TestAppStorage : public QObject
 			s.clearRank("tt0000001");
 		}
 		AppStorage reloaded;
-		QCOMPARE(reloaded.getTitles()[0].rank, 0);
+		QCOMPARE(titlesOf(reloaded)[0].rank, 0);
 	}
 
 	void clearRankShiftsHigherRanksPersists()
@@ -258,8 +260,8 @@ class TestAppStorage : public QObject
 			s.insertRank("tt0000002", 1, "movie");
 			s.clearRank("tt0000001");
 		}
-		AppStorage  reloaded;
-		const auto &titles = reloaded.getTitles();
+		AppStorage reloaded;
+		const auto titles = titlesOf(reloaded);
 		QCOMPARE(findById(titles, "tt0000001")->rank, 0);
 		QCOMPARE(findById(titles, "tt0000002")->rank, 1);
 	}
@@ -272,7 +274,7 @@ class TestAppStorage : public QObject
 			s.clearRank("tt0000001");
 		}
 		AppStorage reloaded;
-		QCOMPARE(reloaded.getTitles()[0].rank, 0);
+		QCOMPARE(titlesOf(reloaded)[0].rank, 0);
 	}
 
 	// ── resetRankings ────────────────────────────────────────────────────────
@@ -288,7 +290,7 @@ class TestAppStorage : public QObject
 			s.resetRankings("movie");
 		}
 		AppStorage reloaded;
-		for(const Title &t : reloaded.getTitles())
+		for(const Title &t : titlesOf(reloaded))
 			QCOMPARE(t.rank, 0);
 	}
 
@@ -302,8 +304,8 @@ class TestAppStorage : public QObject
 			s.insertRank("tt0000002", 0, "series");
 			s.resetRankings("movie");
 		}
-		AppStorage  reloaded;
-		const auto &titles = reloaded.getTitles();
+		AppStorage reloaded;
+		const auto titles = titlesOf(reloaded);
 		QCOMPARE(findById(titles, "tt0000001")->rank, 0);
 		QCOMPARE(findById(titles, "tt0000002")->rank, 1);
 	}
@@ -554,6 +556,69 @@ class TestAppStorage : public QObject
 		QCOMPARE(spy.count(), 1);
 	}
 
+	// ── setMaxUpdateRequests ─────────────────────────────────────────────────
+
+	void setMaxUpdateRequestsDefaultIs500()
+	{
+		AppStorage s;
+		QCOMPARE(s.getMaxUpdateRequests(), 500);
+	}
+
+	void setMaxUpdateRequestsPersists()
+	{
+		{
+			AppStorage s;
+			s.setMaxUpdateRequests(200);
+		}
+		AppStorage reloaded;
+		QCOMPARE(reloaded.getMaxUpdateRequests(), 200);
+	}
+
+	// ── addUpdateChecks ──────────────────────────────────────────────────────
+
+	void addUpdateChecksTracksCountAndDate()
+	{
+		AppStorage s;
+		s.addUpdateChecks(10);
+		QCOMPARE(s.getChecksToday(), 10);
+		QCOMPARE(s.getChecksDate(), QDate::currentDate());
+	}
+
+	void addUpdateChecksPersists()
+	{
+		{
+			AppStorage s;
+			s.addUpdateChecks(7);
+		}
+		AppStorage reloaded;
+		QCOMPARE(reloaded.getChecksToday(), 7);
+		QCOMPARE(reloaded.getChecksDate(), QDate::currentDate());
+	}
+
+	void addUpdateChecksAccumulates()
+	{
+		AppStorage s;
+		s.addUpdateChecks(5);
+		s.addUpdateChecks(3);
+		QCOMPARE(s.getChecksToday(), 8);
+	}
+
+	// ── setUpdatePriority ────────────────────────────────────────────────────
+
+	void setUpdatePriorityPersists()
+	{
+		{
+			AppStorage s;
+			s.setUpdatePriority({"tt0000001", "tt0000002"});
+		}
+		AppStorage  reloaded;
+		auto        g = reloaded.lock();
+		const auto &priority = reloaded.getUpdatePriority(g);
+		QCOMPARE((int)priority.size(), 2);
+		QCOMPARE(priority[0], QString("tt0000001"));
+		QCOMPARE(priority[1], QString("tt0000002"));
+	}
+
   private:
 	static QString testDataDir()
 	{
@@ -567,6 +632,12 @@ class TestAppStorage : public QObject
 		t.title = "Test Title " + imdbId;
 		t.type = type;
 		return t;
+	}
+
+	static std::vector<Title> titlesOf(AppStorage &s)
+	{
+		auto g = s.lock();
+		return s.getTitles(g);
 	}
 
 	static std::vector<Title>::const_iterator

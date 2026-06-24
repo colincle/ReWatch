@@ -234,7 +234,8 @@ class TestTitleCard : public QObject
 
 		toWatchButton(card)->click();
 
-		for(const Title &t : storage.getTitles())
+		auto g = storage.lock();
+		for(const Title &t : storage.getTitles(g))
 			if(t.imdbId == "tt0001")
 				QVERIFY(t.viewed);
 	}
@@ -250,7 +251,8 @@ class TestTitleCard : public QObject
 
 		watchedButton(card)->click();
 
-		for(const Title &t : storage.getTitles())
+		auto g = storage.lock();
+		for(const Title &t : storage.getTitles(g))
 			if(t.imdbId == "tt0001")
 				QVERIFY(!t.viewed);
 	}
@@ -265,7 +267,8 @@ class TestTitleCard : public QObject
 
 		iconButtonAt(card, false, false)->click();
 
-		for(const Title &t : storage.getTitles())
+		auto g = storage.lock();
+		for(const Title &t : storage.getTitles(g))
 			if(t.imdbId == "tt0001")
 				QCOMPARE(t.rank, 0);
 	}

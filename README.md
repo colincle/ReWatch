@@ -14,7 +14,7 @@ A desktop app to track your movies and TV shows. Built with C++ and Qt6.
 - **Watched tracking** — Mark titles as watched or unwatched. Filter the library to show only titles left to watch.
 - **Missing poster recovery** — If OMDb has no poster for a title, the library card shows an upload button so you can pick a local image to use instead.
 - **Streaming platforms** — Add custom streaming services in Settings with a name, logo, and a search URL. Clicking a platform button on a title opens that platform's search pre-filled with the title. A "Try all" button opens all platforms at once. Up to 10 platforms supported.
-- **Season updates** — On launch, the app checks OMDb for new seasons on your tracked TV shows (checked daily). Shows with a new season are automatically reset to unwatched.
+- **Season updates** — On launch, the app checks OMDb for new seasons on your tracked TV shows. Ongoing series are checked daily; ended series are checked every 30 days. Shows with a new season are automatically reset to unwatched. A configurable daily request limit (default 500) keeps usage within the OMDb free-tier quota; shows that couldn't be checked are prioritised on the next launch.
 - **Notifications** — New seasons show up as a badge on the bell icon; click it for a dropdown listing each show with its poster, with a sound played when one arrives.
 - **Light and dark theme** — Switch between themes in Settings. Each theme has its own independently configurable accent color.
 - **Export / Import** — Back up your full library (titles, posters, API key) as a zip file and restore it on any machine.

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QPushButton>
+#include <QString>
 
 class HoverButton : public QPushButton
 {
@@ -18,4 +19,9 @@ class HoverButton : public QPushButton
 	void enterEvent(QEnterEvent *event) override;
 	void leaveEvent(QEvent *event) override;
 	void showEvent(QShowEvent *event) override;
+
+	static QString buildStyleSheet(
+	    const QString &bgColor, const QString &textColor, int iconPadding,
+	    int rightPadding = 12
+	);
 };

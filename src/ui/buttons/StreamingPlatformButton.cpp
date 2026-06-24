@@ -48,31 +48,12 @@ StreamingPlatformButton::StreamingPlatformButton(
 	applyNormal();
 }
 
-QString StreamingPlatformButton::buildStyleSheet(
-    const QString &bgColor, const QString &textColor
-) const
-{
-	return QStringLiteral(
-	           "QPushButton {"
-	           "    background-color: %1;"
-	           "    color: %2;"
-	           "    border: none;"
-	           "    border-radius: 6px;"
-	           "    text-align: left;"
-	           "    padding-left: %3px;"
-	           "    padding-right: 12px;"
-	           "}"
-	)
-	    .arg(bgColor, textColor)
-	    .arg(iconPadding);
-}
-
 void StreamingPlatformButton::applyNormal()
 {
-	setStyleSheet(buildStyleSheet(color2, color1));
+	setStyleSheet(buildStyleSheet(color2, color1, iconPadding));
 }
 
 void StreamingPlatformButton::applyHover()
 {
-	setStyleSheet(buildStyleSheet(color1, color2));
+	setStyleSheet(buildStyleSheet(color1, color2, iconPadding));
 }

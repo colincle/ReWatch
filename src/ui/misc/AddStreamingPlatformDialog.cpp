@@ -4,7 +4,6 @@
 #include "Palette.hpp"
 #include "SvgUtils.hpp"
 
-#include <QColor>
 #include <QClipboard>
 #include <QFileDialog>
 #include <QGuiApplication>
@@ -16,7 +15,7 @@
 AddStreamingPlatformDialog::AddStreamingPlatformDialog(
     const QSet<QString> &existingNames, QWidget *parent
 )
-    : QDialog(parent), existingNames(existingNames)
+    : StyledDialog(parent), existingNames(existingNames)
 {
 	setWindowTitle("Add streaming platform");
 	setModal(true);
@@ -25,28 +24,6 @@ AddStreamingPlatformDialog::AddStreamingPlatformDialog(
 
 void AddStreamingPlatformDialog::setupUi()
 {
-	setStyleSheet(
-	    QStringLiteral(
-	        "QDialog { background-color: %1; }"
-	        "QLabel { color: %2; background: transparent; }"
-	        "QLineEdit { background-color: %3; color: %2; border: 1px solid %4; "
-	        "border-radius: 6px; padding: 6px 10px; }"
-	        "QPushButton { background-color: %3; color: %5; border: none; "
-	        "border-radius: 6px; padding: 6px 18px; }"
-	        "QPushButton:pressed { background-color: %7; color: %5; }"
-	        "QPushButton:disabled { background-color: %3; color: %6; }"
-	    )
-	        .arg(
-	            Palette::bgPrimary,
-	            Palette::textPrimary,
-	            Palette::surface,
-	            Palette::border,
-	            Palette::accent,
-	            Palette::textSecondary,
-	            QColor(Palette::surface).darker(115).name()
-	        )
-	);
-
 	auto *layout = new QVBoxLayout(this);
 	layout->setContentsMargins(24, 24, 24, 24);
 	layout->setSpacing(16);

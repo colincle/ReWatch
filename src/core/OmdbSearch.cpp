@@ -246,9 +246,9 @@ void OmdbSearch::onReplyFinished(QNetworkReply *reply)
 	searchResults.errorType = SearchErrorType::None;
 	searchResults.titles.clear();
 
-	const QByteArray    raw  = reply->readAll();
-	const bool          err  = reply->error() != QNetworkReply::NoError;
-	const QJsonObject   root = QJsonDocument::fromJson(raw).object();
+	const QByteArray  raw = reply->readAll();
+	const bool        err = reply->error() != QNetworkReply::NoError;
+	const QJsonObject root = QJsonDocument::fromJson(raw).object();
 
 	if(root["Response"].toString() == "False")
 	{

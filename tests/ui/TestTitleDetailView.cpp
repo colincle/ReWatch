@@ -172,10 +172,12 @@ class TestTitleDetailView : public QObject
 
 		buttonWithText(v, "To watch")->click();
 
-		for(const Title &t : storage.getTitles())
-			if(t.imdbId == "tt1")
-				QVERIFY(t.viewed);
-
+		{
+			auto g = storage.lock();
+			for(const Title &t : storage.getTitles(g))
+				if(t.imdbId == "tt1")
+					QVERIFY(t.viewed);
+		}
 		QVERIFY(buttonWithText(v, "To watch")->isHidden());
 		QVERIFY(!buttonWithText(v, "Watched")->isHidden());
 	}
@@ -224,7 +226,8 @@ class TestTitleDetailView : public QObject
 		v.setTitle(ranked);
 		unrankButton(v)->click();
 
-		for(const Title &t : storage.getTitles())
+		auto g = storage.lock();
+		for(const Title &t : storage.getTitles(g))
 			if(t.imdbId == "tt1")
 				QCOMPARE(t.rank, 0);
 	}

@@ -161,7 +161,8 @@ class TestSeasonUpdate : public QObject
 		);
 		SeasonUpdate su(storage);
 		su.updateSeries();
-		const auto &titles = storage.getTitles();
+		auto        g = storage.lock();
+		const auto &titles = storage.getTitles(g);
 		auto        it = std::find_if(
 		    titles.begin(),
 		    titles.end(),
@@ -181,15 +182,18 @@ class TestSeasonUpdate : public QObject
 		storage.addTitle(makeSeries("tt0944947", QDate{}, "1"), QPixmap{});
 		SeasonUpdate su(storage);
 		su.updateSeries();
-		const auto &titles = storage.getTitles();
-		auto        it = std::find_if(
-		    titles.begin(),
-		    titles.end(),
-		    [](const Title &t) { return t.imdbId == "tt0944947"; }
-		);
-		QVERIFY(it != titles.end());
-		QCOMPARE(it->totalSeasons, "8");
-		QVERIFY(!it->viewed);
+		{
+			auto        g = storage.lock();
+			const auto &titles = storage.getTitles(g);
+			auto        it = std::find_if(
+			    titles.begin(),
+			    titles.end(),
+			    [](const Title &t) { return t.imdbId == "tt0944947"; }
+			);
+			QVERIFY(it != titles.end());
+			QCOMPARE(it->totalSeasons, "8");
+			QVERIFY(!it->viewed);
+		}
 		const auto &notifications = storage.getNotifications();
 		QVERIFY(
 		    std::find(notifications.begin(), notifications.end(), QString("tt0944947")) !=
@@ -220,6 +224,77 @@ class TestSeasonUpdate : public QObject
 		QSignalSpy spy(&su, &SeasonUpdate::apiKeyError);
 		su.updateSeries();
 		QCOMPARE(spy.count(), 1);
+	}
+
+	// -- finished series interval -----------------------------------------------
+
+	void finishedSeriesNotEligibleCheckedYesterday()
+	{
+		// Year "YYYY–YYYY" (en-dash) means the series ended → 30-day interval.
+		// Checked yesterday (1 day ago) must not be eligible.
+		AppStorage storage;
+		Title      t = makeSeries("tt0000001", QDate::currentDate().addDays(-1));
+		t.year = QString("2007") + QChar(0x2013) + "2013";
+		storage.addTitle(t, QPixmap{});
+		SeasonUpdate su(storage);
+		QVERIFY(su.isEmpty());
+	}
+
+	void finishedSeriesEligibleAfterThirtyOneDays()
+	{
+		AppStorage storage;
+		Title      t = makeSeries("tt0000001", QDate::currentDate().addDays(-31));
+		t.year = QString("2007") + QChar(0x2013) + "2013";
+		storage.addTitle(t, QPixmap{});
+		SeasonUpdate su(storage);
+		QVERIFY(!su.isEmpty());
+	}
+
+	void ongoingSeriesEligibleAfterOneDay()
+	{
+		// Year "YYYY–" (en-dash, no end year) means the series is ongoing → 1-day
+		// interval.
+		AppStorage storage;
+		Title      t = makeSeries("tt0000001", QDate::currentDate().addDays(-1));
+		t.year = QString("2019") + QChar(0x2013);
+		storage.addTitle(t, QPixmap{});
+		SeasonUpdate su(storage);
+		QVERIFY(!su.isEmpty());
+	}
+
+	// -- request cap and priority queue -----------------------------------------
+
+	void requestCapLimitsQueueAndSavesOverflow()
+	{
+		AppStorage storage;
+		storage.setMaxUpdateRequests(2);
+		storage.addTitle(makeSeries("tt0000001", QDate{}), QPixmap{});
+		storage.addTitle(makeSeries("tt0000002", QDate{}), QPixmap{});
+		storage.addTitle(makeSeries("tt0000003", QDate{}), QPixmap{});
+		storage.addTitle(makeSeries("tt0000004", QDate{}), QPixmap{});
+		SeasonUpdate su(storage);
+		auto         g = storage.lock();
+		const auto  &overflow = storage.getUpdatePriority(g);
+		QCOMPARE((int)overflow.size(), 2);
+	}
+
+	void priorityIdsProcessedBeforeOthers()
+	{
+		// With cap=1, the priority ID must be taken first so it is NOT in the overflow.
+		AppStorage storage;
+		storage.setMaxUpdateRequests(1);
+		storage.setUpdatePriority({"tt0000003"});
+		storage.addTitle(makeSeries("tt0000001", QDate{}), QPixmap{});
+		storage.addTitle(makeSeries("tt0000002", QDate{}), QPixmap{});
+		storage.addTitle(makeSeries("tt0000003", QDate{}), QPixmap{});
+		SeasonUpdate su(storage);
+		auto         g = storage.lock();
+		const auto  &overflow = storage.getUpdatePriority(g);
+		QCOMPARE((int)overflow.size(), 2);
+		QVERIFY(
+		    std::find(overflow.begin(), overflow.end(), QString("tt0000003")) ==
+		    overflow.end()
+		);
 	}
 };
 

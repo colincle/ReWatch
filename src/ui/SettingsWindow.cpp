@@ -13,6 +13,7 @@
 #include <QLineEdit>
 #include <QPixmap>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -55,7 +56,7 @@ QString accentButtonStyle(const QString &color)
 } // namespace
 
 SettingsWindow::SettingsWindow(AppStorage &appStorage, QWidget *parent)
-    : QDialog(parent), appStorage(appStorage)
+    : StyledDialog(parent), appStorage(appStorage)
 {
 	setWindowTitle("Settings");
 	setModal(true);
@@ -65,26 +66,9 @@ SettingsWindow::SettingsWindow(AppStorage &appStorage, QWidget *parent)
 
 QString SettingsWindow::buildStyleSheet() const
 {
-	return QStringLiteral(
-	           "QDialog { background-color: %1; }"
-	           "QLabel { color: %2; background: transparent; }"
-	           "QLineEdit { background-color: %3; color: %2; border: 1px solid %4; "
-	           "border-radius: 6px; padding: 6px 10px; }"
-	           "QPushButton { background-color: %3; color: %5; border: none; "
-	           "border-radius: 6px; padding: 6px 18px; }"
-	           "QPushButton:pressed { background-color: %7; color: %5; }"
-	           "QPushButton:disabled { background-color: %3; color: %6; }"
-	           "QFrame#separator { background-color: %4; border: none; }"
-	)
-	    .arg(
-	        Palette::bgPrimary,
-	        Palette::textPrimary,
-	        Palette::surface,
-	        Palette::border,
-	        Palette::accent,
-	        Palette::textSecondary,
-	        QColor(Palette::surface).darker(115).name()
-	    );
+	return styleSheet() +
+	       QStringLiteral("QFrame#separator { background-color: %1; border: none; }")
+	           .arg(Palette::border);
 }
 
 void SettingsWindow::setupUi()
@@ -225,8 +209,49 @@ QWidget *SettingsWindow::makeApiKeySection()
 	connect(apiKeyEdit, &QLineEdit::returnPressed, applyButton, &QPushButton::click);
 	connect(applyButton, &QPushButton::clicked, this, &SettingsWindow::onApplyClicked);
 
+	maxUpdateRequestsSpinBox = new QSpinBox;
+	maxUpdateRequestsSpinBox->setRange(1, 10000);
+	maxUpdateRequestsSpinBox->setValue(appStorage.getMaxUpdateRequests());
+	maxUpdateRequestsSpinBox->setStyleSheet(
+	    QStringLiteral(
+	        "QSpinBox { background-color: %1; color: %2; border: 1px solid %3;"
+	        "           border-radius: 6px; padding: 4px 8px; }"
+	        "QSpinBox::up-button, QSpinBox::down-button { width: 0; }"
+	    )
+	        .arg(Palette::surface, Palette::textPrimary, Palette::border)
+	);
+
+	connect(
+	    maxUpdateRequestsSpinBox,
+	    &QSpinBox::valueChanged,
+	    this,
+	    [this](int value) { appStorage.setMaxUpdateRequests(value); }
+	);
+
+	auto *limitLabel = new QLabel("Daily title update limit");
+	auto *limitHint = new QLabel(
+	    "Each title check uses one OMDb API request. "
+	    "Free accounts are capped at 1,000 requests per day — "
+	    "set this below that to leave room for searches."
+	);
+	limitHint->setWordWrap(true);
+	limitHint->setStyleSheet(
+	    QStringLiteral("color: %1; font-size: 12px;").arg(Palette::textSecondary)
+	);
+
+	auto *limitRow = new QHBoxLayout;
+	limitRow->setContentsMargins(0, 0, 0, 0);
+	limitRow->setSpacing(8);
+	limitRow->addWidget(limitLabel, 1);
+	limitRow->addWidget(maxUpdateRequestsSpinBox);
+
 	layout->addWidget(title);
 	layout->addWidget(fieldRow);
+	layout->addSpacing(4);
+	layout->addWidget(makeSeparator());
+	layout->addSpacing(4);
+	layout->addLayout(limitRow);
+	layout->addWidget(limitHint);
 
 	return container;
 }

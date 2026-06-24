@@ -360,8 +360,12 @@ void SearchResults::onAddClicked(
 	    }
 	);
 
-	connect(fetch, &OmdbSearch::rateLimitReached, this,
-	        [this]() { emit searchError(RATE_LIMIT_ERROR_MESSAGE); });
+	connect(
+	    fetch,
+	    &OmdbSearch::rateLimitReached,
+	    this,
+	    [this]() { emit searchError(RATE_LIMIT_ERROR_MESSAGE); }
+	);
 
 	fetch->fetchById(title.imdbId, title.posterImage, title.posterNotFound);
 }

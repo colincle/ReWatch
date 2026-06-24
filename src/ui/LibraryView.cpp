@@ -13,7 +13,8 @@ LibraryView::LibraryView(AppStorage &appStorage, QWidget *parent)
 	setupUi();
 	connectSignals();
 
-	titles = appStorage.getTitles();
+	auto guard = appStorage.lock();
+	titles = appStorage.getTitles(guard);
 	QTimer::singleShot(0, this, &LibraryView::populate);
 }
 
@@ -125,7 +126,8 @@ void LibraryView::onZoomRequested(int zoomValue)
 void LibraryView::onSearchRequested(const QString &query)
 {
 	currentQuery = query;
-	titles = scoreAndRankTitles(appStorage.getTitles(), query);
+	auto guard = appStorage.lock();
+	titles = scoreAndRankTitles(appStorage.getTitles(guard), query);
 	populate();
 }
 

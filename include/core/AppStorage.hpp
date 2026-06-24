@@ -65,8 +65,14 @@ class AppStorage : public QObject
 	void insertRank(const QString &imdbId, int position, const QString &type);
 	void resetRankings(const QString &type);
 	void clearRank(const QString &imdbId);
+	void setUpdatePriority(std::vector<QString> ids);
+	void setMaxUpdateRequests(int limit);
+	void addUpdateChecks(int count);
 
 	int     getLibraryCardWidth() const { return libraryCardWidth; }
+	int     getMaxUpdateRequests() const { return maxUpdateRequests; }
+	int     getChecksToday() const { return checksToday; }
+	QDate   getChecksDate() const { return checksDate; }
 	QString getTheme() const { return theme; }
 	QString getDarkAccentColor() const { return darkAccentColor; }
 	QString getLightAccentColor() const { return lightAccentColor; }
@@ -75,10 +81,14 @@ class AppStorage : public QObject
 		return theme == "light" ? lightAccentColor : darkAccentColor;
 	}
 	WindowSize                  getWindowSize() const { return windowSize; }
-	const std::vector<Title>   &getTitles() const { return titles; }
 	[[nodiscard]] LockGuard     lock() { return LockGuard(mutex); }
+	const std::vector<Title>   &getTitles(LockGuard &) const { return titles; }
 	std::vector<Title>         &getTitlesMutable(LockGuard &) { return titles; }
 	const std::vector<QString> &getNotifications() const { return notifications; }
+	const std::vector<QString> &getUpdatePriority(LockGuard &) const
+	{
+		return updatePriority;
+	}
 	const std::vector<StreamingPlatform> &getStreamingPlatforms() const
 	{
 		return streamingPlatforms;
@@ -94,9 +104,13 @@ class AppStorage : public QObject
 	QString                        postersPath;
 	QString                        platformImagesPath;
 	int                            libraryCardWidth = 160;
+	int                            maxUpdateRequests = 500;
+	int                            checksToday = 0;
+	QDate                          checksDate;
 	WindowSize                     windowSize;
 	std::vector<Title>             titles;
 	std::vector<QString>           notifications;
+	std::vector<QString>           updatePriority;
 	std::vector<StreamingPlatform> streamingPlatforms;
 	mutable QRecursiveMutex        mutex;
 

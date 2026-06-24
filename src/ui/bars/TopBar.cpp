@@ -186,9 +186,9 @@ void TopBar::onNotificationsClicked()
 
 void TopBar::onRankClicked()
 {
-	const auto &titles = appStorage.getTitles();
-
-	const bool hasUnranked = std::any_of(
+	auto        guard = appStorage.lock();
+	const auto &titles = appStorage.getTitles(guard);
+	const bool  hasUnranked = std::any_of(
 	    titles.begin(),
 	    titles.end(),
 	    [](const Title &t) { return t.rank == 0 && t.lastViewed.isValid(); }

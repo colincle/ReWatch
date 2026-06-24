@@ -1,15 +1,16 @@
 #pragma once
 
 #include "AppStorage.hpp"
+#include "StyledDialog.hpp"
 
-#include <QDialog>
 #include <QFrame>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QStackedWidget>
 
-class SettingsWindow : public QDialog
+class SettingsWindow : public StyledDialog
 {
 	Q_OBJECT
 
@@ -24,6 +25,7 @@ class SettingsWindow : public QDialog
 	QPushButton    *darkTab;
 	QLineEdit      *apiKeyEdit;
 	QPushButton    *applyButton;
+	QSpinBox       *maxUpdateRequestsSpinBox;
 	QWidget        *platformsList = nullptr;
 	QPushButton    *addPlatformButton = nullptr;
 	QWidget        *darkAccentRow = nullptr;

@@ -19,6 +19,4 @@ class StreamingPlatformButton : public HoverButton
 	QString color1;
 	QString color2;
 	int     iconPadding;
-
-	QString buildStyleSheet(const QString &bgColor, const QString &textColor) const;
 };

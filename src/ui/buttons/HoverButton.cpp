@@ -1,5 +1,6 @@
 #include "HoverButton.hpp"
 
+#include <QString>
 #include <QTimer>
 
 void HoverButton::enterEvent(QEnterEvent *event)
@@ -31,4 +32,24 @@ void HoverButton::showEvent(QShowEvent *event)
 void HoverButton::unhover()
 {
 	applyNormal();
+}
+
+QString HoverButton::buildStyleSheet(
+    const QString &bgColor, const QString &textColor, int iconPadding, int rightPadding
+)
+{
+	return QStringLiteral(
+	           "QPushButton {"
+	           "    background-color: %1;"
+	           "    color: %2;"
+	           "    border: none;"
+	           "    border-radius: 6px;"
+	           "    text-align: left;"
+	           "    padding-left: %3px;"
+	           "    padding-right: %4px;"
+	           "}"
+	)
+	    .arg(bgColor, textColor)
+	    .arg(iconPadding)
+	    .arg(rightPadding);
 }

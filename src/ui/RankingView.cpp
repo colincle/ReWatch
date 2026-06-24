@@ -139,7 +139,8 @@ class RankingCard : public QWidget
 RankingView::RankingView(AppStorage &appStorage, QWidget *parent)
     : QWidget(parent), appStorage(appStorage)
 {
-	for(const Title &t : appStorage.getTitles())
+	auto guard = appStorage.lock();
+	for(const Title &t : appStorage.getTitles(guard))
 	{
 		if(t.rank != 0 || !t.lastViewed.isValid())
 			continue;
@@ -282,7 +283,8 @@ std::vector<Title> RankingView::rankedTitlesOfType(const QString &type) const
 {
 	std::vector<Title> result;
 
-	for(const Title &t : appStorage.getTitles())
+	auto guard = appStorage.lock();
+	for(const Title &t : appStorage.getTitles(guard))
 		if(t.type == type && t.rank > 0)
 			result.push_back(t);
 

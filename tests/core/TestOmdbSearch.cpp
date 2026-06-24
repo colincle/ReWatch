@@ -193,7 +193,8 @@ class TestOmdbSearch : public QObject
 		QSignalSpy spy(&searcher, &OmdbSearch::titleFetched);
 		searcher.fetchById("tt0468569", QPixmap{}, true); // The Dark Knight
 		QVERIFY(spy.wait(10000));
-		const auto &titles = storage.getTitles();
+		auto        g = storage.lock();
+		const auto &titles = storage.getTitles(g);
 		auto        it = std::find_if(
 		    titles.begin(),
 		    titles.end(),

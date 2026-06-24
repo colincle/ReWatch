@@ -1,14 +1,14 @@
 #pragma once
 
 #include "AppStorage.hpp"
+#include "StyledDialog.hpp"
 
-#include <QDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSet>
 
-class AddStreamingPlatformDialog : public QDialog
+class AddStreamingPlatformDialog : public StyledDialog
 {
 	Q_OBJECT
 

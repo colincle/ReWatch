@@ -31,6 +31,7 @@ Work top to bottom. Run it before tagging a release.
 - [ ] **2.3** API Key field — pre-filled with the saved key (empty on first run)
 - [ ] **2.4** API Key > empty / whitespace key — Add Key stays disabled; nothing saved
 - [ ] **2.5** API Key > type your key, click Add Key — button shows "Adding…", disables, then re-enables; key is saved
+- [ ] **2.6** API Key > Daily title update limit — spinner is present with default 500; change it to another value, close and reopen Settings — the saved value is shown
 
 ## 3. Add titles (search & add)
 

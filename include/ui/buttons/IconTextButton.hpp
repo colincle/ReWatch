@@ -35,8 +35,7 @@ class IconTextButton : public HoverButton
 	int                iconPadding;
 	QVariantAnimation *animation = nullptr;
 
-	QString buildStyleSheet(const QString &bgColor, const QString &textColor) const;
-	void    applyNormal() override;
-	void    applyHover() override;
-	void    animateTo(int targetWidth);
+	void applyNormal() override;
+	void applyHover() override;
+	void animateTo(int targetWidth);
 };

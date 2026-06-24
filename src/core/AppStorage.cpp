@@ -115,8 +115,12 @@ void AppStorage::load()
 	darkAccentColor = root["darkAccentColor"].toString(legacyAccent);
 	lightAccentColor = root["lightAccentColor"].toString(legacyAccent);
 	libraryCardWidth = root["libraryCardWidth"].toInt(160);
+	maxUpdateRequests = root["maxUpdateRequests"].toInt(500);
+	checksToday = root["checksToday"].toInt(0);
+	checksDate = QDate::fromString(root["checksDate"].toString(), Qt::ISODate);
 	titles.clear();
 	notifications.clear();
+	updatePriority.clear();
 	streamingPlatforms.clear();
 
 	for(const QJsonValue &val : root["titles"].toArray())
@@ -134,6 +138,11 @@ void AppStorage::load()
 	for(const QJsonValue &val : root["notifications"].toArray())
 	{
 		notifications.push_back(val.toString());
+	}
+
+	for(const QJsonValue &val : root["updatePriority"].toArray())
+	{
+		updatePriority.push_back(val.toString());
 	}
 
 	for(const QJsonValue &val : root["streamingPlatforms"].toArray())
@@ -166,6 +175,13 @@ void AppStorage::save()
 		notificationsArr.append(n);
 	}
 
+	QJsonArray updatePriorityArr;
+
+	for(const QString &id : updatePriority)
+	{
+		updatePriorityArr.append(id);
+	}
+
 	QJsonArray platformsArr;
 
 	for(const StreamingPlatform &p : streamingPlatforms)
@@ -181,11 +197,15 @@ void AppStorage::save()
 	root["windowWidth"] = windowSize.width;
 	root["windowHeight"] = windowSize.height;
 	root["libraryCardWidth"] = libraryCardWidth;
+	root["maxUpdateRequests"] = maxUpdateRequests;
+	root["checksToday"] = checksToday;
+	root["checksDate"] = checksDate.toString(Qt::ISODate);
 	root["theme"] = theme;
 	root["darkAccentColor"] = darkAccentColor;
 	root["lightAccentColor"] = lightAccentColor;
 	root["omdbApiKey"] = omdbApiKey;
 	root["notifications"] = notificationsArr;
+	root["updatePriority"] = updatePriorityArr;
 	root["streamingPlatforms"] = platformsArr;
 	root["titles"] = arr;
 
@@ -506,4 +526,31 @@ bool AppStorage::contains(const QString &imdbId) const
 	    titles.end(),
 	    [&](const Title &t) { return t.imdbId == imdbId; }
 	);
+}
+
+void AppStorage::setUpdatePriority(std::vector<QString> ids)
+{
+	QMutexLocker locker(&mutex);
+	updatePriority = std::move(ids);
+	save();
+}
+
+void AppStorage::setMaxUpdateRequests(int limit)
+{
+	QMutexLocker locker(&mutex);
+	maxUpdateRequests = limit;
+	save();
+}
+
+void AppStorage::addUpdateChecks(int count)
+{
+	QMutexLocker locker(&mutex);
+	const QDate  today = QDate::currentDate();
+	if(checksDate != today)
+	{
+		checksDate = today;
+		checksToday = 0;
+	}
+	checksToday += count;
+	save();
 }

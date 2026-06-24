@@ -45,6 +45,7 @@ void SeasonUpdateController::start()
 
 	if(queue->isEmpty())
 	{
+		delete queue;
 		retryTimer->stop();
 		return;
 	}
@@ -119,6 +120,7 @@ void SeasonUpdateController::runAttempt(SeasonUpdate *queue)
 	watcher.setFuture(future);
 	loop.exec();
 
+	queue->deleteLater();
 	emit updateFinished();
 	handleAttemptResult(errorMessage, isNetworkError);
 }
