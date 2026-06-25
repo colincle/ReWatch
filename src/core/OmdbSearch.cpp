@@ -4,6 +4,8 @@
 #include "AssetsPaths.hpp"
 #include "Title.hpp"
 
+#include <QDate>
+#include <QEventLoop>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -104,10 +106,33 @@ void OmdbSearch::onFetchByIdFinished(
 		return;
 	}
 
-	appStorage.addTitle(
-	    titleFromOmdbJson(root, posterImage, posterNotFound),
-	    posterImage
-	);
+	Title t = titleFromOmdbJson(root, posterImage, posterNotFound);
+
+	if(t.type == "series")
+	{
+		const QDate           showRelease = QDate::fromString(t.released, "dd MMM yyyy");
+		const SearchErrorType err = OmdbSearch::findLastEpisode(
+		    networkManager,
+		    apiKey,
+		    t.imdbId,
+		    t.lastEpisode,
+		    t.nextSeasonDate,
+		    showRelease
+		);
+		if(err == SearchErrorType::RateLimited)
+		{
+			emit rateLimitReached();
+			emit titleFetchFailed();
+			return;
+		}
+		if(err != SearchErrorType::None)
+		{
+			emit titleFetchFailed();
+			return;
+		}
+	}
+
+	appStorage.addTitle(t, posterImage);
 	emit titleFetched();
 }
 
@@ -118,14 +143,13 @@ Title OmdbSearch::titleFromOmdbJson(
 	Title t;
 
 	t.title = root["Title"].toString();
-	t.year = root["Year"].toString();
 	t.imdbId = root["imdbID"].toString();
 	t.type = root["Type"].toString();
 	t.released = root["Released"].toString();
 	t.plot = root["Plot"].toString();
 	t.director = root["Director"].toString();
 	t.actors = root["Actors"].toString();
-	t.totalSeasons = root["totalSeasons"].toString();
+	t.lastEpisode.season = root["totalSeasons"].toString().toInt();
 	t.posterImage = posterImage;
 	t.posterNotFound = posterNotFound;
 
@@ -215,7 +239,6 @@ static ResultTitle ResultTitleFromJson(const QJsonObject &obj)
 {
 	ResultTitle t;
 	t.title = obj["Title"].toString();
-	t.year = obj["Year"].toString();
 	t.imdbId = obj["imdbID"].toString();
 	t.type = obj["Type"].toString();
 	t.poster = obj["Poster"].toString();
@@ -292,4 +315,111 @@ void OmdbSearch::onReplyFinished(QNetworkReply *reply)
 	{
 		loadDetailsForTitle(i, searchResults.titles[i].imdbId);
 	}
+}
+
+bool OmdbSearch::fetchSeasonJson(
+    QNetworkAccessManager &manager, const QString &apiKey, const QString &imdbId,
+    int season, QJsonObject &out
+)
+{
+	QUrl      url("https://omdbapi.com/");
+	QUrlQuery query;
+	query.addQueryItem("apikey", apiKey);
+	query.addQueryItem("i", imdbId);
+	query.addQueryItem("Season", QString::number(season));
+	url.setQuery(query);
+
+	QNetworkReply *reply = manager.get(QNetworkRequest(url));
+	QEventLoop     loop;
+	connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+	loop.exec();
+
+	const bool ok = reply->error() == QNetworkReply::NoError;
+	out = QJsonDocument::fromJson(reply->readAll()).object();
+	reply->deleteLater();
+	return ok;
+}
+
+// Dates earlier than the show's own release are OMDb placeholders; treated as not yet
+// aired.
+static bool isSeasonNotYetAired(
+    const QString &firstReleasedStr, const QDate &showReleaseDate, QString &nextSeasonDate
+)
+{
+	const QDate firstAired = QDate::fromString(firstReleasedStr, "yyyy-MM-dd");
+	const bool  isBogus = showReleaseDate.isValid() && firstAired < showReleaseDate;
+
+	if(!firstAired.isValid() || isBogus || firstAired > QDate::currentDate())
+	{
+		if(firstAired.isValid() && !isBogus && firstAired > QDate::currentDate())
+			nextSeasonDate = firstReleasedStr;
+		return true;
+	}
+	return false;
+}
+
+static int
+lastAiredEpisodeNumber(const QJsonArray &episodes, const QDate &showReleaseDate)
+{
+	for(int i = episodes.size() - 1; i >= 0; --i)
+	{
+		const QDate epDate = QDate::fromString(
+		    episodes[i].toObject()["Released"].toString(),
+		    "yyyy-MM-dd"
+		);
+		const bool epIsBogus = showReleaseDate.isValid() && epDate < showReleaseDate;
+		if(epDate.isValid() && !epIsBogus && epDate <= QDate::currentDate())
+			return episodes[i].toObject()["Episode"].toString().toInt();
+	}
+	return 1;
+}
+
+SearchErrorType OmdbSearch::findLastEpisode(
+    QNetworkAccessManager &manager, const QString &apiKey, const QString &imdbId,
+    LastEpisode &le, QString &nextSeasonDate, const QDate &showReleaseDate,
+    int *requestsMade
+)
+{
+	nextSeasonDate.clear();
+
+	while(le.season >= 1)
+	{
+		QJsonObject data;
+		const bool  ok = fetchSeasonJson(manager, apiKey, imdbId, le.season, data);
+		if(requestsMade)
+			(*requestsMade)++;
+		if(!ok)
+			return SearchErrorType::Network;
+
+		if(data["Response"].toString() == "False")
+		{
+			const QString error = data["Error"].toString();
+			if(isAuthError(error))
+				return SearchErrorType::AuthInvalid;
+			if(isRateLimitError(error))
+				return SearchErrorType::RateLimited;
+			le.season--;
+			continue;
+		}
+
+		const QJsonArray episodes = data["Episodes"].toArray();
+		if(episodes.isEmpty())
+		{
+			le.season--;
+			continue;
+		}
+
+		const QString firstReleasedStr = episodes[0].toObject()["Released"].toString();
+		if(isSeasonNotYetAired(firstReleasedStr, showReleaseDate, nextSeasonDate))
+		{
+			le.season--;
+			continue;
+		}
+
+		le.episode = lastAiredEpisodeNumber(episodes, showReleaseDate);
+		return SearchErrorType::None;
+	}
+
+	le = {1, 1};
+	return SearchErrorType::None;
 }

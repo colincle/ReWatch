@@ -547,6 +547,7 @@ void SettingsWindow::switchTheme(const QString &theme)
 
 void SettingsWindow::refreshStyle()
 {
+	applyStyleSheet();
 	setStyleSheet(buildStyleSheet());
 
 	if(platformsList)

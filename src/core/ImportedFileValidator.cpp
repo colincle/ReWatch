@@ -18,9 +18,7 @@ static const QStringList REQUIRED_STRING_FIELDS = {
     "plot",
     "released",
     "title",
-    "totalSeasons",
-    "type",
-    "year"
+    "type"
 };
 
 static const QStringList VALID_TYPES = {"movie", "series"};

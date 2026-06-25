@@ -85,13 +85,12 @@ class TestAppStorage : public QObject
 	{
 		Title t = makeTitle("tt0000001");
 		t.title = "Inception";
-		t.year = "2010";
 		t.type = "movie";
 		t.plot = "A thief enters dreams.";
 		t.director = "Christopher Nolan";
 		t.actors = "Leonardo DiCaprio";
 		t.released = "16 Jul 2010";
-		t.totalSeasons = "";
+		t.lastEpisode = {};
 
 		{
 			AppStorage s;
@@ -101,7 +100,6 @@ class TestAppStorage : public QObject
 		const auto   ts = titlesOf(reloaded);
 		const Title &r = ts[0];
 		QCOMPARE(r.title, "Inception");
-		QCOMPARE(r.year, "2010");
 		QCOMPARE(r.plot, "A thief enters dreams.");
 		QCOMPARE(r.director, "Christopher Nolan");
 		QCOMPARE(r.actors, "Leonardo DiCaprio");
@@ -316,7 +314,7 @@ class TestAppStorage : public QObject
 	{
 		{
 			AppStorage s;
-			s.addNotifications({"tt0000001", "tt0000002"});
+			s.addNotifications({Notification{"tt0000001"}, Notification{"tt0000002"}});
 		}
 		AppStorage reloaded;
 		QCOMPARE((int)reloaded.getNotifications().size(), 2);
@@ -326,8 +324,8 @@ class TestAppStorage : public QObject
 	{
 		{
 			AppStorage s;
-			s.addNotifications({"tt0000001"});
-			s.addNotifications({"tt0000001"});
+			s.addNotifications({Notification{"tt0000001"}});
+			s.addNotifications({Notification{"tt0000001"}});
 		}
 		AppStorage reloaded;
 		QCOMPARE((int)reloaded.getNotifications().size(), 1);
@@ -337,9 +335,9 @@ class TestAppStorage : public QObject
 	{
 		AppStorage s;
 		QSignalSpy spy(&s, &AppStorage::notificationsAdded);
-		s.addNotifications({"tt0000001"});
+		s.addNotifications({Notification{"tt0000001"}});
 		QCOMPARE(spy.count(), 1);
-		s.addNotifications({"tt0000001"});
+		s.addNotifications({Notification{"tt0000001"}});
 		QCOMPARE(spy.count(), 1);
 	}
 
@@ -349,7 +347,7 @@ class TestAppStorage : public QObject
 	{
 		{
 			AppStorage s;
-			s.addNotifications({"tt0000001", "tt0000002"});
+			s.addNotifications({Notification{"tt0000001"}, Notification{"tt0000002"}});
 		}
 		{
 			AppStorage s;
@@ -558,10 +556,10 @@ class TestAppStorage : public QObject
 
 	// ── setMaxUpdateRequests ─────────────────────────────────────────────────
 
-	void setMaxUpdateRequestsDefaultIs500()
+	void setMaxUpdateRequestsDefaultIs900()
 	{
 		AppStorage s;
-		QCOMPARE(s.getMaxUpdateRequests(), 500);
+		QCOMPARE(s.getMaxUpdateRequests(), 900);
 	}
 
 	void setMaxUpdateRequestsPersists()
@@ -617,6 +615,95 @@ class TestAppStorage : public QObject
 		QCOMPARE((int)priority.size(), 2);
 		QCOMPARE(priority[0], QString("tt0000001"));
 		QCOMPARE(priority[1], QString("tt0000002"));
+	}
+
+	// ── upcomingMovies ───────────────────────────────────────────────────────
+
+	void addMovieWithFutureReleaseDateAddsToUpcoming()
+	{
+		AppStorage s;
+		Title      t = makeTitle("tt0000001", "movie");
+		t.released = QDate::currentDate().addDays(10).toString("dd MMM yyyy");
+		s.addTitle(t, QPixmap{});
+		QCOMPARE((int)s.getUpcomingMovies().size(), 1);
+		QCOMPARE(s.getUpcomingMovies()[0], QString("tt0000001"));
+	}
+
+	void addMovieWithPastReleaseDateDoesNotAddToUpcoming()
+	{
+		AppStorage s;
+		Title      t = makeTitle("tt0000001", "movie");
+		t.released = QDate::currentDate().addDays(-1).toString("dd MMM yyyy");
+		s.addTitle(t, QPixmap{});
+		QVERIFY(s.getUpcomingMovies().empty());
+	}
+
+	void addSeriesNeverAddsToUpcoming()
+	{
+		AppStorage s;
+		s.addTitle(makeTitle("tt0000001", "series"), QPixmap{});
+		QVERIFY(s.getUpcomingMovies().empty());
+	}
+
+	void deleteTitleRemovesFromUpcoming()
+	{
+		AppStorage s;
+		Title      t = makeTitle("tt0000001", "movie");
+		t.released = QDate::currentDate().addDays(10).toString("dd MMM yyyy");
+		s.addTitle(t, QPixmap{});
+		QCOMPARE((int)s.getUpcomingMovies().size(), 1);
+		s.deleteTitle("tt0000001");
+		QVERIFY(s.getUpcomingMovies().empty());
+	}
+
+	void upcomingMoviesPersistAcrossReload()
+	{
+		{
+			AppStorage s;
+			Title      t = makeTitle("tt0000001", "movie");
+			t.released = QDate::currentDate().addDays(5).toString("dd MMM yyyy");
+			s.addTitle(t, QPixmap{});
+		}
+		AppStorage reloaded;
+		QCOMPARE((int)reloaded.getUpcomingMovies().size(), 1);
+		QCOMPARE(reloaded.getUpcomingMovies()[0], QString("tt0000001"));
+	}
+
+	void removeFromUpcomingMoviesPersists()
+	{
+		{
+			AppStorage s;
+			Title      t1 = makeTitle("tt0000001", "movie");
+			Title      t2 = makeTitle("tt0000002", "movie");
+			t1.released = QDate::currentDate().addDays(5).toString("dd MMM yyyy");
+			t2.released = QDate::currentDate().addDays(5).toString("dd MMM yyyy");
+			s.addTitle(t1, QPixmap{});
+			s.addTitle(t2, QPixmap{});
+			s.removeFromUpcomingMovies({"tt0000001"});
+		}
+		AppStorage reloaded;
+		QCOMPARE((int)reloaded.getUpcomingMovies().size(), 1);
+		QCOMPARE(reloaded.getUpcomingMovies()[0], QString("tt0000002"));
+	}
+
+	// ── notification type ────────────────────────────────────────────────────
+
+	void notificationTypePersistsAcrossReload()
+	{
+		{
+			AppStorage s;
+			s.addNotifications({
+			    {QStringLiteral("tt0000001"), NotificationType::NewSeason},
+			    {QStringLiteral("tt0000002"), NotificationType::NewEpisode},
+			    {QStringLiteral("tt0000003"), NotificationType::MovieRelease},
+			});
+		}
+		AppStorage  reloaded;
+		const auto &n = reloaded.getNotifications();
+		QCOMPARE((int)n.size(), 3);
+		QCOMPARE(n[0].type, NotificationType::NewSeason);
+		QCOMPARE(n[1].type, NotificationType::NewEpisode);
+		QCOMPARE(n[2].type, NotificationType::MovieRelease);
 	}
 
   private:

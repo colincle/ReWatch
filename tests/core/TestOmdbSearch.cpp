@@ -202,7 +202,6 @@ class TestOmdbSearch : public QObject
 		);
 		QVERIFY(it != titles.end());
 		QCOMPARE(it->title, "The Dark Knight");
-		QCOMPARE(it->year, "2008");
 		QCOMPARE(it->type, "movie");
 	}
 

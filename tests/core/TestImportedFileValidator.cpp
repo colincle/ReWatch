@@ -187,9 +187,7 @@ class TestImportedFileValidator : public QObject
 		    "plot",
 		    "released",
 		    "title",
-		    "totalSeasons",
-		    "type",
-		    "year"
+		    "type"
 		};
 
 		for(const QString &field : fields)
@@ -282,9 +280,7 @@ class TestImportedFileValidator : public QObject
             "plot": "A plot.",
             "released": "01 Jan 2024",
             "title": "Test Movie",
-            "totalSeasons": "",
             "type": "movie",
-            "year": "2024",
             "rank": 0,
             "viewed": false,
             "posterNotFound": false

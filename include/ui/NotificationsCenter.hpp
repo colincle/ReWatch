@@ -1,5 +1,5 @@
-// Dropdown notification panel anchored to the bell button. Adds rows for new-season
-// alerts, plays a sound, and emits titleNavigationRequested on row click.
+// Dropdown notification panel anchored to the bell button. Adds rows for new-season and
+// new-episode alerts, plays a sound, and emits titleNavigationRequested on row click.
 #pragma once
 
 #include "AppStorage.hpp"
@@ -40,7 +40,7 @@ class NotificationsCenter : public QObject
 	void setupMenu();
 	void onNotificationsAdded();
 
-	void         addNotificationRow(const QString &imdbId);
+	void         addNotificationRow(const Notification &notif);
 	const Title *findTitleForNotification(const QString &imdbId) const;
 
 	bool eventFilter(QObject *obj, QEvent *event) override;

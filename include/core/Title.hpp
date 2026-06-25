@@ -5,10 +5,15 @@
 #include <QPixmap>
 #include <QString>
 
+struct LastEpisode
+{
+	int season = 1;
+	int episode = 1;
+};
+
 struct Title
 {
 	QString title;
-	QString year;
 	QString imdbId;
 	QString type;
 
@@ -18,7 +23,8 @@ struct Title
 	QString director;
 	QString actors;
 
-	QString totalSeasons;
+	LastEpisode lastEpisode;
+	QString     nextSeasonDate;
 
 	QPixmap posterImage;
 	bool    posterNotFound = false;

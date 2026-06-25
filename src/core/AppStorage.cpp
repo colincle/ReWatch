@@ -6,10 +6,11 @@
 #include "ImportedFileValidator.hpp"
 #include "JsonFileIO.hpp"
 
+#include <algorithm>
+#include <QDate>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QDate>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMutexLocker>
@@ -18,6 +19,25 @@
 static QString posterPath(const QString &postersPath, const QString &imdbId)
 {
 	return postersPath + "/" + imdbId + ".png";
+}
+
+// Deserializes a notification entry, handling both the legacy string and new object
+// formats.
+static Notification notificationFromJson(const QJsonValue &val)
+{
+	if(val.isString())
+		return {val.toString(), NotificationType::NewSeason};
+
+	const QJsonObject obj = val.toObject();
+	NotificationType  type;
+
+	if(obj.contains("type"))
+		type = static_cast<NotificationType>(obj["type"].toInt(0));
+	else
+		type = obj["isNewSeason"].toBool(true) ? NotificationType::NewSeason
+		                                       : NotificationType::NewEpisode;
+
+	return {obj["imdbId"].toString(), type};
 }
 
 static auto findByImdbId(std::vector<Title> &titles, const QString &imdbId)
@@ -34,7 +54,6 @@ Title AppStorage::titleFromStorageJson(const QJsonObject &obj) const
 	Title t;
 
 	t.title = obj["title"].toString();
-	t.year = obj["year"].toString();
 	t.imdbId = obj["imdbId"].toString();
 	t.type = obj["type"].toString();
 
@@ -44,7 +63,9 @@ Title AppStorage::titleFromStorageJson(const QJsonObject &obj) const
 	t.director = obj["director"].toString();
 	t.actors = obj["actors"].toString();
 
-	t.totalSeasons = obj["totalSeasons"].toString();
+	t.lastEpisode.season = obj["lastEpisodeSeason"].toInt(0);
+	t.lastEpisode.episode = obj["lastEpisodeEpisode"].toInt(0);
+	t.nextSeasonDate = obj["nextSeasonDate"].toString();
 
 	t.posterNotFound = obj["posterNotFound"].toBool(false);
 
@@ -62,7 +83,6 @@ QJsonObject AppStorage::titleToStorageJson(const Title &t) const
 	QJsonObject obj;
 
 	obj["title"] = t.title;
-	obj["year"] = t.year;
 	obj["imdbId"] = t.imdbId;
 	obj["type"] = t.type;
 
@@ -72,7 +92,9 @@ QJsonObject AppStorage::titleToStorageJson(const Title &t) const
 	obj["director"] = t.director;
 	obj["actors"] = t.actors;
 
-	obj["totalSeasons"] = t.totalSeasons;
+	obj["lastEpisodeSeason"] = t.lastEpisode.season;
+	obj["lastEpisodeEpisode"] = t.lastEpisode.episode;
+	obj["nextSeasonDate"] = t.nextSeasonDate;
 	obj["posterNotFound"] = t.posterNotFound;
 
 	obj["rank"] = t.rank;
@@ -119,12 +141,13 @@ void AppStorage::load()
 	darkAccentColor = root["darkAccentColor"].toString(legacyAccent);
 	lightAccentColor = root["lightAccentColor"].toString(legacyAccent);
 	libraryCardWidth = root["libraryCardWidth"].toInt(160);
-	maxUpdateRequests = root["maxUpdateRequests"].toInt(500);
+	maxUpdateRequests = root["maxUpdateRequests"].toInt(900);
 	checksToday = root["checksToday"].toInt(0);
 	checksDate = QDate::fromString(root["checksDate"].toString(), Qt::ISODate);
 	titles.clear();
 	notifications.clear();
 	updatePriority.clear();
+	upcomingMovies.clear();
 	streamingPlatforms.clear();
 
 	for(const QJsonValue &val : root["titles"].toArray())
@@ -140,13 +163,16 @@ void AppStorage::load()
 	}
 
 	for(const QJsonValue &val : root["notifications"].toArray())
-	{
-		notifications.push_back(val.toString());
-	}
+		notifications.push_back(notificationFromJson(val));
 
 	for(const QJsonValue &val : root["updatePriority"].toArray())
 	{
 		updatePriority.push_back(val.toString());
+	}
+
+	for(const QJsonValue &val : root["upcomingMovies"].toArray())
+	{
+		upcomingMovies.push_back(val.toString());
 	}
 
 	for(const QJsonValue &val : root["streamingPlatforms"].toArray())
@@ -174,9 +200,12 @@ void AppStorage::save()
 
 	QJsonArray notificationsArr;
 
-	for(const QString &n : notifications)
+	for(const Notification &n : notifications)
 	{
-		notificationsArr.append(n);
+		QJsonObject obj;
+		obj["imdbId"] = n.imdbId;
+		obj["type"] = static_cast<int>(n.type);
+		notificationsArr.append(obj);
 	}
 
 	QJsonArray updatePriorityArr;
@@ -184,6 +213,13 @@ void AppStorage::save()
 	for(const QString &id : updatePriority)
 	{
 		updatePriorityArr.append(id);
+	}
+
+	QJsonArray upcomingMoviesArr;
+
+	for(const QString &id : upcomingMovies)
+	{
+		upcomingMoviesArr.append(id);
 	}
 
 	QJsonArray platformsArr;
@@ -210,6 +246,7 @@ void AppStorage::save()
 	root["omdbApiKey"] = omdbApiKey;
 	root["notifications"] = notificationsArr;
 	root["updatePriority"] = updatePriorityArr;
+	root["upcomingMovies"] = upcomingMoviesArr;
 	root["streamingPlatforms"] = platformsArr;
 	root["titles"] = arr;
 
@@ -323,6 +360,13 @@ void AppStorage::addTitle(const Title &title, const QPixmap &posterImage)
 	t.viewed = false;
 	titles.push_back(std::move(t));
 
+	if(title.type == "movie")
+	{
+		const QDate releaseDate = QDate::fromString(title.released, "dd MMM yyyy");
+		if(releaseDate.isValid() && releaseDate > QDate::currentDate())
+			upcomingMovies.push_back(title.imdbId);
+	}
+
 	save();
 	emit titlesUpdated();
 }
@@ -340,6 +384,11 @@ void AppStorage::deleteTitle(const QString &imdbId)
 
 	QFile::remove(posterPath(postersPath, imdbId));
 	titles.erase(it);
+
+	upcomingMovies.erase(
+	    std::remove(upcomingMovies.begin(), upcomingMovies.end(), imdbId),
+	    upcomingMovies.end()
+	);
 
 	save();
 	emit titlesUpdated();
@@ -386,16 +435,20 @@ void AppStorage::setPoster(const QString &imdbId, const QPixmap &image)
 	emit titlesUpdated();
 }
 
-void AppStorage::addNotifications(const std::vector<QString> &values)
+void AppStorage::addNotifications(const std::vector<Notification> &values)
 {
 	QMutexLocker locker(&mutex);
 
 	bool added = false;
 
-	for(const QString &value : values)
+	for(const Notification &value : values)
 	{
-		if(std::find(notifications.begin(), notifications.end(), value) ==
-		   notifications.end())
+		const bool exists = std::any_of(
+		    notifications.begin(),
+		    notifications.end(),
+		    [&](const Notification &n) { return n.imdbId == value.imdbId; }
+		);
+		if(!exists)
 		{
 			notifications.push_back(value);
 			added = true;
@@ -418,6 +471,22 @@ void AppStorage::removeNotifications()
 	notifications.clear();
 	save();
 	emit notificationsChanged();
+}
+
+void AppStorage::removeFromUpcomingMovies(const std::vector<QString> &ids)
+{
+	if(ids.empty())
+		return;
+
+	QMutexLocker locker(&mutex);
+
+	for(const QString &id : ids)
+		upcomingMovies.erase(
+		    std::remove(upcomingMovies.begin(), upcomingMovies.end(), id),
+		    upcomingMovies.end()
+		);
+
+	save();
 }
 
 void AppStorage::clearRank(const QString &imdbId)

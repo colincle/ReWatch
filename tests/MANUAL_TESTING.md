@@ -31,7 +31,7 @@ Work top to bottom. Run it before tagging a release.
 - [ ] **2.3** API Key field — pre-filled with the saved key (empty on first run)
 - [ ] **2.4** API Key > empty / whitespace key — Add Key stays disabled; nothing saved
 - [ ] **2.5** API Key > type your key, click Add Key — button shows "Adding…", disables, then re-enables; key is saved
-- [ ] **2.6** API Key > Daily title update limit — spinner is present with default 500; change it to another value, close and reopen Settings — the saved value is shown
+- [ ] **2.6** API Key > Daily title update limit — spinner is present with default 900; change it to another value, close and reopen Settings — the saved value is shown
 
 ## 3. Add titles (search & add)
 
@@ -44,6 +44,7 @@ Work top to bottom. Run it before tagging a release.
 - [ ] **3.7** Click the **added** button — title is removed from the library; button reverts to Add
 - [ ] **3.8** Add several titles (mix of movies and TV shows) so later sections have content to work with
 - [ ] **3.9** Click the close button / press Escape — returns to the library
+- [ ] **3.10** Add a movie whose OMDb "Released" date is in the future — the title appears in the library immediately; no notification is raised at this point
 
 ## 4. Browse the library
 
@@ -72,7 +73,7 @@ Work top to bottom. Run it before tagging a release.
 
 ## 6. Title detail view — before any platforms are configured
 
-- [ ] **6.1** Click a title to open it — poster, title, year/type, metadata rows, plot, and "Watch on" section render
+- [ ] **6.1** Click a title to open it — poster, title, type (Movie / Series), metadata rows, plot, and "Watch on" section render
 - [ ] **6.2** "Watch on" section with no platforms configured yet — "No custom streaming platforms…" hint is shown instead of buttons
 - [ ] **6.3** Metadata shows Watched **Yes** for a watched title, **No** for an unwatched one
 - [ ] **6.4** Toggle **To watch / Watched** — watched state and the "Last watched" row update live
@@ -121,15 +122,16 @@ Work top to bottom. Run it before tagging a release.
 - [ ] **10.4** Import an invalid / tampered zip — "Invalid file" warning appears immediately (before any confirmation); library unchanged
 - [ ] **10.5** Export then Import the same file — library round-trips identically (titles, posters, platforms, key, ranks)
 
-## 11. Notifications & season updates
+## 11. Notifications & library updates
 
 - [ ] **11.1** Launch with a key set and a TV series due for a season check — full-screen "Looking for new TV show seasons…" overlay with a spinner appears; menu bar disabled during it, re-enabled after
 - [ ] **11.2** A tracked series gains a new season — a red dot appears on the bell and a notification sound plays
 - [ ] **11.3** Click the **bell** icon — notifications panel pops up under the bell
-- [ ] **11.4** Panel with notifications — new-season alerts listed with poster + title
+- [ ] **11.4** Panel with notifications — alerts listed with poster, title, and a colored type label: **New Season** for a new series season, **New Episode** for a new episode within the same season, **Now available** for a movie that has released
 - [ ] **11.5** Click a notification — navigates to that title's detail page; panel closes
 - [ ] **11.6** Open the panel (with notifications) — red dot clears after opening
 - [ ] **11.7** No notifications — panel shows "No notifications"; no red dot
+- [ ] **11.8** Add a movie with a future release date; wait for (or manually set) that date to arrive and trigger an update — a **Now available** notification appears with the correct label (not "New Season")
 
 ## 12. Help
 

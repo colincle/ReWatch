@@ -8,10 +8,10 @@
 #include <QTest>
 
 #include "AppStorage.hpp"
-#include "SeasonUpdate.hpp"
+#include "LibraryUpdate.hpp"
 #include "Title.hpp"
 
-class TestSeasonUpdate : public QObject
+class TestLibraryUpdate : public QObject
 {
 	Q_OBJECT
 
@@ -24,16 +24,14 @@ class TestSeasonUpdate : public QObject
 		return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
 	}
 
-	static Title makeSeries(
-	    const QString &imdbId, QDate lastChecked = QDate{},
-	    const QString &totalSeasons = "3"
-	)
+	static Title
+	makeSeries(const QString &imdbId, QDate lastChecked = QDate{}, int seasons = 3)
 	{
 		Title t;
 		t.imdbId = imdbId;
 		t.title = "Test Series";
 		t.type = "series";
-		t.totalSeasons = totalSeasons;
+		t.lastEpisode.season = seasons;
 		t.lastChecked = lastChecked;
 		return t;
 	}
@@ -61,8 +59,8 @@ class TestSeasonUpdate : public QObject
 
 	void isEmptyWithNoTitlesInLibrary()
 	{
-		AppStorage   storage;
-		SeasonUpdate su(storage);
+		AppStorage    storage;
+		LibraryUpdate su(storage);
 		QVERIFY(su.isEmpty());
 	}
 
@@ -70,7 +68,7 @@ class TestSeasonUpdate : public QObject
 	{
 		AppStorage storage;
 		storage.addTitle(makeMovie(), QPixmap{});
-		SeasonUpdate su(storage);
+		LibraryUpdate su(storage);
 		QVERIFY(su.isEmpty());
 	}
 
@@ -78,7 +76,7 @@ class TestSeasonUpdate : public QObject
 	{
 		AppStorage storage;
 		storage.addTitle(makeSeries("tt0000001", QDate::currentDate()), QPixmap{});
-		SeasonUpdate su(storage);
+		LibraryUpdate su(storage);
 		QVERIFY(su.isEmpty());
 	}
 
@@ -86,7 +84,7 @@ class TestSeasonUpdate : public QObject
 	{
 		AppStorage storage;
 		storage.addTitle(makeSeries("tt0000001", QDate{}), QPixmap{});
-		SeasonUpdate su(storage);
+		LibraryUpdate su(storage);
 		QVERIFY(!su.isEmpty());
 	}
 
@@ -97,7 +95,7 @@ class TestSeasonUpdate : public QObject
 		    makeSeries("tt0000001", QDate::currentDate().addDays(-1)),
 		    QPixmap{}
 		);
-		SeasonUpdate su(storage);
+		LibraryUpdate su(storage);
 		QVERIFY(!su.isEmpty());
 	}
 
@@ -106,7 +104,20 @@ class TestSeasonUpdate : public QObject
 		AppStorage storage;
 		storage.addTitle(makeMovie("tt0000001"), QPixmap{});
 		storage.addTitle(makeMovie("tt0000002"), QPixmap{});
-		SeasonUpdate su(storage);
+		LibraryUpdate su(storage);
+		QVERIFY(su.isEmpty());
+	}
+
+	void upcomingMovieWithFutureDateIsNotQueued()
+	{
+		// Movies in upcomingMovies are only checked once their stored release date
+		// arrives.
+		AppStorage storage;
+		Title      t = makeMovie("tt0000001");
+		t.released = QDate::currentDate().addDays(30).toString("dd MMM yyyy");
+		storage.addTitle(t, QPixmap{});
+		// addTitle puts it in upcomingMovies, but LibraryUpdate must not queue it yet.
+		LibraryUpdate su(storage);
 		QVERIFY(su.isEmpty());
 	}
 
@@ -126,41 +137,41 @@ class TestSeasonUpdate : public QObject
 		    makeSeries("tt0000004", QDate::currentDate().addDays(-1)),
 		    QPixmap{}
 		); // eligible: checked yesterday
-		SeasonUpdate su(storage);
+		LibraryUpdate su(storage);
 		QVERIFY(!su.isEmpty());
 	}
 
-	// -- updateSeries() integration --------------------------------------------
+	// -- run() integration --------------------------------------------
 
-	void updateSeriesEmitsSeriesUpdated()
+	void runEmitsFinished()
 	{
 		if(!hasApiKey())
 			QSKIP("Set OMDB_API_KEY to run integration tests");
 		AppStorage storage;
 		storage.setOmdbApiKey(apiKey());
 		storage.addTitle(
-		    makeSeries("tt0944947", QDate{}, "8"),
+		    makeSeries("tt0944947", QDate{}, 8),
 		    QPixmap{}
 		); // Game of Thrones
-		SeasonUpdate su(storage);
+		LibraryUpdate su(storage);
 		QVERIFY(!su.isEmpty());
-		QSignalSpy spy(&su, &SeasonUpdate::seriesUpdated);
-		su.updateSeries();
+		QSignalSpy spy(&su, &LibraryUpdate::finished);
+		su.run();
 		QCOMPARE(spy.count(), 1);
 	}
 
-	void updateSeriesUpdatesLastCheckedToToday()
+	void runUpdatesLastCheckedToToday()
 	{
 		if(!hasApiKey())
 			QSKIP("Set OMDB_API_KEY to run integration tests");
 		AppStorage storage;
 		storage.setOmdbApiKey(apiKey());
 		storage.addTitle(
-		    makeSeries("tt0944947", QDate::currentDate().addDays(-1), "8"),
+		    makeSeries("tt0944947", QDate::currentDate().addDays(-1), 8),
 		    QPixmap{}
 		);
-		SeasonUpdate su(storage);
-		su.updateSeries();
+		LibraryUpdate su(storage);
+		su.run();
 		auto        g = storage.lock();
 		const auto &titles = storage.getTitles(g);
 		auto        it = std::find_if(
@@ -172,16 +183,16 @@ class TestSeasonUpdate : public QObject
 		QCOMPARE(it->lastChecked, QDate::currentDate());
 	}
 
-	void updateSeriesDetectsNewSeasonsAndAddsNotification()
+	void runDetectsNewSeasonsAndAddsNotification()
 	{
 		if(!hasApiKey())
 			QSKIP("Set OMDB_API_KEY to run integration tests");
 		AppStorage storage;
 		storage.setOmdbApiKey(apiKey());
 		// Game of Thrones has 8 seasons (ended) - set to 1 so new seasons are detected
-		storage.addTitle(makeSeries("tt0944947", QDate{}, "1"), QPixmap{});
-		SeasonUpdate su(storage);
-		su.updateSeries();
+		storage.addTitle(makeSeries("tt0944947", QDate{}, 1), QPixmap{});
+		LibraryUpdate su(storage);
+		su.run();
 		{
 			auto        g = storage.lock();
 			const auto &titles = storage.getTitles(g);
@@ -191,75 +202,44 @@ class TestSeasonUpdate : public QObject
 			    [](const Title &t) { return t.imdbId == "tt0944947"; }
 			);
 			QVERIFY(it != titles.end());
-			QCOMPARE(it->totalSeasons, "8");
+			QCOMPARE(it->lastEpisode.season, 8);
 			QVERIFY(!it->viewed);
 		}
 		const auto &notifications = storage.getNotifications();
-		QVERIFY(
-		    std::find(notifications.begin(), notifications.end(), QString("tt0944947")) !=
-		    notifications.end()
+		auto        it = std::find_if(
+		    notifications.begin(),
+		    notifications.end(),
+		    [](const Notification &n) { return n.imdbId == "tt0944947"; }
 		);
+		QVERIFY(it != notifications.end());
+		QCOMPARE(it->type, NotificationType::NewSeason);
 	}
 
-	void updateSeriesNoNotificationWhenSeasonCountUnchanged()
+	void runNoNotificationWhenSeasonCountUnchanged()
 	{
 		if(!hasApiKey())
 			QSKIP("Set OMDB_API_KEY to run integration tests");
 		AppStorage storage;
 		storage.setOmdbApiKey(apiKey());
-		// Game of Thrones already at 8 seasons (final count)
-		storage.addTitle(makeSeries("tt0944947", QDate{}, "8"), QPixmap{});
-		SeasonUpdate su(storage);
-		su.updateSeries();
+		// Game of Thrones: 8 seasons, 6 episodes in the last season (final counts)
+		Title t = makeSeries("tt0944947", QDate{}, 8);
+		t.lastEpisode.episode = 6;
+		storage.addTitle(t, QPixmap{});
+		LibraryUpdate su(storage);
+		su.run();
 		QVERIFY(storage.getNotifications().empty());
 	}
 
-	void updateSeriesWithInvalidKeyEmitsApiKeyError()
+	void runWithInvalidKeyEmitsApiKeyError()
 	{
 		AppStorage storage;
 		storage.setOmdbApiKey("invalidkey");
 		storage.addTitle(makeSeries("tt0944947", QDate{}), QPixmap{});
-		SeasonUpdate su(storage);
+		LibraryUpdate su(storage);
 		QVERIFY(!su.isEmpty());
-		QSignalSpy spy(&su, &SeasonUpdate::apiKeyError);
-		su.updateSeries();
+		QSignalSpy spy(&su, &LibraryUpdate::apiKeyError);
+		su.run();
 		QCOMPARE(spy.count(), 1);
-	}
-
-	// -- finished series interval -----------------------------------------------
-
-	void finishedSeriesNotEligibleCheckedYesterday()
-	{
-		// Year "YYYY–YYYY" (en-dash) means the series ended → 30-day interval.
-		// Checked yesterday (1 day ago) must not be eligible.
-		AppStorage storage;
-		Title      t = makeSeries("tt0000001", QDate::currentDate().addDays(-1));
-		t.year = QString("2007") + QChar(0x2013) + "2013";
-		storage.addTitle(t, QPixmap{});
-		SeasonUpdate su(storage);
-		QVERIFY(su.isEmpty());
-	}
-
-	void finishedSeriesEligibleAfterThirtyOneDays()
-	{
-		AppStorage storage;
-		Title      t = makeSeries("tt0000001", QDate::currentDate().addDays(-31));
-		t.year = QString("2007") + QChar(0x2013) + "2013";
-		storage.addTitle(t, QPixmap{});
-		SeasonUpdate su(storage);
-		QVERIFY(!su.isEmpty());
-	}
-
-	void ongoingSeriesEligibleAfterOneDay()
-	{
-		// Year "YYYY–" (en-dash, no end year) means the series is ongoing → 1-day
-		// interval.
-		AppStorage storage;
-		Title      t = makeSeries("tt0000001", QDate::currentDate().addDays(-1));
-		t.year = QString("2019") + QChar(0x2013);
-		storage.addTitle(t, QPixmap{});
-		SeasonUpdate su(storage);
-		QVERIFY(!su.isEmpty());
 	}
 
 	// -- request cap and priority queue -----------------------------------------
@@ -272,9 +252,9 @@ class TestSeasonUpdate : public QObject
 		storage.addTitle(makeSeries("tt0000002", QDate{}), QPixmap{});
 		storage.addTitle(makeSeries("tt0000003", QDate{}), QPixmap{});
 		storage.addTitle(makeSeries("tt0000004", QDate{}), QPixmap{});
-		SeasonUpdate su(storage);
-		auto         g = storage.lock();
-		const auto  &overflow = storage.getUpdatePriority(g);
+		LibraryUpdate su(storage);
+		auto          g = storage.lock();
+		const auto   &overflow = storage.getUpdatePriority(g);
 		QCOMPARE((int)overflow.size(), 2);
 	}
 
@@ -287,9 +267,9 @@ class TestSeasonUpdate : public QObject
 		storage.addTitle(makeSeries("tt0000001", QDate{}), QPixmap{});
 		storage.addTitle(makeSeries("tt0000002", QDate{}), QPixmap{});
 		storage.addTitle(makeSeries("tt0000003", QDate{}), QPixmap{});
-		SeasonUpdate su(storage);
-		auto         g = storage.lock();
-		const auto  &overflow = storage.getUpdatePriority(g);
+		LibraryUpdate su(storage);
+		auto          g = storage.lock();
+		const auto   &overflow = storage.getUpdatePriority(g);
 		QCOMPARE((int)overflow.size(), 2);
 		QVERIFY(
 		    std::find(overflow.begin(), overflow.end(), QString("tt0000003")) ==
@@ -298,9 +278,9 @@ class TestSeasonUpdate : public QObject
 	}
 };
 
-#include "TestSeasonUpdate.moc"
+#include "TestLibraryUpdate.moc"
 
-QObject *createTestSeasonUpdate()
+QObject *createTestLibraryUpdate()
 {
-	return new TestSeasonUpdate();
+	return new TestLibraryUpdate();
 }

@@ -11,6 +11,20 @@
 #include <QUrl>
 #include <QWidgetAction>
 
+static QString notifTypeLabel(NotificationType type)
+{
+	switch(type)
+	{
+	case NotificationType::NewSeason:
+		return QStringLiteral("New Season");
+	case NotificationType::NewEpisode:
+		return QStringLiteral("New Episode");
+	case NotificationType::MovieRelease:
+		return QStringLiteral("Now available");
+	}
+	return {};
+}
+
 static constexpr int NOTIFICATIONS_WIDTH = 280;
 static constexpr int NOTIFICATION_POSTER_WIDTH = 48;
 static constexpr int NOTIFICATION_POSTER_HEIGHT = 72;
@@ -43,9 +57,9 @@ NotificationsCenter::NotificationsCenter(AppStorage &appStorage, QObject *parent
 
 	setupMenu();
 
-	for(const QString &imdbId : appStorage.getNotifications())
+	for(const Notification &notif : appStorage.getNotifications())
 	{
-		addNotificationRow(imdbId);
+		addNotificationRow(notif);
 	}
 
 	connect(
@@ -111,26 +125,26 @@ const Title *NotificationsCenter::findTitleForNotification(const QString &imdbId
 	return nullptr;
 }
 
-void NotificationsCenter::addNotificationRow(const QString &imdbId)
+void NotificationsCenter::addNotificationRow(const Notification &notif)
 {
-	if(knownNotificationIds.contains(imdbId))
+	if(knownNotificationIds.contains(notif.imdbId))
 	{
 		return;
 	}
 
-	const Title *match = findTitleForNotification(imdbId);
+	const Title *match = findTitleForNotification(notif.imdbId);
 
 	if(!match)
 	{
 		return;
 	}
 
-	knownNotificationIds.insert(imdbId);
+	knownNotificationIds.insert(notif.imdbId);
 
-	const QString newSeasonString =
-	    QStringLiteral("<span style=\"color: %1;\">New Season</span>")
-	        .arg(Palette::accentLight);
-	const QString text = match->title + "<br>" + newSeasonString;
+	const QString typeLabel = notifTypeLabel(notif.type);
+	const QString typeTag = QStringLiteral("<span style=\"color: %1;\">%2</span>")
+	                            .arg(Palette::accentLight, typeLabel);
+	const QString text = match->title + "<br>" + typeTag;
 
 	auto *row = new QWidget;
 	row->setObjectName("notificationRow");
@@ -143,7 +157,8 @@ void NotificationsCenter::addNotificationRow(const QString &imdbId)
 	    )
 	        .arg(Palette::surface)
 	);
-	row->setProperty("imdbId", imdbId);
+	row->setProperty("imdbId", notif.imdbId);
+	row->setProperty("notifType", static_cast<int>(notif.type));
 	row->installEventFilter(this);
 
 	auto *rowLayout = new QHBoxLayout(row);
@@ -179,9 +194,9 @@ void NotificationsCenter::addNotificationRow(const QString &imdbId)
 
 void NotificationsCenter::onNotificationsAdded()
 {
-	for(const QString &imdbId : appStorage.getNotifications())
+	for(const Notification &notif : appStorage.getNotifications())
 	{
-		addNotificationRow(imdbId);
+		addNotificationRow(notif);
 	}
 
 	notificationSound.play();
@@ -231,9 +246,11 @@ void NotificationsCenter::refreshStyle()
 		{
 			if(label->wordWrap())
 			{
-				const QString tag =
-				    QStringLiteral("<span style=\"color: %1;\">New Season</span>")
-				        .arg(Palette::accentLight);
+				const auto type =
+				    static_cast<NotificationType>(row->property("notifType").toInt());
+				const QString typeLabel = notifTypeLabel(type);
+				const QString tag = QStringLiteral("<span style=\"color: %1;\">%2</span>")
+				                        .arg(Palette::accentLight, typeLabel);
 				label->setText(match->title + "<br>" + tag);
 				label->setStyleSheet(QStringLiteral(
 				                         "color: %1; font-size: 14px; border: none; "

@@ -10,8 +10,8 @@ extern QObject *createTestAppStorage();
 extern QObject *createTestImportedFileValidator();
 extern QObject *createTestTitleSearch();
 extern QObject *createTestOmdbSearch();
-extern QObject *createTestSeasonUpdate();
-extern QObject *createTestSeasonUpdateController();
+extern QObject *createTestLibraryUpdate();
+extern QObject *createTestLibraryUpdateController();
 extern QObject *createTestAddBar();
 extern QObject *createTestAppMenuBar();
 extern QObject *createTestLibraryViewTopBar();
@@ -132,8 +132,8 @@ int main(int argc, char *argv[])
 	    createTestImportedFileValidator(),
 	    createTestTitleSearch(),
 	    createTestOmdbSearch(),
-	    createTestSeasonUpdate(),
-	    createTestSeasonUpdateController(),
+	    createTestLibraryUpdate(),
+	    createTestLibraryUpdateController(),
 	    createTestAddBar(),
 	    createTestAppMenuBar(),
 	    createTestLibraryViewTopBar(),

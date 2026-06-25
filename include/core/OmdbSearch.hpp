@@ -6,6 +6,7 @@
 #include "Title.hpp"
 
 #include <vector>
+#include <QDate>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QObject>
@@ -16,7 +17,6 @@
 struct ResultTitle
 {
 	QString title;
-	QString year;
 	QString plot;
 	QString imdbId;
 	QString type;
@@ -60,6 +60,15 @@ class OmdbSearch : public QObject
 	makeUrl(const QString &apiKey, const QString &param, const QString &value);
 	static bool isAuthError(const QString &message);
 	static bool isRateLimitError(const QString &message);
+	static bool fetchSeasonJson(
+	    QNetworkAccessManager &manager, const QString &apiKey, const QString &imdbId,
+	    int season, QJsonObject &out
+	);
+	static SearchErrorType findLastEpisode(
+	    QNetworkAccessManager &manager, const QString &apiKey, const QString &imdbId,
+	    LastEpisode &le, QString &nextSeasonDate, const QDate &showReleaseDate,
+	    int *requestsMade = nullptr
+	);
 
   signals:
 	void searchFinished();

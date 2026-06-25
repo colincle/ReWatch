@@ -1,5 +1,5 @@
-// Owns the season-update lifecycle: runs SeasonUpdate on a background thread,
-// enforces a minimum display duration, and retries on transient network failures.
+// Owns the library-update lifecycle: runs LibraryUpdate on a background thread
+// and retries on transient network failures.
 #pragma once
 
 #include "AppStorage.hpp"
@@ -7,14 +7,14 @@
 #include <QObject>
 #include <QTimer>
 
-class SeasonUpdate;
+class LibraryUpdate;
 
-class SeasonUpdateController : public QObject
+class LibraryUpdateController : public QObject
 {
 	Q_OBJECT
 
   public:
-	explicit SeasonUpdateController(AppStorage &appStorage, QObject *parent = nullptr);
+	explicit LibraryUpdateController(AppStorage &appStorage, QObject *parent = nullptr);
 
 	void start();
 
@@ -29,6 +29,6 @@ class SeasonUpdateController : public QObject
 	bool        running = false;
 
 	void checkConnectivityAndRetry();
-	void runAttempt(SeasonUpdate *queue);
+	void runAttempt(LibraryUpdate *queue);
 	void handleAttemptResult(const QString &errorMessage, bool isNetworkError);
 };

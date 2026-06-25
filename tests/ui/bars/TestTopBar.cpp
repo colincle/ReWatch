@@ -283,7 +283,7 @@ class TestTopBar : public QObject
 	void notificationDotVisibleWhenNotificationsExist()
 	{
 		AppStorage storage;
-		storage.addNotifications({"tt0000001"});
+		storage.addNotifications({Notification{"tt0000001"}});
 		TopBar bar(storage);
 		bar.show();
 		QCoreApplication::processEvents();
@@ -301,7 +301,7 @@ class TestTopBar : public QObject
 		auto *dot = notificationDot(bar);
 		QVERIFY(dot);
 		QVERIFY(!dot->isVisible());
-		storage.addNotifications({"tt0000001"});
+		storage.addNotifications({Notification{"tt0000001"}});
 		QCoreApplication::processEvents();
 		QVERIFY(dot->isVisible());
 	}
@@ -309,7 +309,7 @@ class TestTopBar : public QObject
 	void removingNotificationsHidesDot()
 	{
 		AppStorage storage;
-		storage.addNotifications({"tt0000001"});
+		storage.addNotifications({Notification{"tt0000001"}});
 		TopBar bar(storage);
 		bar.show();
 		QCoreApplication::processEvents();

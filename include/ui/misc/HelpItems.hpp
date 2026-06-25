@@ -14,14 +14,17 @@ inline QVector<HelpItem> helpItems()
 {
 	return {
 	    {
-	        "Notifications and new seasons",
+	        "Notifications",
 	        "Click the bell icon in the top bar to open the notification panel. "
-	        "A red dot appears on the bell automatically when a new season of a TV show "
-	        "in your library is detected - no need to check manually. "
-	        "Click any notification alert in the panel to jump directly to that title's "
-	        "detail page. "
+	        "A red dot appears on the bell automatically when something new is detected "
+	        "- no need to check manually. "
+	        "Click any alert in the panel to jump directly to that title's detail page. "
+	        "There are three notification types: "
+	        "New Season when a TV show gains a new season, "
+	        "New Episode when a new episode of the current season has aired, "
+	        "and Now available when a movie you added before its release date is out. "
 	        "Ongoing series are checked every day. "
-	        "Ended series - those with a complete year range such as 2007-2013 - are "
+	        "Ended series - those with no announced continuation - are "
 	        "checked once every 30 days since new seasons are rare but not impossible.",
 	    },
 	    {
@@ -51,7 +54,10 @@ inline QVector<HelpItem> helpItems()
 	        "Type a movie or TV show (series) name to search the OMDb database. "
 	        "Click the plus button to add the title to your library. "
 	        "If the title is already in your library, the same button removes it "
-	        "instead.",
+	        "instead. "
+	        "If you add a movie that has not been released yet, ReWatch tracks it "
+	        "automatically and sends you a Now available notification once the release "
+	        "date arrives.",
 	    },
 	    {
 	        "Uploading a custom poster image",
@@ -138,7 +144,7 @@ inline QVector<HelpItem> helpItems()
 	        "checked in a single day so you stay within that quota. "
 	        "Shows that could not be checked because the limit was reached are "
 	        "automatically prioritised on the next launch. "
-	        "The default limit is 500.",
+	        "The default limit is 900.",
 	    },
 	    {
 	        "Resetting and clearing all rankings",

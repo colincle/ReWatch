@@ -21,8 +21,7 @@ static int fuzzyScore(const QString &pattern, const QString &str)
 static bool titleLevenshteinMatches(const Title &t, const QString &query)
 {
 	return levenshteinMatches(query, t.title) || levenshteinMatches(query, t.actors) ||
-	       levenshteinMatches(query, t.director) || levenshteinMatches(query, t.year) ||
-	       levenshteinMatches(query, t.released);
+	       levenshteinMatches(query, t.director) || levenshteinMatches(query, t.released);
 }
 
 static int titleBestScore(const Title &t, const QString &query)
@@ -31,7 +30,6 @@ static int titleBestScore(const Title &t, const QString &query)
 	    fuzzyScore(query, t.title),
 	    fuzzyScore(query, t.actors),
 	    fuzzyScore(query, t.director),
-	    fuzzyScore(query, t.year),
 	    fuzzyScore(query, t.released),
 	});
 }

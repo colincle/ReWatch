@@ -1,5 +1,5 @@
 // Root window. Owns AppStorage and all top-level views; routes mode transitions
-// (normal / add / detail / ranking) and wires season update to the loading overlay.
+// (normal / add / detail / ranking) and wires the background library update.
 #pragma once
 
 #include "AppStorage.hpp"
@@ -11,7 +11,7 @@
 #include "TitleDetailView.hpp"
 #include "TopBar.hpp"
 #include "ErrorCard.hpp"
-#include "SeasonUpdateController.hpp"
+#include "LibraryUpdateController.hpp"
 
 #include <QMainWindow>
 
@@ -23,27 +23,25 @@ class MainWindow : public QMainWindow
 	MainWindow(QWidget *parent = nullptr);
 
   private:
-	AppStorage              appStorage;
-	AppMenuBar             *appMenuBar = nullptr;
-	ErrorCard              *errorCard = nullptr;
-	TopBar                 *topBar = nullptr;
-	AddBar                 *addBar = nullptr;
-	SearchResults          *searchResults = nullptr;
-	LibraryView            *libraryView = nullptr;
-	TitleDetailView        *titleDetailView = nullptr;
-	SeasonUpdateController *seasonUpdateController = nullptr;
-	QWidget                *seasonOverlay = nullptr;
-	RankingView            *rankingView = nullptr;
+	AppStorage               appStorage;
+	AppMenuBar              *appMenuBar = nullptr;
+	ErrorCard               *errorCard = nullptr;
+	TopBar                  *topBar = nullptr;
+	AddBar                  *addBar = nullptr;
+	SearchResults           *searchResults = nullptr;
+	LibraryView             *libraryView = nullptr;
+	TitleDetailView         *titleDetailView = nullptr;
+	LibraryUpdateController *libraryUpdateController = nullptr;
+	RankingView             *rankingView = nullptr;
 
-	void     buildUi();
-	void     onStyleChanged();
-	QWidget *makeSeasonOverlay();
-	void     setupLayout();
-	void     setupErrorCard();
-	void     setupMenuBar();
-	void     setupShortcuts();
-	void     connectSignals();
-	void     setupSeasonUpdateController();
+	void buildUi();
+	void onStyleChanged();
+	void setupLayout();
+	void setupErrorCard();
+	void setupMenuBar();
+	void setupShortcuts();
+	void connectSignals();
+	void setupLibraryUpdateController();
 
 	void enterAddMode();
 	void enterNormalMode();

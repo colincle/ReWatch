@@ -1,6 +1,6 @@
 // Persistent store for all app data. All writes go through this class and are saved to
 // disk immediately. getTitles/getTitlesMutable require a held LockGuard to prevent data
-// races with the background season-update thread.
+// races with the background library-update thread.
 #pragma once
 
 #include "Palette.hpp"
@@ -25,6 +25,19 @@ struct StreamingPlatform
 	QString url;
 	QString name;
 	QString image;
+};
+
+enum class NotificationType
+{
+	NewSeason,
+	NewEpisode,
+	MovieRelease
+};
+
+struct Notification
+{
+	QString          imdbId;
+	NotificationType type = NotificationType::NewSeason;
 };
 
 class AppStorage : public QObject
@@ -63,8 +76,9 @@ class AppStorage : public QObject
 
 	void save();
 
-	void addNotifications(const std::vector<QString> &values);
+	void addNotifications(const std::vector<Notification> &values);
 	void removeNotifications();
+	void removeFromUpcomingMovies(const std::vector<QString> &ids);
 	void insertRank(const QString &imdbId, int position, const QString &type);
 	void resetRankings(const QString &type);
 	void clearRank(const QString &imdbId);
@@ -83,12 +97,12 @@ class AppStorage : public QObject
 	{
 		return theme == "light" ? lightAccentColor : darkAccentColor;
 	}
-	WindowSize                  getWindowSize() const { return windowSize; }
-	[[nodiscard]] LockGuard     lock() { return LockGuard(mutex); }
-	const std::vector<Title>   &getTitles(LockGuard &) const { return titles; }
-	std::vector<Title>         &getTitlesMutable(LockGuard &) { return titles; }
-	const std::vector<QString> &getNotifications() const { return notifications; }
-	const std::vector<QString> &getUpdatePriority(LockGuard &) const
+	WindowSize                       getWindowSize() const { return windowSize; }
+	[[nodiscard]] LockGuard          lock() { return LockGuard(mutex); }
+	const std::vector<Title>        &getTitles(LockGuard &) const { return titles; }
+	std::vector<Title>              &getTitlesMutable(LockGuard &) { return titles; }
+	const std::vector<Notification> &getNotifications() const { return notifications; }
+	const std::vector<QString>      &getUpdatePriority(LockGuard &) const
 	{
 		return updatePriority;
 	}
@@ -96,7 +110,8 @@ class AppStorage : public QObject
 	{
 		return streamingPlatforms;
 	}
-	QString getKey() const;
+	const std::vector<QString> &getUpcomingMovies() const { return upcomingMovies; }
+	QString                     getKey() const;
 
   private:
 	QString                        appFilePath;
@@ -107,13 +122,14 @@ class AppStorage : public QObject
 	QString                        postersPath;
 	QString                        platformImagesPath;
 	int                            libraryCardWidth = 160;
-	int                            maxUpdateRequests = 500;
+	int                            maxUpdateRequests = 900;
 	int                            checksToday = 0;
 	QDate                          checksDate;
 	WindowSize                     windowSize;
 	std::vector<Title>             titles;
-	std::vector<QString>           notifications;
+	std::vector<Notification>      notifications;
 	std::vector<QString>           updatePriority;
+	std::vector<QString>           upcomingMovies;
 	std::vector<StreamingPlatform> streamingPlatforms;
 	mutable QRecursiveMutex        mutex;
 

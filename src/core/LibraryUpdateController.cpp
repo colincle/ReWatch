@@ -1,35 +1,32 @@
-// Drives the season-update lifecycle. Runs SeasonUpdate on a QtConcurrent thread,
-// holds the overlay visible for at least MIN_DISPLAY_MS, and retries network failures
-// every SEASON_RETRY_INTERVAL_MS until connectivity is restored.
-#include "SeasonUpdateController.hpp"
+// Drives the library-update lifecycle. Runs LibraryUpdate on a QtConcurrent thread and
+// retries network failures every UPDATE_RETRY_INTERVAL_MS until connectivity is restored.
+#include "LibraryUpdateController.hpp"
 #include "ErrorMessages.hpp"
-#include "SeasonUpdate.hpp"
+#include "LibraryUpdate.hpp"
 
-#include <QElapsedTimer>
 #include <QEventLoop>
 #include <QFutureWatcher>
 #include <QNetworkInformation>
 #include <QtConcurrent>
 
-static constexpr int SEASON_RETRY_INTERVAL_MS = 5000;
-static constexpr int MIN_DISPLAY_MS = 1000;
+static constexpr int UPDATE_RETRY_INTERVAL_MS = 5000;
 
-SeasonUpdateController::SeasonUpdateController(AppStorage &appStorage, QObject *parent)
+LibraryUpdateController::LibraryUpdateController(AppStorage &appStorage, QObject *parent)
     : QObject(parent), appStorage(appStorage)
 {
 	QNetworkInformation::loadDefaultBackend();
 
 	retryTimer = new QTimer(this);
-	retryTimer->setInterval(SEASON_RETRY_INTERVAL_MS);
+	retryTimer->setInterval(UPDATE_RETRY_INTERVAL_MS);
 	connect(
 	    retryTimer,
 	    &QTimer::timeout,
 	    this,
-	    &SeasonUpdateController::checkConnectivityAndRetry
+	    &LibraryUpdateController::checkConnectivityAndRetry
 	);
 }
 
-void SeasonUpdateController::checkConnectivityAndRetry()
+void LibraryUpdateController::checkConnectivityAndRetry()
 {
 	auto *networkInfo = QNetworkInformation::instance();
 
@@ -42,12 +39,12 @@ void SeasonUpdateController::checkConnectivityAndRetry()
 	start();
 }
 
-void SeasonUpdateController::start()
+void LibraryUpdateController::start()
 {
 	if(running)
 		return;
 
-	auto *queue = new SeasonUpdate(appStorage, this);
+	auto *queue = new LibraryUpdate(appStorage, this);
 
 	if(queue->isEmpty())
 	{
@@ -60,19 +57,16 @@ void SeasonUpdateController::start()
 	QTimer::singleShot(0, this, [this, queue]() { runAttempt(queue); });
 }
 
-void SeasonUpdateController::runAttempt(SeasonUpdate *queue)
+void LibraryUpdateController::runAttempt(LibraryUpdate *queue)
 {
 	emit updateStarted();
-
-	QElapsedTimer elapsed;
-	elapsed.start();
 
 	QString errorMessage;
 	bool    isNetworkError = false;
 
 	connect(
 	    queue,
-	    &SeasonUpdate::apiKeyError,
+	    &LibraryUpdate::apiKeyError,
 	    this,
 	    [&errorMessage, &isNetworkError]()
 	    {
@@ -84,11 +78,11 @@ void SeasonUpdateController::runAttempt(SeasonUpdate *queue)
 
 	connect(
 	    queue,
-	    &SeasonUpdate::networkError,
+	    &LibraryUpdate::networkError,
 	    this,
 	    [&errorMessage, &isNetworkError]()
 	    {
-		    errorMessage = SEASON_NETWORK_ERROR_MESSAGE;
+		    errorMessage = UPDATE_NETWORK_ERROR_MESSAGE;
 		    isNetworkError = true;
 	    },
 	    Qt::QueuedConnection
@@ -96,34 +90,17 @@ void SeasonUpdateController::runAttempt(SeasonUpdate *queue)
 
 	connect(
 	    queue,
-	    &SeasonUpdate::seriesUpdated,
+	    &LibraryUpdate::finished,
 	    &appStorage,
 	    &AppStorage::titlesUpdated,
 	    Qt::QueuedConnection
 	);
 
 	QEventLoop loop;
-	auto       future = QtConcurrent::run([queue]() { queue->updateSeries(); });
+	auto       future = QtConcurrent::run([queue]() { queue->run(); });
 
 	QFutureWatcher<void> watcher;
-	connect(
-	    &watcher,
-	    &QFutureWatcher<void>::finished,
-	    &loop,
-	    [&]()
-	    {
-		    const int remaining = MIN_DISPLAY_MS - static_cast<int>(elapsed.elapsed());
-
-		    if(remaining > 0)
-		    {
-			    QTimer::singleShot(remaining, &loop, &QEventLoop::quit);
-		    }
-		    else
-		    {
-			    loop.quit();
-		    }
-	    }
-	);
+	connect(&watcher, &QFutureWatcher<void>::finished, &loop, &QEventLoop::quit);
 	watcher.setFuture(future);
 	loop.exec();
 
@@ -133,7 +110,7 @@ void SeasonUpdateController::runAttempt(SeasonUpdate *queue)
 	handleAttemptResult(errorMessage, isNetworkError);
 }
 
-void SeasonUpdateController::handleAttemptResult(
+void LibraryUpdateController::handleAttemptResult(
     const QString &errorMessage, bool isNetworkError
 )
 {

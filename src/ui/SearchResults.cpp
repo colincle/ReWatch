@@ -127,6 +127,19 @@ void SearchResults::search(QString query)
 	omdbSearch->search();
 }
 
+static QString searchErrorMessage(SearchErrorType type)
+{
+	switch(type)
+	{
+	case SearchErrorType::AuthInvalid:
+		return API_KEY_ERROR_MESSAGE;
+	case SearchErrorType::RateLimited:
+		return RATE_LIMIT_ERROR_MESSAGE;
+	default:
+		return SEARCH_NETWORK_ERROR_MESSAGE;
+	}
+}
+
 void SearchResults::onSearchFinished(OmdbSearch *omdbSearch)
 {
 	const Results &r = omdbSearch->getResults();
@@ -138,17 +151,7 @@ void SearchResults::onSearchFinished(OmdbSearch *omdbSearch)
 		clearResultsLayout();
 		scrollArea->hide();
 		clearExtraLayoutWidgets();
-
-		QString message;
-		if(r.errorType == SearchErrorType::AuthInvalid)
-			message = API_KEY_ERROR_MESSAGE;
-		else if(r.errorType == SearchErrorType::RateLimited)
-			message = RATE_LIMIT_ERROR_MESSAGE;
-		else
-			message = SEARCH_NETWORK_ERROR_MESSAGE;
-
-		emit searchError(message);
-
+		emit searchError(searchErrorMessage(r.errorType));
 		omdbSearch->deleteLater();
 		return;
 	}
@@ -192,22 +195,6 @@ QLabel *makeTitleLabel(const ResultTitle &title)
 	label->setStyleSheet(
 	    QStringLiteral("color: %1; border: none; background: transparent;")
 	        .arg(Palette::textPrimary)
-	);
-	label->setFixedHeight(QFontMetrics(font).height());
-	return label;
-}
-
-QLabel *makeYearLabel(const ResultTitle &title)
-{
-	QFont font;
-	font.setPixelSize(15);
-	font.setBold(true);
-
-	auto *label = new QLabel(title.year);
-	label->setFont(font);
-	label->setStyleSheet(
-	    QStringLiteral("color: %1; border: none; background: transparent;")
-	        .arg(Palette::textSecondary)
 	);
 	label->setFixedHeight(QFontMetrics(font).height());
 	return label;
@@ -268,8 +255,6 @@ QWidget *SearchResults::makeTitleInfo(const ResultTitle &title)
 	layout->setSpacing(0);
 
 	layout->addWidget(makeTitleLabel(title));
-	layout->addSpacing(4);
-	layout->addWidget(makeYearLabel(title));
 	layout->addSpacing(10);
 	layout->addWidget(makePlotLabel(title), 1);
 

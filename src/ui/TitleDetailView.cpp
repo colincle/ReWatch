@@ -355,9 +355,8 @@ void TitleDetailView::addHeaderSection(QVBoxLayout *layout, const Title &title)
 	layout->addWidget(titleLabel);
 
 	const QString typeStr = title.type == "series" ? "TV Series" : "Movie";
-	auto         *subLabel =
-	    new QLabel(title.year.isEmpty() ? typeStr : title.year + "  -  " + typeStr);
-	QFont subFont;
+	auto         *subLabel = new QLabel(typeStr);
+	QFont         subFont;
 	subFont.setPixelSize(15);
 	subLabel->setFont(subFont);
 	subLabel->setStyleSheet(QStringLiteral("color: %1;").arg(Palette::textSecondary));
@@ -381,11 +380,10 @@ void TitleDetailView::addMetaSection(QVBoxLayout *layout, const Title &title)
 	add("Actors", title.actors);
 	if(title.type == "series")
 	{
-		add("Seasons", title.totalSeasons);
-		if(title.lastChecked.isValid())
-			layout->addWidget(
-			    makeRow("Last checked", title.lastChecked.toString("MMMM d, yyyy")).widget
-			);
+		if(title.lastEpisode.season > 0)
+			add("Seasons", QString::number(title.lastEpisode.season));
+		if(!title.nextSeasonDate.isEmpty())
+			layout->addWidget(makeRow("Next season", title.nextSeasonDate).widget);
 	}
 	if(title.rank > 0)
 		layout->addWidget(makeRow("Rank", QString::number(title.rank)).widget);

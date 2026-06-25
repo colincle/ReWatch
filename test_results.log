@@ -1,0 +1,16 @@
+QWARN  : TestTopBar::notificationDotHiddenWhenNoNotifications() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::notificationDotVisibleWhenNotificationsExist() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::addingNotificationsShowsDot() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::removingNotificationsHidesDot() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::notificationDotHiddenWhenNoNotifications() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::notificationDotVisibleWhenNotificationsExist() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::addingNotificationsShowsDot() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::removingNotificationsHidesDot() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::notificationDotHiddenWhenNoNotifications() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::notificationDotVisibleWhenNotificationsExist() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::addingNotificationsShowsDot() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::removingNotificationsHidesDot() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::notificationDotHiddenWhenNoNotifications() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::notificationDotVisibleWhenNotificationsExist() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::addingNotificationsShowsDot() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav
+QWARN  : TestTopBar::removingNotificationsHidesDot() QSoundEffect: Error decoding source file:../assets/sounds/notification.wav

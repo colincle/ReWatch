@@ -1,11 +1,9 @@
-// Orchestrates all view transitions and owns the season-update overlay.
-// buildUi() is called on construction and again on every theme change to rebuild
-// the full widget tree with fresh palette values.
+// Orchestrates all view transitions. buildUi() is called on construction and again on
+// every theme change to rebuild the full widget tree with fresh palette values.
 #include "MainWindow.hpp"
 #include "AppMenuBar.hpp"
 #include "TitleDetailView.hpp"
 #include "TopBar.hpp"
-#include "Spinner.hpp"
 #include "ErrorCard.hpp"
 #include "ErrorMessages.hpp"
 #include "Palette.hpp"
@@ -43,10 +41,10 @@ void MainWindow::buildUi()
 	connectSignals();
 	setupErrorCard();
 
-	if(!seasonUpdateController)
+	if(!libraryUpdateController)
 	{
-		setupSeasonUpdateController();
-		seasonUpdateController->start();
+		setupLibraryUpdateController();
+		libraryUpdateController->start();
 	}
 }
 
@@ -97,36 +95,15 @@ void MainWindow::setupErrorCard()
 	);
 }
 
-void MainWindow::setupSeasonUpdateController()
+void MainWindow::setupLibraryUpdateController()
 {
-	seasonUpdateController = new SeasonUpdateController(appStorage, this);
+	libraryUpdateController = new LibraryUpdateController(appStorage, this);
+
+	topBar->connectLibraryUpdate(*libraryUpdateController);
 
 	connect(
-	    seasonUpdateController,
-	    &SeasonUpdateController::updateStarted,
-	    this,
-	    [this]()
-	    {
-		    seasonOverlay = makeSeasonOverlay();
-		    appMenuBar->setEnabled(false);
-	    }
-	);
-
-	connect(
-	    seasonUpdateController,
-	    &SeasonUpdateController::updateFinished,
-	    this,
-	    [this]()
-	    {
-		    appMenuBar->setEnabled(true);
-		    seasonOverlay->deleteLater();
-		    seasonOverlay = nullptr;
-	    }
-	);
-
-	connect(
-	    seasonUpdateController,
-	    &SeasonUpdateController::updateFailed,
+	    libraryUpdateController,
+	    &LibraryUpdateController::updateFailed,
 	    this,
 	    [this](const QString &message)
 	    {
@@ -138,39 +115,9 @@ void MainWindow::setupSeasonUpdateController()
 	connect(
 	    &appStorage,
 	    &AppStorage::apiKeyChanged,
-	    seasonUpdateController,
-	    &SeasonUpdateController::start
+	    libraryUpdateController,
+	    &LibraryUpdateController::start
 	);
-}
-
-QWidget *MainWindow::makeSeasonOverlay()
-{
-	auto *overlay = new QWidget(this);
-	overlay->setGeometry(rect());
-	overlay->setStyleSheet(
-	    QStringLiteral("background-color: %1;").arg(Palette::bgPrimary)
-	);
-
-	auto *layout = new QVBoxLayout(overlay);
-
-	auto *spinner = new Spinner(Palette::accent, 8, overlay);
-	spinner->setFixedSize(48, 48);
-
-	auto *label = new QLabel("Looking for new TV show seasons...", overlay);
-	label->setStyleSheet(
-	    QStringLiteral("color: %1; font-size: 16px;").arg(Palette::textSecondary)
-	);
-	label->setAlignment(Qt::AlignCenter);
-
-	layout->addStretch();
-	layout->addWidget(spinner, 0, Qt::AlignCenter);
-	layout->addSpacing(16);
-	layout->addWidget(label, 0, Qt::AlignCenter);
-	layout->addStretch();
-
-	overlay->show();
-	overlay->raise();
-	return overlay;
 }
 
 void MainWindow::onStyleChanged()
@@ -286,8 +233,6 @@ void MainWindow::connectSignals()
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
 	QMainWindow::resizeEvent(event);
-	if(seasonOverlay)
-		seasonOverlay->setGeometry(rect());
 	if(rankingView)
 		rankingView->setGeometry(rect());
 }

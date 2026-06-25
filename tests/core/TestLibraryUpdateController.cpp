@@ -7,10 +7,10 @@
 
 #include "AppStorage.hpp"
 #include "ErrorMessages.hpp"
-#include "SeasonUpdateController.hpp"
+#include "LibraryUpdateController.hpp"
 #include "Title.hpp"
 
-class TestSeasonUpdateController : public QObject
+class TestLibraryUpdateController : public QObject
 {
 	Q_OBJECT
 
@@ -29,7 +29,7 @@ class TestSeasonUpdateController : public QObject
 		t.imdbId = imdbId;
 		t.title = "Test Series";
 		t.type = "series";
-		t.totalSeasons = "3";
+		t.lastEpisode.season = 3;
 		t.lastChecked = lastChecked;
 		return t;
 	}
@@ -53,13 +53,13 @@ class TestSeasonUpdateController : public QObject
 	void cleanupTestCase() { QDir(testDataDir()).removeRecursively(); }
 	void init() { QDir(testDataDir()).removeRecursively(); }
 
-	// -- start() with no eligible series --------------------------------------
+	// -- start() with no eligible titles --------------------------------------
 
 	void startWithEmptyStorageEmitsNothing()
 	{
-		AppStorage             storage;
-		SeasonUpdateController controller(storage);
-		QSignalSpy started(&controller, &SeasonUpdateController::updateStarted);
+		AppStorage              storage;
+		LibraryUpdateController controller(storage);
+		QSignalSpy started(&controller, &LibraryUpdateController::updateStarted);
 		controller.start();
 		QCoreApplication::processEvents();
 		QCOMPARE(started.count(), 0);
@@ -69,8 +69,8 @@ class TestSeasonUpdateController : public QObject
 	{
 		AppStorage storage;
 		storage.addTitle(makeMovie(), QPixmap{});
-		SeasonUpdateController controller(storage);
-		QSignalSpy started(&controller, &SeasonUpdateController::updateStarted);
+		LibraryUpdateController controller(storage);
+		QSignalSpy started(&controller, &LibraryUpdateController::updateStarted);
 		controller.start();
 		QCoreApplication::processEvents();
 		QCOMPARE(started.count(), 0);
@@ -80,8 +80,8 @@ class TestSeasonUpdateController : public QObject
 	{
 		AppStorage storage;
 		storage.addTitle(makeSeries("tt0944947", QDate::currentDate()), QPixmap{});
-		SeasonUpdateController controller(storage);
-		QSignalSpy started(&controller, &SeasonUpdateController::updateStarted);
+		LibraryUpdateController controller(storage);
+		QSignalSpy started(&controller, &LibraryUpdateController::updateStarted);
 		controller.start();
 		QCoreApplication::processEvents();
 		QCOMPARE(started.count(), 0);
@@ -94,9 +94,9 @@ class TestSeasonUpdateController : public QObject
 		AppStorage storage;
 		storage.setOmdbApiKey("invalidkey");
 		storage.addTitle(makeSeries("tt0944947", QDate{}), QPixmap{});
-		SeasonUpdateController controller(storage);
-		QSignalSpy started(&controller, &SeasonUpdateController::updateStarted);
-		QSignalSpy finished(&controller, &SeasonUpdateController::updateFinished);
+		LibraryUpdateController controller(storage);
+		QSignalSpy started(&controller, &LibraryUpdateController::updateStarted);
+		QSignalSpy finished(&controller, &LibraryUpdateController::updateFinished);
 
 		controller.start(); // sets running = true, schedules runAttempt
 		controller.start(); // must be ignored
@@ -112,9 +112,9 @@ class TestSeasonUpdateController : public QObject
 		AppStorage storage;
 		storage.setOmdbApiKey("invalidkey");
 		storage.addTitle(makeSeries("tt0944947", QDate{}), QPixmap{});
-		SeasonUpdateController controller(storage);
-		QSignalSpy started(&controller, &SeasonUpdateController::updateStarted);
-		QSignalSpy finished(&controller, &SeasonUpdateController::updateFinished);
+		LibraryUpdateController controller(storage);
+		QSignalSpy started(&controller, &LibraryUpdateController::updateStarted);
+		QSignalSpy finished(&controller, &LibraryUpdateController::updateFinished);
 		controller.start();
 		QVERIFY(finished.wait(10000));
 		QCOMPARE(started.count(), 1);
@@ -125,8 +125,8 @@ class TestSeasonUpdateController : public QObject
 		AppStorage storage;
 		storage.setOmdbApiKey("invalidkey");
 		storage.addTitle(makeSeries("tt0944947", QDate{}), QPixmap{});
-		SeasonUpdateController controller(storage);
-		QSignalSpy finished(&controller, &SeasonUpdateController::updateFinished);
+		LibraryUpdateController controller(storage);
+		QSignalSpy finished(&controller, &LibraryUpdateController::updateFinished);
 		controller.start();
 		QVERIFY(finished.wait(10000));
 		QCOMPARE(finished.count(), 1);
@@ -137,9 +137,9 @@ class TestSeasonUpdateController : public QObject
 		AppStorage storage;
 		storage.setOmdbApiKey("invalidkey");
 		storage.addTitle(makeSeries("tt0944947", QDate{}), QPixmap{});
-		SeasonUpdateController controller(storage);
-		QSignalSpy             failed(&controller, &SeasonUpdateController::updateFailed);
-		QSignalSpy finished(&controller, &SeasonUpdateController::updateFinished);
+		LibraryUpdateController controller(storage);
+		QSignalSpy failed(&controller, &LibraryUpdateController::updateFailed);
+		QSignalSpy finished(&controller, &LibraryUpdateController::updateFinished);
 		controller.start();
 		QVERIFY(finished.wait(10000));
 		QCOMPARE(failed.count(), 1);
@@ -150,9 +150,9 @@ class TestSeasonUpdateController : public QObject
 		AppStorage storage;
 		storage.setOmdbApiKey("invalidkey");
 		storage.addTitle(makeSeries("tt0944947", QDate{}), QPixmap{});
-		SeasonUpdateController controller(storage);
-		QSignalSpy             failed(&controller, &SeasonUpdateController::updateFailed);
-		QSignalSpy finished(&controller, &SeasonUpdateController::updateFinished);
+		LibraryUpdateController controller(storage);
+		QSignalSpy failed(&controller, &LibraryUpdateController::updateFailed);
+		QSignalSpy finished(&controller, &LibraryUpdateController::updateFinished);
 		controller.start();
 		QVERIFY(finished.wait(10000));
 		QVERIFY(!failed.isEmpty());
@@ -164,21 +164,21 @@ class TestSeasonUpdateController : public QObject
 		AppStorage storage;
 		storage.setOmdbApiKey("invalidkey");
 		storage.addTitle(makeSeries("tt0944947", QDate{}), QPixmap{});
-		SeasonUpdateController controller(storage);
+		LibraryUpdateController controller(storage);
 
 		QStringList order;
 		connect(
 		    &controller,
-		    &SeasonUpdateController::updateStarted,
+		    &LibraryUpdateController::updateStarted,
 		    [&order]() { order << "started"; }
 		);
 		connect(
 		    &controller,
-		    &SeasonUpdateController::updateFailed,
+		    &LibraryUpdateController::updateFailed,
 		    [&order](const QString &) { order << "failed"; }
 		);
 
-		QSignalSpy finished(&controller, &SeasonUpdateController::updateFinished);
+		QSignalSpy finished(&controller, &LibraryUpdateController::updateFinished);
 		controller.start();
 		QVERIFY(finished.wait(10000));
 
@@ -195,9 +195,9 @@ class TestSeasonUpdateController : public QObject
 		AppStorage storage;
 		storage.setOmdbApiKey(apiKey());
 		storage.addTitle(makeSeries("tt0944947", QDate{}), QPixmap{});
-		SeasonUpdateController controller(storage);
-		QSignalSpy started(&controller, &SeasonUpdateController::updateStarted);
-		QSignalSpy finished(&controller, &SeasonUpdateController::updateFinished);
+		LibraryUpdateController controller(storage);
+		QSignalSpy started(&controller, &LibraryUpdateController::updateStarted);
+		QSignalSpy finished(&controller, &LibraryUpdateController::updateFinished);
 		controller.start();
 		QVERIFY(finished.wait(35000));
 		QCOMPARE(started.count(), 1);
@@ -210,8 +210,8 @@ class TestSeasonUpdateController : public QObject
 		AppStorage storage;
 		storage.setOmdbApiKey(apiKey());
 		storage.addTitle(makeSeries("tt0944947", QDate{}), QPixmap{});
-		SeasonUpdateController controller(storage);
-		QSignalSpy finished(&controller, &SeasonUpdateController::updateFinished);
+		LibraryUpdateController controller(storage);
+		QSignalSpy finished(&controller, &LibraryUpdateController::updateFinished);
 		controller.start();
 		QVERIFY(finished.wait(35000));
 		QCOMPARE(finished.count(), 1);
@@ -224,18 +224,18 @@ class TestSeasonUpdateController : public QObject
 		AppStorage storage;
 		storage.setOmdbApiKey(apiKey());
 		storage.addTitle(makeSeries("tt0944947", QDate{}), QPixmap{});
-		SeasonUpdateController controller(storage);
-		QSignalSpy             failed(&controller, &SeasonUpdateController::updateFailed);
-		QSignalSpy finished(&controller, &SeasonUpdateController::updateFinished);
+		LibraryUpdateController controller(storage);
+		QSignalSpy failed(&controller, &LibraryUpdateController::updateFailed);
+		QSignalSpy finished(&controller, &LibraryUpdateController::updateFinished);
 		controller.start();
 		QVERIFY(finished.wait(35000));
 		QCOMPARE(failed.count(), 0);
 	}
 };
 
-#include "TestSeasonUpdateController.moc"
+#include "TestLibraryUpdateController.moc"
 
-QObject *createTestSeasonUpdateController()
+QObject *createTestLibraryUpdateController()
 {
-	return new TestSeasonUpdateController();
+	return new TestLibraryUpdateController();
 }

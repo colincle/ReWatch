@@ -4,6 +4,8 @@
 #include "AppStorage.hpp"
 #include "IconButton.hpp"
 #include "NotificationsCenter.hpp"
+#include "LibraryUpdateController.hpp"
+#include "Spinner.hpp"
 #include "SortEnums.hpp"
 #include "TextButton.hpp"
 
@@ -18,6 +20,7 @@ class TopBar : public QWidget
 
   public:
 	void refreshStyle();
+	void connectLibraryUpdate(LibraryUpdateController &controller);
 
   private:
 	AppStorage &appStorage;
@@ -25,6 +28,7 @@ class TopBar : public QWidget
 	IconButton          *notificationsButton;
 	QWidget             *notificationDot;
 	NotificationsCenter *notificationsCenter;
+	Spinner             *updateSpinner = nullptr;
 
 	IconButton *rankButton;
 	IconButton *sortButton;
@@ -35,6 +39,8 @@ class TopBar : public QWidget
 	void setupLayout();
 	void connectButtons();
 	void updateNotificationDot();
+	void swapToSpinner();
+	void swapToButton();
 
 	void onMoviesClicked();
 	void onTvShowsClicked();

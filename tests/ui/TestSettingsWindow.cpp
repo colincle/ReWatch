@@ -166,13 +166,13 @@ class TestSettingsWindow : public QObject
 
 	// ── daily limit spinbox ──────────────────────────────────────────────────
 
-	void dailyLimitSpinBoxDefaultValueIs500()
+	void dailyLimitSpinBoxDefaultValueIs900()
 	{
 		AppStorage     storage;
 		SettingsWindow w(storage);
 		auto          *spinBox = w.findChild<QSpinBox *>();
 		QVERIFY(spinBox != nullptr);
-		QCOMPARE(spinBox->value(), 500);
+		QCOMPARE(spinBox->value(), 900);
 	}
 
 	void dailyLimitSpinBoxUpdatesStorage()

@@ -11,6 +11,11 @@ class Spinner : public QWidget
 
   public:
 	explicit Spinner(QString color, int speed, QWidget *parent = nullptr);
+	void setColor(const QString &c)
+	{
+		color = c;
+		update();
+	}
 
   protected:
 	void paintEvent(QPaintEvent *) override;

@@ -144,6 +144,8 @@ void TopBar::refreshStyle()
 	        .arg(NOTIFICATION_DOT_SIZE / 2)
 	);
 	notificationsButton->updateColors(Palette::accent, Palette::surface);
+	if(updateSpinner)
+		updateSpinner->setColor(Palette::accent);
 	sortButton->updateColors(Palette::accent, Palette::surface);
 	rankButton->updateColors(Palette::accent, Palette::surface);
 	addButton->updateColors(Palette::accent, Palette::surface);
@@ -179,6 +181,51 @@ void TopBar::onTvShowsClicked()
 void TopBar::updateNotificationDot()
 {
 	notificationDot->setVisible(!appStorage.getNotifications().empty());
+}
+
+void TopBar::connectLibraryUpdate(LibraryUpdateController &controller)
+{
+	connect(
+	    &controller,
+	    &LibraryUpdateController::updateStarted,
+	    this,
+	    &TopBar::swapToSpinner
+	);
+	connect(
+	    &controller,
+	    &LibraryUpdateController::updateFinished,
+	    this,
+	    &TopBar::swapToButton
+	);
+}
+
+void TopBar::swapToSpinner()
+{
+	if(updateSpinner)
+		return;
+
+	updateSpinner = new Spinner(Palette::accent, 6, this);
+	updateSpinner->setFixedSize(notificationsButton->size());
+
+	qobject_cast<QHBoxLayout *>(layout())->replaceWidget(
+	    notificationsButton,
+	    updateSpinner
+	);
+	notificationsButton->hide();
+}
+
+void TopBar::swapToButton()
+{
+	if(!updateSpinner)
+		return;
+
+	qobject_cast<QHBoxLayout *>(layout())->replaceWidget(
+	    updateSpinner,
+	    notificationsButton
+	);
+	notificationsButton->show();
+	updateSpinner->deleteLater();
+	updateSpinner = nullptr;
 }
 
 void TopBar::onNotificationsClicked()

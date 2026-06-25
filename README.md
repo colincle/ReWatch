@@ -9,13 +9,13 @@ A desktop app to track your movies and TV shows. Built with C++ and Qt6.
 ## Features
 
 - **Library** — Browse your movies and TV shows in a poster grid, sortable by title, release date, last viewed, or rank. Zoom the card size in or out to your preference — it's remembered across sessions.
-- **Search & add** — Search the OMDb database by title and add results to your library in one click. Results show the title, year, and plot, and are limited to movies and TV shows.
+- **Search & add** — Search the OMDb database by title and add results to your library in one click. Results show the title and plot, and are limited to movies and TV shows.
 - **Title detail view** — Click any title to open a full detail page: poster, metadata, scrollable plot, and a Watch on section with your configured streaming platform buttons.
 - **Watched tracking** — Mark titles as watched or unwatched. Filter the library to show only titles left to watch.
 - **Missing poster recovery** — If OMDb has no poster for a title, the library card shows an upload button so you can pick a local image to use instead.
 - **Streaming platforms** — Add custom streaming services in Settings with a name, logo, and a search URL. Clicking a platform button on a title opens that platform's search pre-filled with the title. A "Try all" button opens all platforms at once. Up to 10 platforms supported.
-- **Season updates** — On launch, the app checks OMDb for new seasons on your tracked TV shows. Ongoing series are checked daily; ended series are checked every 30 days. Shows with a new season are automatically reset to unwatched. A configurable daily request limit (default 500) keeps usage within the OMDb free-tier quota; shows that couldn't be checked are prioritised on the next launch.
-- **Notifications** — New seasons show up as a badge on the bell icon; click it for a dropdown listing each show with its poster, with a sound played when one arrives.
+- **Library updates** — On launch, the app checks OMDb for new content. TV shows are checked for new seasons and episodes: ongoing series daily, ended series every 30 days. Movies added before their release date are tracked and checked once the date arrives. Shows with new content are automatically reset to unwatched. A configurable daily request limit keeps usage within the OMDb free-tier quota; titles that couldn't be checked are prioritised on the next launch.
+- **Notifications** — New seasons, new episodes, and movie releases show up as a badge on the bell icon; click it for a dropdown listing each title with its poster, with a sound played when one arrives.
 - **Light and dark theme** — Switch between themes in Settings. Each theme has its own independently configurable accent color.
 - **Export / Import** — Back up your full library (titles, posters, API key) as a zip file and restore it on any machine.
 - **Tournament ranking** — Head-to-head binary search ranking for watched titles. The app picks two titles and asks which you prefer; each answer narrows the search until the title finds its exact place in the ranking. A library of 1000 titles takes at most 10 comparisons per title. Movies and TV shows are ranked separately. Rankings can be reset per type in Settings. Individual titles can be unranked directly from the library card.
@@ -85,7 +85,7 @@ Streaming platform logos are saved in:
 
 The project has a [Qt Test](https://doc.qt.io/qt-6/qttest-index.html) suite — 31 suites, 300+ cases — covering:
 
-- **Core logic** — storage and persistence, library import validation, sorting / filtering / fuzzy search, OMDb URL building and error detection, and season-update eligibility.
+- **Core logic** — storage and persistence, library import validation, sorting / filtering / fuzzy search, OMDb URL building and error detection, and library-update eligibility.
 - **UI behavior** — widgets, bars, dialogs, and views, exercised through signals, state transitions, and visibility (not pixels).
 - **Utilities** — JSON file IO, Levenshtein distance, and SVG recoloring.
 
