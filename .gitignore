@@ -34,3 +34,6 @@ claudeRecommandations
 
 # Personal scripts
 ship.sh
+
+# Logs
+test_results.log
